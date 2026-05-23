@@ -13,11 +13,11 @@
             <p class="text-sm text-gray-500 mt-1">{{ number_format($stats['total']) }} عميل مسجل</p>
         </div>
         @canPermission('customers.create')
-        <a href="{{ route('customers.create') }}"
+        <button onclick="openAddCustomerModal()"
            class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition font-medium">
             <i class="fa fa-plus"></i>
             <span>إضافة عميل</span>
-        </a>
+        </button>
         @endcanPermission
     </div>
 
@@ -198,4 +198,82 @@
         @endif
     </div>
 </div>
+
+{{-- Modal: إضافة عميل --}}
+<div id="addCustomerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 class="text-lg font-bold text-gray-800">إضافة عميل جديد</h3>
+            <button onclick="closeAddCustomerModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <form id="addCustomerForm" class="p-4 space-y-4">
+            @csrf
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">الاسم *</label>
+                <input type="text" name="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">الهاتف</label>
+                <input type="text" name="phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">العنوان</label>
+                <input type="text" name="address" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            <input type="hidden" name="type" value="individual">
+            <input type="hidden" name="classification" value="regular">
+            <input type="hidden" name="is_active" value="1">
+            <div class="flex gap-2 pt-2">
+                <button type="submit" class="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition font-medium">
+                    إضافة
+                </button>
+                <button type="button" onclick="closeAddCustomerModal()" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition font-medium">
+                    إلغاء
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openAddCustomerModal() {
+    document.getElementById('addCustomerModal').classList.remove('hidden');
+    document.getElementById('addCustomerModal').classList.add('flex');
+}
+
+function closeAddCustomerModal() {
+    document.getElementById('addCustomerModal').classList.add('hidden');
+    document.getElementById('addCustomerModal').classList.remove('flex');
+    document.getElementById('addCustomerForm').reset();
+}
+
+document.getElementById('addCustomerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await fetch('/customers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            closeAddCustomerModal();
+            window.location.reload();
+        } else {
+            alert('حدث خطأ أثناء إضافة العميل');
+        }
+    } catch (error) {
+        alert('حدث خطأ في الاتصال');
+    }
+});
+</script>
+
 @endsection

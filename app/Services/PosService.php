@@ -209,9 +209,14 @@ class PosService
                 InvoiceItem::create([
                     'invoice_id'       => $invoice->id,
                     'product_id'       => $item['product']->id,
+                    'product_name'     => $item['product']->name_ar,
+                    'product_sku'      => $item['product']->sku,
+                    'unit'             => $item['product']->unit,
                     'quantity'         => $item['quantity'],
+                    'unit_price'       => $item['unit_price'],
                     'price'            => $item['price'],
                     'discount_percent' => $item['discount_percent'],
+                    'discount_amount'  => $item['discount_amount'],
                     'total'            => $item['total'],
                 ]);
             }
@@ -219,11 +224,14 @@ class PosService
             // تسجيل الدفعة النقدية في وحدة المدفوعات
             if ($cashAmount > 0) {
                 Payment::create([
-                    'invoice_id'  => $invoice->id,
-                    'customer_id' => $customerId,
-                    'amount'      => $cashAmount,
-                    'method'      => 'cash',
-                    'notes'       => "دفع POS — إيصال: {$transaction->receipt_number}",
+                    'payment_number' => Payment::generateNumber(),
+                    'invoice_id'     => $invoice->id,
+                    'customer_id'    => $customerId,
+                    'user_id'        => auth()->id(),
+                    'amount'         => $cashAmount,
+                    'method'         => 'cash',
+                    'payment_date'   => now(),
+                    'notes'          => "دفع POS — إيصال: {$transaction->receipt_number}",
                 ]);
             }
 

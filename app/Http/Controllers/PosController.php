@@ -45,8 +45,7 @@ class PosController extends Controller
         $categoryId = $request->category_id;
 
         $query = Product::query()
-            ->where('is_active', true)
-            ->where('quantity', '>', 0);
+            ->where('is_active', true);
 
         if ($q) {
             $query->where(function ($sub) use ($q) {
@@ -58,7 +57,17 @@ class PosController extends Controller
         }
 
         if ($categoryId) {
-            $query->where('category_id', $categoryId);
+            // Get the category and its children
+            $category = Category::find($categoryId);
+            if ($category) {
+                $categoryIds = [$categoryId];
+                if ($category->children()->exists()) {
+                    $categoryIds = array_merge($categoryIds, $category->children()->pluck('id')->toArray());
+                }
+                $query->whereIn('category_id', $categoryIds);
+            } else {
+                $query->where('category_id', $categoryId);
+            }
         }
 
         $products = $query->with('category')

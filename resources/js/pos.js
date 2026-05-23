@@ -4,6 +4,10 @@
  * توتال الكلاكلة
  */
 
+import Alpine from 'alpinejs';
+
+window.Alpine = Alpine;
+
 document.addEventListener('alpine:init', () => {
 
     Alpine.data('posApp', () => ({
@@ -29,6 +33,7 @@ document.addEventListener('alpine:init', () => {
         // النوافذ
         showPaymentModal:       false,
         showCustomerModal:      false,
+        showAddCustomerModal:   false,
         showCloseSessionModal:  false,
         showCashModal:          false,
         cashModalType:          'in',   // 'in' | 'out'
@@ -40,6 +45,9 @@ document.addEventListener('alpine:init', () => {
         customerSearch: '',
         customerResults:[],
         customerLoading:false,
+        newCustomerName:    '',
+        newCustomerPhone:   '',
+        newCustomerAddress: '',
         cashAmount:     0,
         cashReason:     '',
 
@@ -250,6 +258,59 @@ document.addEventListener('alpine:init', () => {
             this.showCustomerModal = true;
         },
 
+        openAddCustomerModal() {
+            this.newCustomerName    = '';
+            this.newCustomerPhone   = '';
+            this.newCustomerAddress = '';
+            this.showAddCustomerModal = true;
+        },
+
+        async createCustomer() {
+            if (!this.newCustomerName.trim()) {
+                this.toast('الاسم مطلوب', 'error');
+                return;
+            }
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (!csrfToken) {
+                    this.toast('خطأ في CSRF token', 'error');
+                    return;
+                }
+
+                const res = await fetch('/customers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: this.newCustomerName,
+                        phone: this.newCustomerPhone,
+                        address: this.newCustomerAddress,
+                        type: 'individual',
+                        classification: 'regular',
+                        is_active: true,
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    this.customer = data.customer;
+                    this.showAddCustomerModal = false;
+                    this.toast(`تم إضافة العميل: ${this.newCustomerName}`);
+                } else {
+                    this.toast(data.message || 'خطأ في إضافة العميل', 'error');
+                }
+            } catch (e) {
+                console.error('Error creating customer:', e);
+                this.toast('خطأ في الاتصال', 'error');
+            }
+        },
+
         async searchCustomers() {
             if (this.customerSearch.length < 2) { this.customerResults = []; return; }
             this.customerLoading = true;
@@ -280,7 +341,7 @@ document.addEventListener('alpine:init', () => {
                 this.toast('أضف منتجات إلى السلة أولاً', 'warning');
                 return;
             }
-            this.cashReceived       = '';
+            this.cashReceived       = this.grandTotal;
             this.cashPartial        = '';
             this.paymentType        = 'cash';
             this.showPaymentModal   = true;
@@ -422,3 +483,5 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 });
+
+Alpine.start();

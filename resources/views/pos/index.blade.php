@@ -166,9 +166,14 @@
         <div class="pos-customer-row">
             <span>👤</span>
             <template x-if="!customer">
-                <button class="customer-name" @click="openCustomerModal()" style="font-size:12px;background:none;border:none;text-align:right">
-                    + تحديد عميل (اختياري)
-                </button>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <button class="customer-name" @click="openCustomerModal()" style="font-size:12px;background:none;border:none;text-align:right">
+                        + تحديد عميل (اختياري)
+                    </button>
+                    <button class="btn-pos-secondary" @click="openAddCustomerModal()" style="font-size:11px;padding:4px 8px">
+                        + إضافة عميل
+                    </button>
+                </div>
             </template>
             <template x-if="customer">
                 <span class="customer-name" x-text="customer.name"></span>
@@ -404,6 +409,23 @@
         </div>
     </div>
 
+    {{-- ═══════════════════ MODAL: إضافة عميل ═════════════════════════ --}}
+    <div class="pos-modal-overlay" x-show="showAddCustomerModal" x-cloak @click.self="showAddCustomerModal=false">
+        <div class="pos-modal">
+            <h3>👤 إضافة عميل جديد</h3>
+            <label class="pos-label">الاسم *</label>
+            <input type="text" class="pos-input" x-model="newCustomerName" placeholder="اسم العميل">
+            <label class="pos-label">الهاتف</label>
+            <input type="text" class="pos-input" x-model="newCustomerPhone" placeholder="رقم الهاتف">
+            <label class="pos-label">العنوان</label>
+            <input type="text" class="pos-input" x-model="newCustomerAddress" placeholder="العنوان">
+            <div class="pos-modal-footer">
+                <button class="btn-pos-primary" @click="createCustomer()">إضافة</button>
+                <button class="btn-pos-cancel" @click="showAddCustomerModal=false">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     {{-- ═══════════════════ MODAL: الصندوق ════════════════════════ --}}
     <div class="pos-modal-overlay" x-show="showCashModal" x-cloak @click.self="showCashModal=false">
         <div class="pos-modal">
@@ -456,7 +478,6 @@
 
 </div>{{-- end pos-wrapper --}}
 
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 @vite(['resources/js/pos.js'])
 
 </body>

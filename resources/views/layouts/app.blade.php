@@ -13,8 +13,8 @@
             theme: {
                 extend: {
                     colors: {
-                        primary:  { DEFAULT: '#00838F', dark: '#005F6B', light: '#00ACC1' },
-                        sidebar:  '#00838F',
+                        primary:  { DEFAULT: '#146E6E', dark: '#0D5050', light: '#1A8F8F' },
+                        sidebar:  '#146E6E',
                     },
                     fontFamily: {
                         arabic: ['"Noto Sans Arabic"', 'Tajawal', 'sans-serif'],
@@ -43,7 +43,7 @@
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #00838F; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #146E6E; border-radius: 3px; }
 
         /* Sidebar active */
         .sidebar-link.active {

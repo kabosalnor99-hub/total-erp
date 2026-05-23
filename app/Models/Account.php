@@ -50,6 +50,11 @@ class Account extends Model
         return $this->hasMany(JournalEntryLine::class);
     }
 
+    public function journalEntryLines(): HasMany
+    {
+        return $this->hasMany(JournalEntryLine::class);
+    }
+
     public function vouchers(): HasMany
     {
         return $this->hasMany(Voucher::class);

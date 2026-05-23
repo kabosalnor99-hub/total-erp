@@ -38,12 +38,15 @@ class ReportController extends Controller
             'date_to'   => 'nullable|date|after_or_equal:date_from',
         ]);
 
-        $data = $this->reportService->trialBalance(
-            $request->date_from ?? now()->startOfMonth()->toDateString(),
-            $request->date_to   ?? now()->toDateString()
-        );
+        $fromDate = $request->date_from ?? now()->startOfMonth()->toDateString();
+        $toDate   = $request->date_to   ?? now()->toDateString();
 
-        return view('reports.financial.trial-balance', compact('data'));
+        $data = $this->reportService->trialBalance($fromDate, $toDate);
+
+        return view('reports.trial_balance', array_merge($data, [
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+        ]));
     }
 
     public function incomeStatement(Request $request): View
@@ -54,12 +57,15 @@ class ReportController extends Controller
             'date_to'   => 'nullable|date',
         ]);
 
-        $data = $this->reportService->incomeStatement(
-            $request->date_from ?? now()->startOfYear()->toDateString(),
-            $request->date_to   ?? now()->toDateString()
-        );
+        $fromDate = $request->date_from ?? now()->startOfYear()->toDateString();
+        $toDate   = $request->date_to   ?? now()->toDateString();
 
-        return view('reports.financial.income-statement', compact('data'));
+        $data = $this->reportService->incomeStatement($fromDate, $toDate);
+
+        return view('reports.income_statement', array_merge($data, [
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+        ]));
     }
 
     public function balanceSheet(Request $request): View
@@ -67,7 +73,7 @@ class ReportController extends Controller
         $date = $request->date ?? now()->toDateString();
         $data = $this->reportService->balanceSheet($date);
 
-        return view('reports.financial.balance-sheet', compact('data', 'date'));
+        return view('reports.balance_sheet', compact('data', 'date'));
     }
 
     public function generalLedger(Request $request): View
@@ -84,7 +90,7 @@ class ReportController extends Controller
             $request->date_to   ?? now()->toDateString()
         );
 
-        return view('reports.financial.general-ledger', compact('data'));
+        return view('reports.general_ledger', compact('data'));
     }
 
     public function cashFlow(Request $request): View
@@ -94,7 +100,7 @@ class ReportController extends Controller
             $request->date_to   ?? now()->toDateString()
         );
 
-        return view('reports.financial.cash-flow', compact('data'));
+        return view('reports.cash_flow', compact('data'));
     }
 
     // -------------------------------------------------------
@@ -148,13 +154,13 @@ class ReportController extends Controller
             $request->category_id
         );
 
-        return view('reports.inventory.stock-status', compact('data'));
+        return view('reports.stock-status', compact('data'));
     }
 
     public function lowStockReport(): View
     {
         $data = $this->reportService->lowStockProducts();
-        return view('reports.inventory.low-stock', compact('data'));
+        return view('reports.low-stock', compact('data'));
     }
 
     public function stockMovements(Request $request): View
@@ -165,13 +171,13 @@ class ReportController extends Controller
             $request->date_to   ?? now()->toDateString()
         );
 
-        return view('reports.inventory.movements', compact('data'));
+        return view('reports.movements', compact('data'));
     }
 
     public function slowMovingProducts(): View
     {
         $data = $this->reportService->slowMovingProducts(90);
-        return view('reports.inventory.slow-moving', compact('data'));
+        return view('reports.slow-moving', compact('data'));
     }
 
     // -------------------------------------------------------
@@ -185,7 +191,7 @@ class ReportController extends Controller
             $request->year  ?? now()->year
         );
 
-        return view('reports.hr.payroll-summary', compact('data'));
+        return view('reports.payroll-summary', compact('data'));
     }
 
     public function leaveReport(Request $request): View
@@ -195,7 +201,7 @@ class ReportController extends Controller
             $request->date_to   ?? now()->toDateString()
         );
 
-        return view('reports.hr.leave', compact('data'));
+        return view('reports.leave', compact('data'));
     }
 
     public function attendanceReport(Request $request): View
@@ -205,7 +211,7 @@ class ReportController extends Controller
             $request->year  ?? now()->year
         );
 
-        return view('reports.hr.attendance', compact('data'));
+        return view('reports.attendance', compact('data'));
     }
 
     // -------------------------------------------------------
@@ -219,7 +225,7 @@ class ReportController extends Controller
             $request->date_to   ?? now()->toDateString()
         );
 
-        return view('reports.purchases.summary', compact('data'));
+        return view('reports.purchase-summary', compact('data'));
     }
 
     public function supplierStatement(Request $request): View
@@ -232,7 +238,7 @@ class ReportController extends Controller
             $request->date_to   ?? now()->toDateString()
         );
 
-        return view('reports.purchases.supplier-statement', compact('data'));
+        return view('reports.supplier-statement', compact('data'));
     }
 
     // -------------------------------------------------------
@@ -247,7 +253,7 @@ class ReportController extends Controller
         ]);
 
         $data = $this->getReportData($reportType, $request);
-        $view = "reports.pdf.{$reportType}";
+        $view = "reports.{$reportType}";
 
         $pdf = Pdf::loadView($view, compact('data'))
             ->setPaper('a4', 'portrait')

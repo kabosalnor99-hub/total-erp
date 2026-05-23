@@ -120,8 +120,8 @@
             <div class="report-title">قائمة الدخل — Income Statement</div>
         </div>
         <div class="period">
-            <div>من: {{ \Carbon\Carbon::parse($from_date)->format('Y/m/d') }}</div>
-            <div>إلى: {{ \Carbon\Carbon::parse($to_date)->format('Y/m/d') }}</div>
+            <div>من: {{ \Carbon\Carbon::parse($fromDate)->format('Y/m/d') }}</div>
+            <div>إلى: {{ \Carbon\Carbon::parse($toDate)->format('Y/m/d') }}</div>
             <div style="margin-top:4px; opacity:.7;">طُبع: {{ now()->format('Y/m/d H:i') }}</div>
         </div>
     </div>
@@ -132,7 +132,7 @@
             {{ $is_profit ? '✓ صافي الربح' : '✗ صافي الخسارة' }}
         </div>
         <div class="result-amount">
-            {{ number_format(abs($net_income), 2) }} ج.س
+            {{ number_format(abs($net_profit), 2) }} ج.س
         </div>
     </div>
 
@@ -154,7 +154,7 @@
             <tfoot>
                 <tr class="revenue-total">
                     <td colspan="2">إجمالي الإيرادات</td>
-                    <td class="num">{{ number_format($total_revenues, 2) }}</td>
+                    <td class="num">{{ number_format($total_revenue, 2) }}</td>
                 </tr>
             </tfoot>
         </table>
@@ -178,7 +178,7 @@
             <tfoot>
                 <tr class="expense-total">
                     <td colspan="2">إجمالي المصروفات</td>
-                    <td class="num">{{ number_format($total_expenses, 2) }}</td>
+                    <td class="num">{{ number_format($total_expense, 2) }}</td>
                 </tr>
             </tfoot>
         </table>
@@ -189,15 +189,15 @@
         <tbody>
             <tr>
                 <td>إجمالي الإيرادات</td>
-                <td class="num" style="color:#065f46;">{{ number_format($total_revenues, 2) }}</td>
+                <td class="num" style="color:#065f46;">{{ number_format($total_revenue, 2) }}</td>
             </tr>
             <tr>
                 <td>إجمالي المصروفات</td>
-                <td class="num" style="color:#991b1b;">({{ number_format($total_expenses, 2) }})</td>
+                <td class="num" style="color:#991b1b;">({{ number_format($total_expense, 2) }})</td>
             </tr>
             <tr class="total-row">
                 <td>{{ $is_profit ? 'صافي الربح' : 'صافي الخسارة' }}</td>
-                <td class="num">{{ number_format(abs($net_income), 2) }}</td>
+                <td class="num">{{ number_format(abs($net_profit), 2) }}</td>
             </tr>
         </tbody>
     </table>

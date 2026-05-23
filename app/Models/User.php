@@ -47,6 +47,11 @@ class User extends Authenticatable
         return $this->hasMany(ActivityLog::class);
     }
 
+    public function posSessions()
+    {
+        return $this->hasMany(PosSession::class);
+    }
+
     // ─── الصلاحيات ───────────────────────────────────────────────
 
     public function hasRole(string $roleName): bool

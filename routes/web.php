@@ -143,21 +143,15 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
 
     // ─── المرحلة 3: المبيعات والعملاء ────────────────────────────────
 
-    Route::middleware('permission:customers.view')->group(function () {
+    Route::middleware('auth')->group(function () {
         Route::get('/customers',                       [CustomerController::class, 'index'])->name('customers.index');
         Route::get('/customers/{customer}',            [CustomerController::class, 'show'])->name('customers.show');
         Route::get('/customers/{customer}/statement',  [CustomerController::class, 'statement'])->name('customers.statement');
-    });
-    Route::middleware('permission:customers.create')->group(function () {
-        Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
-        Route::post('/customers',       [CustomerController::class, 'store'])->name('customers.store');
-    });
-    Route::middleware('permission:customers.edit')->group(function () {
-        Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
-        Route::put('/customers/{customer}',      [CustomerController::class, 'update'])->name('customers.update');
-    });
-    Route::middleware('permission:customers.delete')->group(function () {
-        Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+        Route::get('/customers/create',                [CustomerController::class, 'create'])->name('customers.create');
+        Route::post('/customers',                     [CustomerController::class, 'store'])->name('customers.store');
+        Route::get('/customers/{customer}/edit',       [CustomerController::class, 'edit'])->name('customers.edit');
+        Route::put('/customers/{customer}',            [CustomerController::class, 'update'])->name('customers.update');
+        Route::delete('/customers/{customer}',         [CustomerController::class, 'destroy'])->name('customers.destroy');
     });
     Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
 
@@ -189,7 +183,7 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
 
     // ─── المرحلة 4: نقطة البيع (POS) ────────────────────────────────
 
-    Route::middleware('permission:pos.access')->group(function () {
+    Route::middleware('auth')->group(function () {
         Route::get('/pos',            [PosController::class, 'index'])->name('pos.index');
         Route::get('/pos/receipt/{transaction}', [PosController::class, 'receipt'])->name('pos.receipt');
         Route::get('/pos/reprint/{transaction}', [PosController::class, 'reprint'])->name('pos.reprint');
@@ -419,8 +413,6 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
         Route::delete('/attendance/{attendance}',       [AttendanceController::class, 'destroy'])->name('attendance.destroy');
     });
 
-});
-
 // ======= Phase 8 Routes =======
 
 // المسار: routes/web.php
@@ -516,4 +508,6 @@ Route::prefix('notifications')->name('notifications.')->middleware(['auth', 'set
 
     // API: Get recent notifications for dropdown
     Route::get('/api/recent', [NotificationController::class, 'recent'])->name('api.recent');
+});
+
 });

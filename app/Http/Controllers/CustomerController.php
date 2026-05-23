@@ -83,6 +83,10 @@ class CustomerController extends Controller
             'details'    => "إضافة عميل: {$customer->name}",
         ]);
 
+        if ($request->wantsJson()) {
+            return response()->json(['customer' => $customer], 201);
+        }
+
         return redirect()->route('customers.show', $customer)
             ->with('success', 'تم إضافة العميل بنجاح.');
     }

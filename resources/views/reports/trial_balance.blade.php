@@ -133,8 +133,8 @@
             <div class="report-title">ميزان المراجعة — Trial Balance</div>
         </div>
         <div class="period">
-            <div>من: {{ \Carbon\Carbon::parse($from_date)->format('Y/m/d') }}</div>
-            <div>إلى: {{ \Carbon\Carbon::parse($to_date)->format('Y/m/d') }}</div>
+            <div>من: {{ \Carbon\Carbon::parse($fromDate)->format('Y/m/d') }}</div>
+            <div>إلى: {{ \Carbon\Carbon::parse($toDate)->format('Y/m/d') }}</div>
             <div style="margin-top:4px; opacity:.7;">طُبع: {{ now()->format('Y/m/d H:i') }}</div>
         </div>
     </div>

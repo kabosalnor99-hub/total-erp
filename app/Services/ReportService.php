@@ -35,8 +35,8 @@ class ReportService
     {
         $accounts = Account::with(['journalEntryLines' => function ($q) use ($dateFrom, $dateTo) {
             $q->whereHas('journalEntry', fn($je) => $je
-                ->whereDate('entry_date', '>=', $dateFrom)
-                ->whereDate('entry_date', '<=', $dateTo)
+                ->whereDate('date', '>=', $dateFrom)
+                ->whereDate('date', '<=', $dateTo)
                 ->where('status', 'posted')
             );
         }])->orderBy('code')->get();
@@ -82,8 +82,8 @@ class ReportService
         $revenues = Account::where('type', 'revenue')
             ->with(['journalEntryLines' => function ($q) use ($dateFrom, $dateTo) {
                 $q->whereHas('journalEntry', fn($je) => $je
-                    ->whereDate('entry_date', '>=', $dateFrom)
-                    ->whereDate('entry_date', '<=', $dateTo)
+                    ->whereDate('date', '>=', $dateFrom)
+                    ->whereDate('date', '<=', $dateTo)
                     ->where('status', 'posted')
                 );
             }])->get()->map(fn($a) => [
@@ -95,8 +95,8 @@ class ReportService
         $expenses = Account::where('type', 'expense')
             ->with(['journalEntryLines' => function ($q) use ($dateFrom, $dateTo) {
                 $q->whereHas('journalEntry', fn($je) => $je
-                    ->whereDate('entry_date', '>=', $dateFrom)
-                    ->whereDate('entry_date', '<=', $dateTo)
+                    ->whereDate('date', '>=', $dateFrom)
+                    ->whereDate('date', '<=', $dateTo)
                     ->where('status', 'posted')
                 );
             }])->get()->map(fn($a) => [
@@ -115,6 +115,7 @@ class ReportService
             'total_revenue' => $totalRevenue,
             'total_expense' => $totalExpense,
             'net_profit'    => $netProfit,
+            'is_profit'     => $netProfit >= 0,
             'date_from'     => $dateFrom,
             'date_to'       => $dateTo,
         ];
@@ -132,7 +133,7 @@ class ReportService
             $accounts = Account::where('type', $type)
                 ->with(['journalEntryLines' => function ($q) use ($date) {
                     $q->whereHas('journalEntry', fn($je) => $je
-                        ->whereDate('entry_date', '<=', $date)
+                        ->whereDate('date', '<=', $date)
                         ->where('status', 'posted')
                     );
                 }])->get()->map(fn($a) => [
@@ -163,8 +164,8 @@ class ReportService
     {
         $query = JournalEntryLine::with(['journalEntry', 'account'])
             ->whereHas('journalEntry', fn($je) => $je
-                ->whereDate('entry_date', '>=', $dateFrom)
-                ->whereDate('entry_date', '<=', $dateTo)
+                ->whereDate('date', '>=', $dateFrom)
+                ->whereDate('date', '<=', $dateTo)
                 ->where('status', 'posted')
             );
 
@@ -179,7 +180,7 @@ class ReportService
         foreach ($lines as $line) {
             $balance += $line->debit - $line->credit;
             $rows[] = [
-                'date'        => $line->journalEntry->entry_date->format('Y-m-d'),
+                'date'        => $line->journalEntry->date->format('Y-m-d'),
                 'reference'   => $line->journalEntry->reference_number,
                 'description' => $line->description ?? $line->journalEntry->description,
                 'debit'       => $line->debit,
