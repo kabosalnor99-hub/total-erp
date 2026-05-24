@@ -6,7 +6,6 @@ dockerfilePath = "Dockerfile"
 startCommand = "/start.sh"
 healthcheckPath = "/"
 healthcheckTimeout = 300
-restartPolicyType = "on-failure"
 
 [env]
 APP_ENV = "production"
