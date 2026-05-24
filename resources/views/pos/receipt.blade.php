@@ -16,12 +16,12 @@
             direction: rtl;
         }
 
-        /* ── حاوية الإيصال 80mm ── */
+        /* ── حاوية الإيصال 72mm ── */
         .receipt {
-            width: 80mm;
-            max-width: 80mm;
-            margin: 0 auto;
-            padding: 4mm 3mm;
+            width: 72mm;
+            max-width: 72mm;
+            margin: 0;
+            padding: 3mm 2mm;
         }
 
         /* ── الرأس ── */
@@ -136,6 +136,23 @@
             margin-bottom: 3px;
         }
 
+        /* ── الباركود ── */
+        .barcode-section {
+            text-align: center;
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed #000;
+        }
+        .barcode-section canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        .barcode-label {
+            font-size: 9px;
+            color: #666;
+            margin-top: 3px;
+        }
+
         /* ── حالة الإيصال الملغي ── */
         .cancelled-stamp {
             text-align: center;
@@ -170,12 +187,13 @@
 
         @media print {
             .no-print { display: none !important; }
-            body { background: #fff; }
-            .receipt { margin: 0; padding: 2mm; }
-            @page { margin: 0; size: 80mm auto; }
+            body { background: #fff; margin: 0; padding: 0; }
+            .receipt { margin: 0; padding: 1mm 1mm; width: 72mm; }
+            @page { margin: 0; size: 72mm auto; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </head>
 <body>
 
@@ -335,9 +353,31 @@
         </div>
     </div>
 
+    {{-- الباركود --}}
+    <div class="barcode-section">
+        <canvas id="barcode"></canvas>
+        <div class="barcode-label">{{ $transaction->receipt_number }}</div>
+    </div>
+
 </div>{{-- .receipt --}}
 
 <script>
+    // توليد الباركود
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            JsBarcode("#barcode", "{{ $transaction->receipt_number }}", {
+                format: "CODE128",
+                lineColor: "#000",
+                width: 2,
+                height: 40,
+                displayValue: false,
+                margin: 0
+            });
+        } catch (e) {
+            console.error('Error generating barcode:', e);
+        }
+    });
+
     // طباعة تلقائية عند فتح الصفحة إذا جاء من POS مباشرة
     @if(request()->has('auto_print'))
     window.onload = function() { window.print(); }

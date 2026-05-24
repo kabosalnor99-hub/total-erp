@@ -129,13 +129,15 @@ class ReportService
         $types = ['asset', 'liability', 'equity'];
         $data  = [];
 
+        // Get all journal entry lines up to the given date in one query
+        $journalEntryIds = \App\Models\JournalEntry::whereDate('date', '<=', $date)
+            ->where('status', 'posted')
+            ->pluck('id');
+
         foreach ($types as $type) {
             $accounts = Account::where('type', $type)
-                ->with(['journalEntryLines' => function ($q) use ($date) {
-                    $q->whereHas('journalEntry', fn($je) => $je
-                        ->whereDate('date', '<=', $date)
-                        ->where('status', 'posted')
-                    );
+                ->with(['journalEntryLines' => function ($q) use ($journalEntryIds) {
+                    $q->whereIn('entry_id', $journalEntryIds);
                 }])->get()->map(fn($a) => [
                     'code'    => $a->code,
                     'name'    => app()->getLocale() === 'ar' ? $a->name_ar : $a->name_en,
@@ -205,14 +207,14 @@ class ReportService
     {
         // Operating: Sales receipts
         $salesReceipts = Voucher::where('type', 'receipt')
-            ->whereDate('voucher_date', '>=', $dateFrom)
-            ->whereDate('voucher_date', '<=', $dateTo)
+            ->whereDate('date', '>=', $dateFrom)
+            ->whereDate('date', '<=', $dateTo)
             ->sum('amount');
 
         // Operating: Purchase payments
         $purchasePayments = Voucher::where('type', 'payment')
-            ->whereDate('voucher_date', '>=', $dateFrom)
-            ->whereDate('voucher_date', '<=', $dateTo)
+            ->whereDate('date', '>=', $dateFrom)
+            ->whereDate('date', '<=', $dateTo)
             ->sum('amount');
 
         // Operating: Payroll

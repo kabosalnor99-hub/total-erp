@@ -9,6 +9,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/pos.css'])
+    <style>
+        .num-ltr {
+            direction: ltr;
+            text-align: right;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .num-ltr input {
+            direction: ltr;
+            text-align: right;
+        }
+    </style>
 </head>
 <body>
 
@@ -28,14 +39,14 @@
         </a>
 
         <div class="session-info">
-            <span>جلسة #{{ $session->id }}</span>
+            <span>جلسة #<span class="num-ltr">{{ $session->id }}</span></span>
             <span class="session-badge">مفتوحة</span>
-            <span>{{ $session->opened_at->format('H:i') }}</span>
+            <span class="num-ltr">{{ $session->opened_at->format('H:i') }}</span>
         </div>
 
         <div class="session-info" style="gap:4px">
             <span>الصندوق:</span>
-            <span style="color:#4FB3C0;font-weight:700" x-text="fmt(sessionBalance) + ' ج.س'"></span>
+            <span class="num-ltr" style="color:#4FB3C0;font-weight:700" x-text="fmt(sessionBalance) + ' ج.س'"></span>
         </div>
 
         <div class="session-info">
@@ -126,18 +137,16 @@
                         <span class="stock-badge low">كمية قليلة</span>
                     </template>
 
-                    {{-- صورة --}}
-                    <template x-if="p.image_url">
-                        <img :src="p.image_url" :alt="p.name" loading="lazy">
-                    </template>
-                    <template x-if="!p.image_url">
-                        <div class="product-card-img-placeholder">🔧</div>
-                    </template>
+                    {{-- صورة - معطلة لتحسين السرعة --}}
+                    <div class="product-card-img-placeholder">🔧</div>
 
                     <div class="product-card-body">
                         <div class="product-card-name" x-text="p.name"></div>
-                        <div class="product-card-price" x-text="fmt(p.sale_price) + ' ج.س'"></div>
-                        <div class="product-card-stock" x-text="'متاح: ' + p.quantity"></div>
+                        <template x-if="p.category">
+                            <div class="product-card-category" x-text="p.category"></div>
+                        </template>
+                        <div class="product-card-price num-ltr" x-text="fmt(p.sale_price) + ' ج.س'"></div>
+                        <div class="product-card-stock num-ltr" x-text="'متاح: ' + p.quantity"></div>
                     </div>
                 </div>
             </template>
@@ -151,7 +160,7 @@
         <div class="pos-cart-header">
             <h2>🛒 السلة</h2>
             <div style="display:flex;align-items:center;gap:8px">
-                <span class="cart-count" x-text="cartCount"></span>
+                <span class="cart-count num-ltr" x-text="cartCount"></span>
                 <button
                     class="btn-pos-secondary"
                     style="padding:4px 10px;font-size:11px"
@@ -195,7 +204,7 @@
                 <div class="cart-item">
                     <div style="flex:1;min-width:0">
                         <div class="cart-item-name" x-text="item.name"></div>
-                        <div class="cart-item-sub">
+                        <div class="cart-item-sub num-ltr">
                             <span x-text="fmt(item.price) + ' × ' + item.quantity"></span>
                             <template x-if="item.discount_percent > 0">
                                 <span style="color:#FB8C00;margin-right:4px" x-text="' خصم ' + item.discount_percent + '%'"></span>
@@ -206,7 +215,7 @@
                             <label style="font-size:10px;color:#7EADB8">خصم%</label>
                             <input
                                 type="number" min="0" max="100" step="1"
-                                class="qty-input"
+                                class="qty-input num-ltr"
                                 style="width:44px"
                                 :value="item.discount_percent"
                                 @change="updateItemDiscount(idx, $event.target.value)"
@@ -219,14 +228,14 @@
                         <button class="qty-btn" @click="changeQty(idx, -1)">−</button>
                         <input
                             type="number" min="0.001" step="1"
-                            class="qty-input"
+                            class="qty-input num-ltr"
                             :value="item.quantity"
                             @change="updateQty(idx, $event.target.value)"
                         >
                         <button class="qty-btn" @click="changeQty(idx, 1)">+</button>
                     </div>
 
-                    <div class="cart-item-total" x-text="fmt(item.total)"></div>
+                    <div class="cart-item-total num-ltr" x-text="fmt(item.total)"></div>
 
                     <button class="btn-remove-item" @click="removeFromCart(idx)" title="حذف">✕</button>
                 </div>
@@ -237,26 +246,26 @@
         <div class="pos-cart-summary">
             <div class="summary-row">
                 <span>الإجمالي الفرعي</span>
-                <span x-text="fmt(subtotal) + ' ج.س'"></span>
+                <span class="num-ltr" x-text="fmt(subtotal) + ' ج.س'"></span>
             </div>
 
             {{-- خصم الفاتورة --}}
             <div class="discount-row">
                 <label>خصم الفاتورة %</label>
-                <input type="number" min="0" max="100" step="0.5" class="discount-input" x-model="discountPercent" placeholder="0">
-                <span style="font-size:11px;color:#E53935" x-text="totalDiscount > 0 ? '−' + fmt(totalDiscount) + ' ج.س' : ''"></span>
+                <input type="number" min="0" max="100" step="0.5" class="discount-input num-ltr" x-model="discountPercent" placeholder="0">
+                <span class="num-ltr" style="font-size:11px;color:#E53935" x-text="totalDiscount > 0 ? '−' + fmt(totalDiscount) + ' ج.س' : ''"></span>
             </div>
 
             <template x-if="taxPercent > 0">
                 <div class="summary-row tax">
-                    <span>ضريبة (<span x-text="taxPercent"></span>%)</span>
-                    <span x-text="fmt(taxAmount) + ' ج.س'"></span>
+                    <span>ضريبة (<span class="num-ltr" x-text="taxPercent"></span>%)</span>
+                    <span class="num-ltr" x-text="fmt(taxAmount) + ' ج.س'"></span>
                 </div>
             </template>
 
             <div class="summary-row total">
                 <span>الإجمالي</span>
-                <span x-text="fmt(grandTotal) + ' ج.س'"></span>
+                <span class="num-ltr" x-text="fmt(grandTotal) + ' ج.س'"></span>
             </div>
 
             <button
@@ -265,6 +274,15 @@
                 @click="openPaymentModal()"
             >
                 💳 الدفع
+            </button>
+
+            <button
+                class="btn-pos-secondary"
+                style="margin-top:8px"
+                :disabled="cart.length === 0"
+                @click="saveDraft()"
+            >
+                📋 فاتورة مبدئية
             </button>
 
             <div class="pos-action-btns">
@@ -283,7 +301,7 @@
             <div style="background:#0F1E24;border-radius:10px;padding:12px;margin-bottom:16px">
                 <div class="summary-row" style="font-size:13px">
                     <span style="color:#7EADB8">الإجمالي</span>
-                    <span style="color:#4FB3C0;font-size:18px;font-weight:800" x-text="fmt(grandTotal) + ' ج.س'"></span>
+                    <span class="num-ltr" style="color:#4FB3C0;font-size:18px;font-weight:800" x-text="fmt(grandTotal) + ' ج.س'"></span>
                 </div>
                 <template x-if="customer">
                     <div class="summary-row" style="font-size:12px;margin-top:4px">
@@ -310,11 +328,11 @@
             <template x-if="paymentType==='cash'">
                 <div>
                     <label class="pos-label">المبلغ المستلم (ج.س)</label>
-                    <input type="number" min="0" step="0.01" class="pos-input" x-model="cashReceived" placeholder="0.00" autofocus>
+                    <input type="number" min="0" step="0.01" class="pos-input num-ltr" x-model="cashReceived" placeholder="0.00" autofocus>
                     <template x-if="(parseFloat(cashReceived)||0) >= grandTotal">
                         <div class="change-display">
                             <div class="label">المبلغ المرتجع</div>
-                            <div class="amount" x-text="fmt(changeAmount) + ' ج.س'"></div>
+                            <div class="amount num-ltr" x-text="fmt(changeAmount) + ' ج.س'"></div>
                         </div>
                     </template>
                 </div>
@@ -343,17 +361,17 @@
             <template x-if="paymentType==='split'">
                 <div>
                     <label class="pos-label">المبلغ النقدي (ج.س)</label>
-                    <input type="number" min="0" step="0.01" class="pos-input" x-model="cashPartial" placeholder="0.00">
+                    <input type="number" min="0" step="0.01" class="pos-input num-ltr" x-model="cashPartial" placeholder="0.00">
                     <div style="font-size:12px;color:#7EADB8;margin-top:6px;display:flex;justify-content:space-between">
                         <span>الجزء الآجل:</span>
-                        <span style="color:#4FB3C0" x-text="fmt(Math.max(0, grandTotal - (parseFloat(cashPartial)||0))) + ' ج.س'"></span>
+                        <span class="num-ltr" style="color:#4FB3C0" x-text="fmt(Math.max(0, grandTotal - (parseFloat(cashPartial)||0))) + ' ج.س'"></span>
                     </div>
                     <label class="pos-label">المبلغ المستلم نقداً (ج.س)</label>
-                    <input type="number" min="0" step="0.01" class="pos-input" x-model="cashReceived" placeholder="0.00">
+                    <input type="number" min="0" step="0.01" class="pos-input num-ltr" x-model="cashReceived" placeholder="0.00">
                     <template x-if="changeAmount > 0">
                         <div class="change-display">
                             <div class="label">الباقي</div>
-                            <div class="amount" x-text="fmt(changeAmount) + ' ج.س'"></div>
+                            <div class="amount num-ltr" x-text="fmt(changeAmount) + ' ج.س'"></div>
                         </div>
                     </template>
                 </div>

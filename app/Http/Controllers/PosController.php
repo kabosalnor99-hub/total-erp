@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\PosSession;
 use App\Models\PosTransaction;
 use App\Models\Product;
@@ -25,7 +27,7 @@ class PosController extends Controller
     public function index()
     {
         $session    = PosSession::currentOpen();
-        $categories = Category::whereNull('parent_id')->orderBy('name_ar')->get();
+        $categories = Category::where('is_active', true)->orderBy('name_ar')->get();
 
         if (! $session) {
             return view('pos.open-session');
@@ -190,6 +192,100 @@ class PosController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * حفظ فاتورة مبدئية (AJAX)
+     */
+    public function saveDraftInvoice(Request $request): JsonResponse
+    {
+        $request->validate([
+            'items'              => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.quantity'   => ['required', 'numeric', 'min:0.001'],
+            'items.*.price'      => ['required', 'numeric', 'min:0'],
+            'customer_id'        => ['nullable', 'exists:customers,id'],
+            'discount_percent'   => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'tax_percent'        => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'notes'              => ['nullable', 'string'],
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            // حساب المجاميع
+            $subtotal = 0;
+            foreach ($request->items as $item) {
+                $subtotal += $item['quantity'] * $item['price'];
+            }
+
+            $discountAmount = $request->discount_percent > 0
+                ? round($subtotal * $request->discount_percent / 100, 2)
+                : 0;
+
+            $afterDiscount = $subtotal - $discountAmount;
+
+            $taxAmount = $request->tax_percent > 0
+                ? round($afterDiscount * $request->tax_percent / 100, 2)
+                : 0;
+
+            $total = $afterDiscount + $taxAmount;
+
+            // إنشاء الفاتورة المبدئية
+            $invoice = Invoice::create([
+                'invoice_number'   => Invoice::generateNumber(),
+                'customer_id'      => $request->customer_id,
+                'user_id'          => auth()->id(),
+                'type'             => 'credit',
+                'status'           => 'draft',
+                'subtotal'         => $subtotal,
+                'discount_amount'  => $discountAmount,
+                'discount_percent' => $request->discount_percent ?? 0,
+                'tax_percent'      => $request->tax_percent ?? 0,
+                'tax_amount'       => $taxAmount,
+                'total'            => $total,
+                'paid_amount'      => 0,
+                'remaining_amount' => $total,
+                'notes'            => $request->notes,
+            ]);
+
+            // إضافة عناصر الفاتورة
+            foreach ($request->items as $item) {
+                $product = Product::find($item['product_id']);
+
+                $itemTotal = $item['quantity'] * $item['price'];
+                $itemDiscount = $item['discount_percent'] ?? 0;
+                $itemDiscountAmount = round($itemTotal * $itemDiscount / 100, 2);
+                $finalPrice = $itemTotal - $itemDiscountAmount;
+
+                InvoiceItem::create([
+                    'invoice_id'       => $invoice->id,
+                    'product_id'       => $item['product_id'],
+                    'product_name'     => $product->name_ar,
+                    'product_sku'      => $product->sku,
+                    'unit'             => $product->unit,
+                    'quantity'         => $item['quantity'],
+                    'unit_price'       => $item['price'],
+                    'discount_percent' => $itemDiscount,
+                    'discount_amount'  => $itemDiscountAmount,
+                    'price'            => $finalPrice,
+                    'total'            => $finalPrice,
+                ]);
+            }
+
+            \DB::commit();
+
+            return response()->json([
+                'success'      => true,
+                'message'      => 'تم حفظ الفاتورة المبدئية بنجاح',
+                'invoice_id'   => $invoice->id,
+                'invoice_url'  => route('invoices.show', $invoice),
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
     }

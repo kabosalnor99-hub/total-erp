@@ -188,6 +188,7 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
         Route::get('/pos/receipt/{transaction}', [PosController::class, 'receipt'])->name('pos.receipt');
         Route::get('/pos/reprint/{transaction}', [PosController::class, 'reprint'])->name('pos.reprint');
         Route::post('/pos/sale',                         [PosController::class, 'processSale'])->name('pos.sale');
+        Route::post('/pos/draft',                        [PosController::class, 'saveDraftInvoice'])->name('pos.draft');
         Route::post('/pos/cancel/{transaction}',         [PosController::class, 'cancelTransaction'])->name('pos.cancel');
         Route::get('/pos/products/search',   [PosController::class, 'searchProducts'])->name('pos.products.search');
         Route::get('/pos/products/barcode',  [PosController::class, 'findByBarcode'])->name('pos.products.barcode');

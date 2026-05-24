@@ -227,6 +227,14 @@ html, body {
     font-weight: 700;
     color: var(--pos-teal-light);
 }
+.product-card-category {
+    font-size: 10px;
+    color: var(--pos-text-muted);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .product-card-stock {
     font-size: 10px;
     color: var(--pos-text-muted);
@@ -731,5 +739,207 @@ html, body {
         max-height: 45vh;
         border-right: none;
         border-top: 1px solid var(--pos-border);
+    }
+}
+
+/* ─── Mobile Responsive (Phones) ───────────────────────────────────── */
+@media (max-width: 480px) {
+    /* Header */
+    .pos-header {
+        padding: 0 8px;
+        gap: 6px;
+    }
+    .pos-header .logo {
+        font-size: 13px;
+    }
+    .pos-header .logo span {
+        display: none;
+    }
+    .pos-header .session-info {
+        font-size: 10px;
+        gap: 4px;
+    }
+    .pos-header .session-badge {
+        font-size: 9px;
+        padding: 1px 6px;
+    }
+    .pos-header .header-actions {
+        gap: 4px;
+    }
+    .pos-header .header-actions button,
+    .pos-header .header-actions a {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    /* Search */
+    .pos-search-bar {
+        padding: 6px 8px;
+    }
+    .pos-search-input {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+
+    /* Categories */
+    .pos-categories {
+        padding: 6px 8px;
+        gap: 4px;
+    }
+    .pos-cat-btn {
+        padding: 3px 10px;
+        font-size: 11px;
+    }
+
+    /* Product Grid */
+    .pos-grid {
+        padding: 6px 8px;
+        gap: 8px;
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .product-card-img-placeholder {
+        height: 60px;
+        font-size: 24px;
+    }
+    .product-card-body {
+        padding: 6px;
+    }
+    .product-card-name {
+        font-size: 11px;
+    }
+    .product-card-price {
+        font-size: 12px;
+    }
+    .product-card-stock {
+        font-size: 9px;
+    }
+
+    /* Cart */
+    .pos-cart-header {
+        padding: 8px 10px;
+    }
+    .pos-cart-header h2 {
+        font-size: 13px;
+    }
+    .cart-count {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+
+    .pos-customer-row {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+    .pos-customer-row .customer-name {
+        font-size: 12px;
+    }
+
+    .cart-item {
+        padding: 6px 10px;
+        gap: 8px;
+    }
+    .cart-item-name {
+        font-size: 11px;
+    }
+    .cart-item-sub {
+        font-size: 9px;
+    }
+    .cart-item-total {
+        font-size: 12px;
+    }
+
+    .qty-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+    .qty-input {
+        width: 32px;
+        font-size: 12px;
+    }
+
+    /* Summary */
+    .pos-cart-summary {
+        padding: 8px 10px;
+    }
+    .summary-row {
+        font-size: 11px;
+    }
+    .summary-row.total {
+        font-size: 16px;
+    }
+
+    .discount-row {
+        gap: 4px;
+    }
+    .discount-row label {
+        font-size: 10px;
+    }
+    .discount-input {
+        width: 50px;
+        font-size: 11px;
+        padding: 3px 5px;
+    }
+
+    /* Buttons */
+    .btn-checkout {
+        padding: 10px;
+        font-size: 14px;
+    }
+    .btn-pos-secondary {
+        padding: 6px;
+        font-size: 10px;
+    }
+
+    /* Modal */
+    .pos-modal {
+        padding: 16px;
+        max-width: 95%;
+    }
+    .pos-modal h3 {
+        font-size: 15px;
+    }
+
+    .payment-types {
+        gap: 6px;
+    }
+    .pay-type-btn {
+        padding: 8px 6px;
+        font-size: 11px;
+    }
+    .pay-type-btn .icon {
+        font-size: 18px;
+    }
+
+    .pos-label {
+        font-size: 10px;
+        margin-top: 8px;
+    }
+    .pos-input {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+    .change-display {
+        padding: 8px 10px;
+    }
+    .change-display .amount {
+        font-size: 18px;
+    }
+
+    .pos-modal-footer {
+        gap: 6px;
+    }
+    .btn-pos-primary,
+    .btn-pos-cancel {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    /* Toast */
+    .pos-toast {
+        font-size: 12px;
+        padding: 8px 16px;
     }
 }

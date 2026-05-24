@@ -7,217 +7,306 @@
 @push('styles')
 <style>
     .products-hero {
-        background: linear-gradient(135deg, #146E6E 0%, #0D5050 100%);
-        border-radius: 16px;
-        padding: 1.75rem 2rem;
+        background: linear-gradient(135deg, #0d9488 0%, #0f766e 50%, #115e59 100%);
+        border-radius: 20px;
+        padding: 2rem 2.5rem;
         color: white;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 10px 40px rgba(13, 148, 136, 0.3);
     }
     .products-hero::before {
         content: '';
         position: absolute;
-        top: -40px; right: -40px;
-        width: 200px; height: 200px;
-        background: rgba(255,255,255,0.06);
+        top: -60px; right: -60px;
+        width: 240px; height: 240px;
+        background: rgba(255,255,255,0.08);
         border-radius: 50%;
+        backdrop-filter: blur(10px);
     }
     .products-hero::after {
         content: '';
         position: absolute;
-        bottom: -60px; left: -20px;
-        width: 160px; height: 160px;
-        background: rgba(255,255,255,0.04);
+        bottom: -80px; left: -40px;
+        width: 180px; height: 180px;
+        background: rgba(255,255,255,0.05);
         border-radius: 50%;
+        backdrop-filter: blur(10px);
     }
 
     /* ── بطاقات الإحصائيات ── */
     .stat-tile {
         background: #fff;
         border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 1.25rem 1.5rem;
+        border-radius: 16px;
+        padding: 1.5rem;
         display: flex;
         align-items: center;
-        gap: 1rem;
-        transition: box-shadow .2s, transform .2s, border-color .2s;
+        gap: 1.25rem;
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .stat-tile:hover {
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-4px);
     }
-    .stat-tile.active { border-color: #146E6E; box-shadow: 0 0 0 3px rgba(20,110,110,0.12); }
+    .stat-tile.active { 
+        border-color: #0d9488; 
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15), 0 8px 30px rgba(13, 148, 136, 0.2); 
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+    }
     .stat-tile-icon {
-        width: 48px; height: 48px;
-        border-radius: 12px;
+        width: 56px; height: 56px;
+        border-radius: 14px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.3rem;
+        font-size: 1.5rem;
         flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .stat-tile-value { font-size: 1.75rem; font-weight: 700; line-height: 1; }
-    .stat-tile-label { font-size: .8rem; color: #6b7280; margin-top: 3px; }
+    .stat-tile-value { font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+    .stat-tile-label { font-size: .85rem; color: #6b7280; margin-top: 4px; font-weight: 500; }
 
     /* ── شريط الفلاتر ── */
     .filter-bar {
         background: #fff;
         border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 1rem 1.25rem;
+        border-radius: 16px;
+        padding: 1.5rem 1.75rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     }
     .filter-input {
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: .55rem .9rem;
-        font-size: .875rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: .7rem 1rem;
+        font-size: .9rem;
         width: 100%;
         outline: none;
-        transition: border-color .2s, box-shadow .2s;
+        transition: all .2s;
         background: #f9fafb;
         font-family: 'Tajawal', sans-serif;
     }
-    .filter-input:focus { border-color: #146E6E; box-shadow: 0 0 0 3px rgba(20,110,110,0.1); background:#fff; }
+    .filter-input:focus { 
+        border-color: #0d9488; 
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1); 
+        background:#fff; 
+    }
 
     /* ── الجدول ── */
     .products-table-wrap {
         background: #fff;
         border: 1px solid #e5e7eb;
-        border-radius: 14px;
+        border-radius: 16px;
         overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     }
     .products-table {
         width: 100%;
         border-collapse: collapse;
     }
     .products-table thead tr {
-        background: #f8fafc;
-        border-bottom: 2px solid #e5e7eb;
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+        border-bottom: 2px solid #0d9488;
     }
     .products-table thead th {
-        padding: .85rem 1rem;
-        font-size: .78rem;
-        font-weight: 600;
+        padding: 1rem 1.25rem;
+        font-size: .8rem;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: .04em;
-        color: #6b7280;
+        letter-spacing: .05em;
+        color: #0f766e;
         text-align: right;
         white-space: nowrap;
     }
-    .products-table thead th:first-child { padding-right: 1.25rem; }
-    .products-table thead th:last-child  { padding-left: 1.25rem;  }
+    .products-table thead th:first-child { padding-right: 1.5rem; }
+    .products-table thead th:last-child  { padding-left: 1.5rem;  }
 
     .products-table tbody tr {
         border-bottom: 1px solid #f3f4f6;
-        transition: background .15s;
+        transition: all .2s;
     }
     .products-table tbody tr:last-child { border-bottom: none; }
-    .products-table tbody tr:hover { background: #f0fdfc; }
+    .products-table tbody tr:hover { 
+        background: linear-gradient(135deg, #f0fdfa 0%, #f0fdf4 100%);
+        transform: scale(1.005);
+    }
 
     .products-table tbody td {
-        padding: .9rem 1rem;
-        font-size: .875rem;
+        padding: 1rem 1.25rem;
+        font-size: .9rem;
         color: #374151;
         vertical-align: middle;
         text-align: right;
     }
-    .products-table tbody td:first-child { padding-right: 1.25rem; }
-    .products-table tbody td:last-child  { padding-left: 1.25rem;  }
+    .products-table tbody td:first-child { padding-right: 1.5rem; }
+    .products-table tbody td:last-child  { padding-left: 1.5rem;  }
 
     /* ── صورة + اسم المنتج ── */
-    .product-name-cell { display: flex; align-items: center; gap: .75rem; }
+    .product-name-cell { display: flex; align-items: center; gap: 1rem; }
     .product-thumb {
-        width: 42px; height: 42px;
-        border-radius: 10px;
+        width: 52px; height: 52px;
+        border-radius: 12px;
         object-fit: cover;
-        border: 1px solid #e5e7eb;
+        border: 2px solid #e5e7eb;
         flex-shrink: 0;
-        background: #f9fafb;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .product-name-ar { font-weight: 600; color: #111827; font-size: .9rem; line-height: 1.3; }
-    .product-name-en { font-size: .75rem; color: #9ca3af; margin-top: 1px; }
+    .product-name-ar { font-weight: 700; color: #111827; font-size: .95rem; line-height: 1.4; }
+    .product-name-en { font-size: .8rem; color: #9ca3af; margin-top: 2px; }
 
     /* ── SKU badge ── */
     .sku-badge {
         display: inline-block;
-        background: #f0fdfa;
-        color: #146E6E;
-        border: 1px solid #97c9c8;
-        border-radius: 7px;
-        padding: .2rem .6rem;
-        font-size: .78rem;
-        font-weight: 600;
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+        color: #0d9488;
+        border: 2px solid #99f6e4;
+        border-radius: 10px;
+        padding: .35rem .75rem;
+        font-size: .8rem;
+        font-weight: 700;
         font-family: 'Courier New', monospace;
-        letter-spacing: .03em;
+        letter-spacing: .04em;
         white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(13, 148, 136, 0.15);
     }
 
     /* ── سعر ── */
-    .price-purchase { color: #6b7280; font-size: .875rem; }
-    .price-sale { color: #146E6E; font-weight: 700; font-size: .95rem; }
+    .price-purchase { color: #6b7280; font-size: .9rem; font-weight: 500; }
+    .price-sale { 
+        color: #0d9488; 
+        font-weight: 800; 
+        font-size: 1.05rem; 
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+        padding: .25rem .6rem;
+        border-radius: 8px;
+        border: 1px solid #99f6e4;
+    }
 
     /* ── المخزون ── */
     .stock-pill {
-        display: inline-flex; align-items: center; gap: .3rem;
-        padding: .25rem .65rem;
-        border-radius: 8px;
-        font-size: .8rem;
-        font-weight: 600;
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: .35rem .75rem;
+        border-radius: 10px;
+        font-size: .85rem;
+        font-weight: 700;
         white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .stock-green  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-    .stock-yellow { background: #fefce8; color: #a16207; border: 1px solid #fef08a; }
-    .stock-red    { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
-    .stock-gray   { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; }
+    .stock-green  { 
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); 
+        color: #166534; 
+        border: 1px solid #86efac; 
+    }
+    .stock-yellow { 
+        background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); 
+        color: #854d0e; 
+        border: 1px solid #fde047; 
+    }
+    .stock-red    { 
+        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%); 
+        color: #9f1239; 
+        border: 1px solid #fda4af; 
+    }
+    .stock-gray   { 
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); 
+        color: #6b7280; 
+        border: 1px solid #d1d5db; 
+    }
 
     /* ── الحالة ── */
-    .status-active   { display:inline-flex; align-items:center; gap:.3rem; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:20px; padding:.2rem .7rem; font-size:.78rem; font-weight:600; }
-    .status-inactive { display:inline-flex; align-items:center; gap:.3rem; background:#fff1f2; color:#9f1239; border:1px solid #fecdd3; border-radius:20px; padding:.2rem .7rem; font-size:.78rem; font-weight:600; }
-    .status-dot { width:6px; height:6px; border-radius:50%; }
+    .status-active   { 
+        display:inline-flex; align-items:center; gap:.4rem; 
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); 
+        color:#065f46; 
+        border: 1px solid #6ee7b7; 
+        border-radius:24px; 
+        padding:.3rem .85rem; 
+        font-size:.8rem; 
+        font-weight:700; 
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    }
+    .status-inactive { 
+        display:inline-flex; align-items:center; gap:.4rem; 
+        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%); 
+        color:#9f1239; 
+        border: 1px solid #fda4af; 
+        border-radius:24px; 
+        padding:.3rem .85rem; 
+        font-size:.8rem; 
+        font-weight:700; 
+        box-shadow: 0 2px 8px rgba(244, 63, 94, 0.15);
+    }
+    .status-dot { width:7px; height:7px; border-radius:50%; box-shadow: 0 0 8px currentColor; }
     .dot-green  { background: #10b981; }
     .dot-red    { background: #f43f5e; }
 
     /* ── أزرار الإجراءات ── */
     .action-btn {
-        width: 32px; height: 32px;
+        width: 38px; height: 38px;
         display: inline-flex; align-items: center; justify-content: center;
-        border-radius: 8px;
-        border: 1px solid transparent;
-        font-size: .9rem;
-        transition: background .15s, border-color .15s, color .15s;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        font-size: 1rem;
+        transition: all .2s;
         color: #9ca3af;
         cursor: pointer;
         background: none;
     }
-    .action-btn:hover { background: #f3f4f6; border-color: #e5e7eb; color: #374151; }
-    .action-btn.view:hover  { background: #f0fdfc; border-color: #97c9c8; color: #146E6E; }
-    .action-btn.edit:hover  { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
-    .action-btn.del:hover   { background: #fff1f2; border-color: #fecdd3; color: #e11d48; }
+    .action-btn:hover { 
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .action-btn.view:hover  { 
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); 
+        border-color: #99f6e4; 
+        color: #0d9488; 
+    }
+    .action-btn.edit:hover  { 
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); 
+        border-color: #93c5fd; 
+        color: #2563eb; 
+    }
+    .action-btn.del:hover   { 
+        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%); 
+        border-color: #fda4af; 
+        color: #e11d48; 
+    }
 
     /* ── فارغ ── */
     .empty-state {
         text-align: center;
-        padding: 4rem 2rem;
+        padding: 5rem 2rem;
         color: #9ca3af;
     }
-    .empty-state i { font-size: 3.5rem; display: block; margin-bottom: 1rem; opacity: .4; }
-    .empty-state p { font-size: .95rem; }
+    .empty-state i { 
+        font-size: 4rem; 
+        display: block; 
+        margin-bottom: 1.5rem; 
+        opacity: .3;
+        background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .empty-state p { font-size: 1rem; }
 
     /* ── pagination ── */
     .pagination-wrap {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #f3f4f6;
+        padding: 1.25rem 2rem;
+        border-top: 2px solid #f3f4f6;
         display: flex;
         align-items: center;
-        justify-content: between;
+        justify-content: center;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
     }
 
     /* ── تسليط الضوء على صف محدد ── */
     @keyframes rowHighlight {
-        from { background: #ccfbf1; }
+        from { background: linear-gradient(135deg, #ccfbf1 0%, #d1fae5 100%); }
         to   { background: transparent; }
     }
-    .row-flash { animation: rowHighlight 1.2s ease-out; }
+    .row-flash { animation: rowHighlight 1.5s ease-out; }
 </style>
 @endpush
 

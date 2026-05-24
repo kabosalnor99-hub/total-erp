@@ -107,9 +107,18 @@ class Product extends Model
     /** رابط الصورة */
     public function getImageUrlAttribute(): string
     {
-        return $this->image
-            ? asset('storage/' . $this->image)
-            : asset('images/no-product.png');
+        if (!$this->image) {
+            return asset('images/no-product.png');
+        }
+        
+        // إذا كان المسار يبدأ بـ / يعني أنه مسار مباشر
+        if (str_starts_with($this->image, '/')) {
+            // إزالة الـ / الأول قبل تمريره لـ asset()
+            return asset(ltrim($this->image, '/'));
+        }
+        
+        // وإلا فهو في storage
+        return asset('storage/' . $this->image);
     }
 
     /** حالة المخزون */

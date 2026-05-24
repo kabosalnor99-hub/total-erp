@@ -9,22 +9,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background: #fff; color: #1a2e35; font-size: 14px; }
+        body { background: #fff; color: #1a2e35; font-size: 11px; }
 
-        .page { max-width: 800px; margin: 0 auto; padding: 30px; }
+        .page { max-width: 300px; margin: 0 auto; padding: 5px; }
 
         /* Header */
-        .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 3px solid #00838F; margin-bottom: 24px; }
-        .company-logo { width: 60px; height: 60px; background: #00838F; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; font-weight: 700; }
-        .company-info h1 { font-size: 22px; font-weight: 700; color: #00838F; }
-        .company-info p { font-size: 12px; color: #6b8c94; margin-top: 2px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 8px; border-bottom: 2px solid #00838F; margin-bottom: 10px; }
+        .company-logo { width: 35px; height: 35px; background: #00838F; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 700; }
+        .company-info h1 { font-size: 12px; font-weight: 700; color: #00838F; }
+        .company-info p { font-size: 9px; color: #6b8c94; margin-top: 1px; }
         .invoice-meta { text-align: left; }
-        .invoice-meta h2 { font-size: 20px; font-weight: 700; color: #1a2e35; }
-        .invoice-meta .number { font-size: 16px; color: #00838F; font-weight: 600; margin-top: 4px; }
-        .invoice-meta .date { font-size: 12px; color: #6b8c94; margin-top: 3px; }
+        .invoice-meta h2 { font-size: 11px; font-weight: 700; color: #1a2e35; }
+        .invoice-meta .number { font-size: 10px; color: #00838F; font-weight: 600; margin-top: 2px; }
+        .invoice-meta .date { font-size: 9px; color: #6b8c94; margin-top: 1px; }
 
         /* Status badge */
-        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 5px; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 8px; font-weight: 600; margin-top: 3px; }
         .badge-paid { background: #e8f5e9; color: #2e7d32; }
         .badge-confirmed { background: #e3f2fd; color: #1565c0; }
         .badge-partial { background: #fff8e1; color: #f57f17; }
@@ -32,49 +32,53 @@
         .badge-cancelled { background: #fce4ec; color: #c62828; }
 
         /* Info boxes */
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-        .info-box { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; }
-        .info-box h3 { font-size: 11px; font-weight: 700; color: #00838F; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .info-box p { font-size: 13px; color: #1a2e35; margin-bottom: 3px; }
-        .info-box .label { font-size: 11px; color: #6b8c94; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .info-box { border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px; }
+        .info-box h3 { font-size: 9px; font-weight: 700; color: #00838F; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .info-box p { font-size: 10px; color: #1a2e35; margin-bottom: 2px; }
+        .info-box .label { font-size: 9px; color: #6b8c94; }
 
         /* Table */
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         thead tr { background: #00838F; color: #fff; }
-        thead th { padding: 10px 12px; text-align: right; font-size: 13px; font-weight: 600; }
+        thead th { padding: 4px 6px; text-align: right; font-size: 9px; font-weight: 600; }
         tbody tr { border-bottom: 1px solid #f0f0f0; }
         tbody tr:nth-child(even) { background: #f9fafb; }
-        tbody td { padding: 10px 12px; font-size: 13px; color: #1a2e35; }
+        tbody td { padding: 4px 6px; font-size: 9px; color: #1a2e35; }
         tbody td.center { text-align: center; }
         tbody td.ltr { direction: ltr; text-align: right; }
 
         /* Totals */
-        .totals { display: flex; justify-content: flex-end; margin-bottom: 24px; }
-        .totals-box { width: 300px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
-        .totals-row { display: flex; justify-content: space-between; padding: 9px 14px; font-size: 13px; }
+        .totals { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+        .totals-box { width: 200px; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+        .totals-row { display: flex; justify-content: space-between; padding: 4px 8px; font-size: 9px; }
         .totals-row:not(:last-child) { border-bottom: 1px solid #f0f0f0; }
-        .totals-row.total { background: #00838F; color: #fff; font-weight: 700; font-size: 15px; }
+        .totals-row.total { background: #00838F; color: #fff; font-weight: 700; font-size: 10px; }
         .totals-row.remaining { background: #fff3e0; color: #e65100; font-weight: 600; }
         .totals-row.paid { background: #e8f5e9; color: #2e7d32; font-weight: 600; }
 
         /* Notes */
-        .notes { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; margin-bottom: 24px; }
-        .notes h3 { font-size: 12px; font-weight: 700; color: #6b8c94; margin-bottom: 6px; }
-        .notes p { font-size: 13px; color: #1a2e35; }
+        .notes { border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px; margin-bottom: 10px; }
+        .notes h3 { font-size: 9px; font-weight: 700; color: #6b8c94; margin-bottom: 3px; }
+        .notes p { font-size: 9px; color: #1a2e35; }
 
         /* Footer */
-        .footer { border-top: 2px solid #00838F; padding-top: 16px; text-align: center; }
-        .footer p { font-size: 12px; color: #6b8c94; margin-bottom: 3px; }
-        .footer .thanks { font-size: 14px; font-weight: 600; color: #00838F; margin-bottom: 4px; }
+        .footer { border-top: 2px solid #00838F; padding-top: 8px; text-align: center; }
+        .footer p { font-size: 9px; color: #6b8c94; margin-bottom: 2px; }
+        .footer .thanks { font-size: 10px; font-weight: 600; color: #00838F; margin-bottom: 2px; }
 
         /* Payments history */
-        .payments-section { margin-bottom: 24px; }
-        .payments-section h3 { font-size: 13px; font-weight: 700; color: #1a2e35; margin-bottom: 10px; }
+        .payments-section { margin-bottom: 10px; }
+        .payments-section h3 { font-size: 9px; font-weight: 700; color: #1a2e35; margin-bottom: 5px; }
 
         @media print {
             body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
             .no-print { display: none !important; }
-            .page { padding: 15px; }
+            .page { padding: 3px; }
+            @page {
+                size: 80mm 200mm;
+                margin: 2mm;
+            }
         }
     </style>
 </head>
@@ -174,14 +178,14 @@
     <table>
         <thead>
             <tr>
-                <th style="width:40px;">#</th>
+                <th style="width:20px;">#</th>
                 <th>المنتج</th>
-                <th style="width:80px; text-align:center;">الكمية</th>
-                <th style="width:110px;">سعر الوحدة</th>
+                <th style="width:40px; text-align:center;">الكمية</th>
+                <th style="width:50px;">سعر</th>
                 @if($invoice->items->where('discount', '>', 0)->count())
-                <th style="width:90px;">الخصم</th>
+                <th style="width:40px;">خصم</th>
                 @endif
-                <th style="width:110px;">الإجمالي</th>
+                <th style="width:50px;">الإجمالي</th>
             </tr>
         </thead>
         <tbody>
@@ -191,7 +195,7 @@
                 <td>
                     <div style="font-weight:500;">{{ $item->product?->name_ar ?? $item->product?->name_en ?? '—' }}</div>
                     @if($item->product?->sku)
-                        <div style="font-size:11px; color:#6b8c94;">{{ $item->product->sku }}</div>
+                        <div style="font-size:8px; color:#6b8c94;">{{ $item->product->sku }}</div>
                     @endif
                 </td>
                 <td class="center">{{ number_format($item->quantity) }}</td>

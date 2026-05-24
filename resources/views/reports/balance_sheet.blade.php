@@ -140,7 +140,7 @@
             <div class="report-title">الميزانية العمومية — Balance Sheet</div>
         </div>
         <div class="period">
-            <div>بتاريخ: {{ \Carbon\Carbon::parse($to_date)->format('Y/m/d') }}</div>
+            <div>بتاريخ: {{ \Carbon\Carbon::parse($date)->format('Y/m/d') }}</div>
             <div style="margin-top:4px; opacity:.7;">طُبع: {{ now()->format('Y/m/d H:i') }}</div>
         </div>
     </div>
@@ -149,20 +149,20 @@
     <div class="balance-info">
         <div class="info-box assets-box">
             <div class="box-label">إجمالي الأصول</div>
-            <div class="box-amount">{{ number_format($total_assets, 2) }} ج.س</div>
+            <div class="box-amount">{{ number_format($data['total_assets'], 2) }} ج.س</div>
         </div>
         <div class="info-box liabilities-box">
             <div class="box-label">إجمالي الخصوم</div>
-            <div class="box-amount">{{ number_format($total_liabilities, 2) }} ج.س</div>
+            <div class="box-amount">{{ number_format($data['total_liabilities'], 2) }} ج.س</div>
         </div>
         <div class="info-box equity-box">
             <div class="box-label">حقوق الملكية</div>
-            <div class="box-amount">{{ number_format($total_equity, 2) }} ج.س</div>
+            <div class="box-amount">{{ number_format($data['total_equity'], 2) }} ج.س</div>
         </div>
     </div>
 
     {{-- شارة التوازن --}}
-    @if($is_balanced)
+    @if($data['is_balanced'])
         <div class="balance-badge balanced">✓ الميزانية متوازنة — الأصول = الخصوم + حقوق الملكية</div>
     @else
         <div class="balance-badge not-balanced">⚠ تحذير: الميزانية غير متوازنة</div>
@@ -172,11 +172,11 @@
     <div class="equation-box">
         <div class="eq-label">معادلة الميزانية العمومية</div>
         <div class="eq-text">
-            الأصول ({{ number_format($total_assets, 2) }})
+            الأصول ({{ number_format($data['total_assets'], 2) }})
             =
-            الخصوم ({{ number_format($total_liabilities, 2) }})
+            الخصوم ({{ number_format($data['total_liabilities'], 2) }})
             +
-            حقوق الملكية ({{ number_format($total_equity, 2) }})
+            حقوق الملكية ({{ number_format($data['total_equity'], 2) }})
         </div>
     </div>
 
@@ -188,10 +188,10 @@
             <div class="section-header assets-header">الأصول — Assets</div>
             <table>
                 <tbody>
-                    @forelse($assets as $row)
+                    @forelse($data['asset']['rows'] as $row)
                     <tr>
-                        <td class="code-cell">{{ $row['account']->code }}</td>
-                        <td>{{ $row['account']->name_ar }}</td>
+                        <td class="code-cell">{{ $row['code'] }}</td>
+                        <td>{{ $row['name'] }}</td>
                         <td class="num" style="color:#1d4ed8;">{{ number_format($row['balance'], 2) }}</td>
                     </tr>
                     @empty
@@ -201,7 +201,7 @@
                 <tfoot>
                     <tr class="assets-total">
                         <td colspan="2">إجمالي الأصول</td>
-                        <td class="num">{{ number_format($total_assets, 2) }}</td>
+                        <td class="num">{{ number_format($data['total_assets'], 2) }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -212,10 +212,10 @@
             <div class="section-header liabilities-header">الخصوم — Liabilities</div>
             <table>
                 <tbody>
-                    @forelse($liabilities as $row)
+                    @forelse($data['liability']['rows'] as $row)
                     <tr>
-                        <td class="code-cell">{{ $row['account']->code }}</td>
-                        <td>{{ $row['account']->name_ar }}</td>
+                        <td class="code-cell">{{ $row['code'] }}</td>
+                        <td>{{ $row['name'] }}</td>
                         <td class="num" style="color:#92400e;">{{ number_format($row['balance'], 2) }}</td>
                     </tr>
                     @empty
@@ -225,7 +225,7 @@
                 <tfoot>
                     <tr class="liabilities-total">
                         <td colspan="2">إجمالي الخصوم</td>
-                        <td class="num">{{ number_format($total_liabilities, 2) }}</td>
+                        <td class="num">{{ number_format($data['total_liabilities'], 2) }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -234,10 +234,10 @@
                 <div class="section-header equity-header">حقوق الملكية — Equity</div>
                 <table>
                     <tbody>
-                        @forelse($equity as $row)
+                        @forelse($data['equity']['rows'] as $row)
                         <tr>
-                            <td class="code-cell">{{ $row['account']->code }}</td>
-                            <td>{{ $row['account']->name_ar }}</td>
+                            <td class="code-cell">{{ $row['code'] }}</td>
+                            <td>{{ $row['name'] }}</td>
                             <td class="num" style="color:#065f46;">{{ number_format($row['balance'], 2) }}</td>
                         </tr>
                         @empty
@@ -247,7 +247,7 @@
                     <tfoot>
                         <tr class="equity-total">
                             <td colspan="2">إجمالي حقوق الملكية</td>
-                            <td class="num">{{ number_format($total_equity, 2) }}</td>
+                            <td class="num">{{ number_format($data['total_equity'], 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>

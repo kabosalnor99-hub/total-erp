@@ -13,17 +13,7 @@ services:
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
-        value: pgsql
-      - key: DB_PORT
-        value: "5432"
-      - key: DB_HOST
-        sync: false
-      - key: DB_DATABASE
-        sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
+        value: sqlite
       - key: SESSION_DRIVER
         value: database
       - key: QUEUE_CONNECTION

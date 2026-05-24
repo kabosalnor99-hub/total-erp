@@ -59,7 +59,7 @@ class ProductController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
-        $products   = $query->paginate(20)->withQueryString();
+        $products   = $query->paginate(100)->withQueryString();
         $categories = Category::active()->orderBy('name_ar')->get();
 
         // إحصائيات سريعة

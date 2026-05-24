@@ -130,7 +130,7 @@ document.addEventListener('alpine:init', () => {
                 const data = await res.json();
 
                 if (data.found) {
-                    this.addToCart(data.product);
+                    this.addToCart(data.product, true); // إضافة كعنصر جديد دائماً
                     this.toast(`تمت إضافة: ${data.product.name}`);
                 } else {
                     this.toast(data.message || 'المنتج غير موجود', 'error');
@@ -141,7 +141,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         // ─── السلة ────────────────────────────────────────────────
-        addToCart(product) {
+        addToCart(product, addAsNew = false) {
             if (product.quantity <= 0) {
                 this.toast(`«${product.name}» نفد من المخزون`, 'warning');
                 return;
@@ -149,7 +149,7 @@ document.addEventListener('alpine:init', () => {
 
             const existing = this.cart.find(i => i.product_id === product.id);
 
-            if (existing) {
+            if (existing && !addAsNew) {
                 if (existing.quantity >= product.quantity) {
                     this.toast(`الكمية المطلوبة تتجاوز المخزون المتاح (${product.quantity})`, 'warning');
                     return;
@@ -213,6 +213,58 @@ document.addEventListener('alpine:init', () => {
             this.discountPercent = 0;
             this.notes           = '';
             this.lastTransaction = null;
+        },
+
+        // ─── حفظ فاتورة مبدئية ───────────────────────────────────────
+        async saveDraft() {
+            if (this.cart.length === 0) {
+                this.toast('السلة فارغة', 'error');
+                return;
+            }
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (!csrfToken) {
+                    this.toast('خطأ في CSRF token', 'error');
+                    return;
+                }
+
+                const res = await fetch('/pos/draft', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        items: this.cart.map(item => ({
+                            product_id: item.id,
+                            quantity: item.quantity,
+                            price: item.price,
+                            discount_percent: item.discount_percent
+                        })),
+                        customer_id: this.customer ? this.customer.id : null,
+                        discount_percent: this.discountPercent,
+                        tax_percent: this.taxPercent,
+                        notes: this.notes
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    this.toast('تم حفظ الفاتورة المبدئية بنجاح', 'success');
+                    this.clearCart();
+                    window.location.href = data.invoice_url;
+                } else {
+                    this.toast(data.message || 'حدث خطأ', 'error');
+                }
+
+            } catch (err) {
+                console.error('Save draft error:', err);
+                this.toast('حدث خطأ في الاتصال', 'error');
+            }
         },
 
         // ─── الحسابات ─────────────────────────────────────────────
