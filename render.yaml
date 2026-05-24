@@ -13,47 +13,14 @@ services:
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
-        value: mysql
-      - key: DB_HOST
-        fromService:
-          type: pserv
-          name: mysql
-          property: host
-      - key: DB_PORT
-        fromService:
-          type: pserv
-          name: mysql
-          property: port
-      - key: DB_DATABASE
-        fromService:
-          type: pserv
-          name: mysql
-          property: database
-      - key: DB_USERNAME
-        fromService:
-          type: pserv
-          name: mysql
-          property: username
-      - key: DB_PASSWORD
-        fromService:
-          type: pserv
-          name: mysql
-          property: password
+        value: sqlite
       - key: SESSION_DRIVER
         value: database
       - key: QUEUE_CONNECTION
         value: sync
       - key: CACHE_STORE
         value: database
-
-  - type: pserv
-    name: mysql
-    runtime: mysql
-    plan: free
-    envVars:
-      - key: MYSQL_DATABASE
-        value: total_erp
-      - key: MYSQL_USER
-        generateValue: true
-      - key: MYSQL_PASSWORD
-        generateValue: true
+    disk:
+      name: data
+      mountPath: /var/www/html/database
+      sizeGB: 1

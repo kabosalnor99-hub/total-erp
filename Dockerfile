@@ -33,7 +33,6 @@ RUN apk add --no-cache \
     git \
     oniguruma-dev \
     libxml2-dev \
-    mysql-client \
     icu-dev \
     libzip-dev
 
@@ -41,7 +40,7 @@ RUN apk add --no-cache \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
         pdo \
-        pdo_mysql \
+        pdo_sqlite \
         mbstring \
         exif \
         pcntl \
