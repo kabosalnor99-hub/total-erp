@@ -943,3 +943,155 @@ html, body {
         padding: 8px 16px;
     }
 }
+
+/* ── x-cloak ── */
+[x-cloak] {
+    display: none !important;
+}
+
+/* ── مودال كبير ── */
+.pos-modal-lg {
+    max-width: 500px;
+}
+
+/* ── رأس المودال الخطر ── */
+.pos-modal-header-danger {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-radius: 12px 12px 0 0;
+    border-bottom: 2px solid #ef4444;
+}
+.pos-modal-icon {
+    font-size: 32px;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+.pos-modal-title h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #dc2626;
+    margin: 0 0 4px 0;
+}
+.pos-modal-title p {
+    font-size: 13px;
+    color: #7f1d1d;
+    margin: 0;
+}
+
+/* ── جسم المودال ── */
+.pos-modal-body {
+    padding: 20px;
+}
+
+/* ── ملخص الجلسة ── */
+.session-summary {
+    margin-bottom: 20px;
+}
+.session-summary-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+}
+.session-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.session-stat-card {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+.session-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.session-stat-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+.session-stat-content {
+    flex: 1;
+}
+.session-stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.2;
+}
+.session-stat-label {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* ── نموذج الإغلاق ── */
+.close-session-form {
+    background: #fefce8;
+    border: 1px solid #fde047;
+    border-radius: 12px;
+    padding: 16px;
+}
+.form-row {
+    margin-bottom: 12px;
+}
+.form-row:last-child {
+    margin-bottom: 0;
+}
+.pos-input-lg {
+    font-size: 16px;
+    padding: 12px 14px;
+}
+.pos-input-textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* ── فرق الرصيد ── */
+.balance-diff {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.balance-diff-warning {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+.balance-diff-ok {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+}
+
+/* ── زر خطر ── */
+.btn-pos-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.btn-pos-danger:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}

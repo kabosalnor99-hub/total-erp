@@ -8,7 +8,7 @@
     <title>كاشير | توتال الكلاكلة</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    @vite(['resources/css/pos.css'])
+    <link rel="stylesheet" href="{{ asset('css/pos.css') }}">
     <style>
         .num-ltr {
             direction: ltr;
@@ -461,33 +461,67 @@
 
     {{-- ═══════════════════ MODAL: إغلاق الجلسة ═══════════════════ --}}
     <div class="pos-modal-overlay" x-show="showCloseSessionModal" x-cloak @click.self="showCloseSessionModal=false">
-        <div class="pos-modal">
-            <h3>🔴 إغلاق الجلسة</h3>
-            <div class="session-summary-grid">
-                <div class="session-stat">
-                    <div class="value" style="font-size:13px">{{ number_format($session->total_sales, 2) }}</div>
-                    <div class="label">إجمالي المبيعات</div>
-                </div>
-                <div class="session-stat">
-                    <div class="value" style="font-size:13px">{{ $session->transactions_count }}</div>
-                    <div class="label">عدد الفواتير</div>
-                </div>
-                <div class="session-stat">
-                    <div class="value" style="font-size:13px" x-text="fmt(sessionBalance)"></div>
-                    <div class="label">رصيد متوقع</div>
+        <div class="pos-modal pos-modal-lg">
+            <div class="pos-modal-header-danger">
+                <div class="pos-modal-icon">🔴</div>
+                <div class="pos-modal-title">
+                    <h3>إغلاق الجلسة</h3>
+                    <p>تأكيد إغلاق جلسة #{{ $session->id }}</p>
                 </div>
             </div>
-            <form method="POST" action="{{ route('pos.sessions.close', $session) }}">
-                @csrf
-                <label class="pos-label">رصيد الصندوق الفعلي (ج.س)</label>
-                <input type="number" name="closing_balance" min="0" step="0.01" class="pos-input" x-model="closingBalance" placeholder="0.00">
-                <label class="pos-label" style="margin-top:10px">ملاحظات (اختياري)</label>
-                <input type="text" name="closing_notes" class="pos-input" x-model="closingNotes" placeholder="ملاحظات الإغلاق...">
-                <div class="pos-modal-footer">
-                    <button type="submit" class="btn-pos-primary" style="background:#E53935">إغلاق الجلسة</button>
-                    <button type="button" class="btn-pos-cancel" @click="showCloseSessionModal=false">إلغاء</button>
+
+            <div class="pos-modal-body">
+                {{-- ملخص الجلسة --}}
+                <div class="session-summary">
+                    <div class="session-summary-title">ملخص الجلسة</div>
+                    <div class="session-summary-grid">
+                        <div class="session-stat-card">
+                            <div class="session-stat-icon">💰</div>
+                            <div class="session-stat-content">
+                                <div class="session-stat-value num-ltr">{{ number_format($session->total_sales, 2) }}</div>
+                                <div class="session-stat-label">إجمالي المبيعات</div>
+                            </div>
+                        </div>
+                        <div class="session-stat-card">
+                            <div class="session-stat-icon">📄</div>
+                            <div class="session-stat-content">
+                                <div class="session-stat-value num-ltr">{{ $session->transactions_count }}</div>
+                                <div class="session-stat-label">عدد الفواتير</div>
+                            </div>
+                        </div>
+                        <div class="session-stat-card">
+                            <div class="session-stat-icon">🏦</div>
+                            <div class="session-stat-content">
+                                <div class="session-stat-value num-ltr" x-text="fmt(sessionBalance)"></div>
+                                <div class="session-stat-label">رصيد متوقع</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </form>
+
+                {{-- نموذج الإغلاق --}}
+                <form method="POST" action="{{ route('pos.sessions.close', $session) }}" class="close-session-form" id="closeSessionForm">
+                    @csrf
+                    <div class="form-row">
+                        <label class="pos-label">رصيد الصندوق الفعلي (ج.س) *</label>
+                        <input type="number" name="closing_balance" min="0" step="0.01" class="pos-input pos-input-lg num-ltr" x-model="closingBalance" placeholder="0.00" required>
+                        <template x-if="closingBalance && sessionBalance">
+                            <div class="balance-diff" :class="Math.abs(parseFloat(closingBalance) - sessionBalance) > 0.01 ? 'balance-diff-warning' : 'balance-diff-ok'">
+                                <span x-text="Math.abs(parseFloat(closingBalance) - sessionBalance) > 0.01 ? '⚠️ فرق: ' + fmt(Math.abs(parseFloat(closingBalance) - sessionBalance)) + ' ج.س' : '✓ متطابق'"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="form-row">
+                        <label class="pos-label">ملاحظات (اختياري)</label>
+                        <textarea name="closing_notes" class="pos-input pos-input-textarea" x-model="closingNotes" placeholder="ملاحظات الإغلاق..." rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="pos-modal-footer">
+                <button type="button" class="btn-pos-cancel" @click="showCloseSessionModal=false">إلغاء</button>
+                <button type="submit" form="closeSessionForm" class="btn-pos-danger">🔴 إغلاق الجلسة</button>
+            </div>
         </div>
     </div>
 
@@ -496,7 +530,7 @@
 
 </div>{{-- end pos-wrapper --}}
 
-@vite(['resources/js/pos.js'])
+<script src="{{ asset('js/pos.js') }}"></script>
 
 </body>
 </html>

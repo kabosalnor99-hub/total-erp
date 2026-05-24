@@ -74,7 +74,7 @@ class PosController extends Controller
 
         $products = $query->with('category')
             ->orderBy('name_ar')
-            ->limit(48)
+            ->limit(100)
             ->get()
             ->map(fn($p) => [
                 'id'           => $p->id,

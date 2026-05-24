@@ -74,7 +74,7 @@ document.addEventListener('alpine:init', () => {
             try {
                 const params = new URLSearchParams();
                 if (this.searchQuery)  params.set('q', this.searchQuery);
-                if (this.selectedCat)  params.set('category_id', this.selectedCat);
+                if (this.selectedCat && this.selectedCat !== '')  params.set('category_id', this.selectedCat);
 
                 const res  = await fetch(`/pos/products/search?${params}`, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
