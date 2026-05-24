@@ -251,18 +251,18 @@ class ReportService
             ->where('status', '!=', 'cancelled')
             ->selectRaw('
                 COUNT(*) as total_invoices,
-                SUM(total_amount) as total_amount,
+                SUM(total) as total_amount,
                 SUM(discount_amount) as total_discount,
                 SUM(tax_amount) as total_tax,
                 SUM(paid_amount) as total_paid,
-                SUM(total_amount - paid_amount) as total_due,
-                AVG(total_amount) as avg_invoice
+                SUM(total - paid_amount) as total_due,
+                AVG(total) as avg_invoice
             ')
             ->first();
 
         $monthly = Invoice::whereBetween('invoice_date', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
-            ->selectRaw('DATE_FORMAT(invoice_date, "%Y-%m") as month, SUM(total_amount) as total')
+            ->selectRaw('DATE_FORMAT(invoice_date, "%Y-%m") as month, SUM(total) as total')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -283,7 +283,7 @@ class ReportService
         $rows = Invoice::whereBetween('invoice_date', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
             ->with('customer')
-            ->selectRaw('customer_id, COUNT(*) as total_invoices, SUM(total_amount) as total_amount, SUM(total_amount - paid_amount) as balance')
+            ->selectRaw('customer_id, COUNT(*) as total_invoices, SUM(total) as total_amount, SUM(total - paid_amount) as balance')
             ->groupBy('customer_id')
             ->orderByDesc('total_amount')
             ->get();
@@ -323,7 +323,7 @@ class ReportService
     {
         $rows = Invoice::where('due_date', '<', now())
             ->where('status', '!=', 'cancelled')
-            ->whereRaw('paid_amount < total_amount')
+            ->whereRaw('paid_amount < total')
             ->with('customer')
             ->orderBy('due_date')
             ->get()
@@ -331,9 +331,9 @@ class ReportService
                 'id'           => $inv->id,
                 'number'       => $inv->invoice_number,
                 'customer'     => $inv->customer->name,
-                'total'        => $inv->total_amount,
+                'total'        => $inv->total,
                 'paid'         => $inv->paid_amount,
-                'due'          => $inv->total_amount - $inv->paid_amount,
+                'due'          => $inv->total - $inv->paid_amount,
                 'due_date'     => $inv->due_date->format('Y-m-d'),
                 'overdue_days' => $inv->due_date->diffInDays(now()),
             ]);
@@ -529,14 +529,14 @@ class ReportService
         $orders = PurchaseOrder::whereBetween('order_date', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
             ->with('supplier')
-            ->selectRaw('supplier_id, COUNT(*) as total_orders, SUM(total_amount) as total_amount')
+            ->selectRaw('supplier_id, COUNT(*) as total_orders, SUM(total) as total_amount')
             ->groupBy('supplier_id')
             ->orderByDesc('total_amount')
             ->get();
 
         $total = PurchaseOrder::whereBetween('order_date', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
-            ->sum('total_amount');
+            ->sum('total');
 
         return [
             'rows'      => $orders,
@@ -560,7 +560,7 @@ class ReportService
             ->whereBetween('payment_date', [$dateFrom, $dateTo])
             ->get();
 
-        $totalOrders   = $orders->sum('total_amount');
+        $totalOrders   = $orders->sum('total');
         $totalPayments = $payments->sum('amount');
         $balance       = $totalOrders - $totalPayments;
 
