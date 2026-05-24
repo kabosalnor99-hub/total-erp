@@ -4,8 +4,6 @@ dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "/start.sh"
-healthcheckPath = "/"
-healthcheckTimeout = 300
 
 [env]
 APP_ENV = "production"
@@ -18,6 +16,11 @@ CACHE_STORE = "database"
 [[services]]
 type = "web"
 name = "web"
+protocol = "http"
+healthcheckPath = "/"
+
+[services.env]
+PORT = "8080"
 
 [[services]]
 type = "mysql"
