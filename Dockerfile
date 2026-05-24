@@ -82,6 +82,11 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
+# Create nginx temp directories with proper permissions
+RUN mkdir -p /var/lib/nginx/tmp/fastcgi \
+    && chown -R www-data:www-data /var/lib/nginx \
+    && chmod -R 755 /var/lib/nginx
+
 # Run composer post-install scripts
 RUN composer dump-autoload --optimize
 
