@@ -678,7 +678,7 @@ function displaySearchResults(results) {
     let html = '';
     results.forEach(product => {
         html += `
-            <a href="{{ route('products.show') }}/${product.id}" 
+            <a href="/products/${product.id}"
                class="flex items-center gap-3 p-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
                 <img src="${product.image}" 
                      alt="${product.name_ar}"
