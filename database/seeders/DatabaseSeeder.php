@@ -10,7 +10,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // استيراد قاعدة البيانات المحلية أولاً
         $this->call([
+            ImportLocalDatabaseSeeder::class,
             RolesAndPermissionsSeeder::class,
             AdminUserSeeder::class,
             ChartOfAccountsSeeder::class,
