@@ -634,6 +634,15 @@ const searchResults = document.getElementById('search-results');
 let searchTimeout;
 
 if (searchInput) {
+    // منع إرسال النموذج عند الضغط على Enter
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    });
+
     searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         const query = this.value.trim();
@@ -652,7 +661,7 @@ if (searchInput) {
                 .catch(error => {
                     console.error('Search error:', error);
                 });
-        }, 300);
+        }, 150);
     });
     
     // إخفاء النتائج عند النقر خارجها
