@@ -1,7 +1,7 @@
 -- =============================================
 -- CATEGORIES
 -- =============================================
-INSERT IGNORE INTO `categories` (`id`, `name_ar`, `name_en`, `parent_id`, `icon`, `color`, `is_active`, `sort_order`, `created_at`, `updated_at`) VALUES
+INSERT INTO `categories` (`id`, `name_ar`, `name_en`, `parent_id`, `icon`, `color`, `is_active`, `sort_order`, `created_at`, `updated_at`) VALUES
   (1, 'أدوات كهربائية', 'Power Tools', NULL, 'fa-bolt', '#FF6B35', 1, 1, '2026-05-23 06:18:50', '2026-05-23 06:18:50'),
   (2, 'أدوات يدوية', 'Hand Tools', NULL, 'fa-wrench', '#4CAF50', 1, 2, '2026-05-23 06:18:50', '2026-05-23 06:18:50'),
   (3, 'ملحقات وإكسسوارات', 'Accessories & Bits', NULL, 'fa-cogs', '#2196F3', 1, 3, '2026-05-23 06:18:50', '2026-05-23 06:18:50'),
@@ -26,7 +26,7 @@ INSERT IGNORE INTO `categories` (`id`, `name_ar`, `name_en`, `parent_id`, `icon`
 -- =============================================
 -- PRODUCTS (1068 records)
 -- =============================================
-INSERT IGNORE INTO `products` (`sku`, `barcode`, `name_ar`, `name_en`, `category_id`, `brand`, `unit`, `purchase_price`, `sale_price`, `profit_margin`, `quantity`, `reorder_point`, `image`, `images`, `type`, `is_active`, `description`, `created_by`, `created_at`, `updated_at`) VALUES
+INSERT INTO `products` (`sku`, `barcode`, `name_ar`, `name_en`, `category_id`, `brand`, `unit`, `purchase_price`, `sale_price`, `profit_margin`, `quantity`, `reorder_point`, `image`, `images`, `type`, `is_active`, `description`, `created_by`, `created_at`, `updated_at`) VALUES
   ('TDLI205581', NULL, 'درِل لاسلكي بدون فرشاة', 'Compact Brushless Cordless Drill', 7, 'TOP600 SUPER TOTAL', 'PCS', 12.5, 15.0, 20.0, 0, 10, 'products/TDLI205581.jpg', NULL, 'TOP600  SUPER TOTAL', 1, 'Brushless motor Voltage: 20V No-load speed: 0-500/0-2000rpm Max torque: 55Nm Metal chuck Chuck capacity: 13mm Torque settings: 22+1 Mechanical 2-speed gear Spindle lock function Integrated LED work light Include: 2 Pcs Cr-V 65mm bits Battery and charger sold separately Packed by color box', 1, '2026-05-23 06:18:50', '2026-05-23 06:18:50'),
   ('TDLI205582', NULL, 'درِل لاسلكي بدون فرشاة', 'Compact Brushless Cordless Drill', 7, 'TOP600 SUPER TOTAL', 'PCS', 22.5, 27.0, 20.0, 0, 10, 'products/TDLI205582.jpg', NULL, 'TOP600  SUPER TOTAL', 1, 'Brushless motor Voltage: 20V No-load speed: 0-500/0-2000rpm Max torque: 55Nm Metal chuck Chuck capacity: 13mm Torque settings: 22+1 Mechanical 2-speed gear Spindle lock function Integrated LED work light Include: 47 Pcs accessories 1 Pcs 2.0Ah battery pack(TFBLI20011) 1 Pcs charger(TFCLI2001) Charge volts:220-240V~50/60Hz  Integrated work light LED battery power indicator Packed by color box', 1, '2026-05-23 06:18:50', '2026-05-23 06:18:50'),
   ('TIDLI205581', NULL, 'درِل لاسلكي بالتأثير بدون فرشاة', 'Compact Brushless Cordless Impact Drill', 7, 'TOP600 SUPER TOTAL', 'PCS', 16.88, 20.26, 20.0, 0, 10, 'products/TIDLI205581.jpg', NULL, 'TOP600  SUPER TOTAL', 1, 'Brushless motor Voltage: 20V No-load speed: 0-500/0-2000rpm Max impact rate: 30000bpm Max torque: 55Nm Metal chuck Chuck capacity: 13mm Torque settings: 22+1+1 Mechanical 2-speed gear Spindle lock function Integrated LED work light Include: 1 Pcs Cr-V 65mm bit 3 Pcs masonry drill bits Charger sold separately Packed by color box', 1, '2026-05-23 06:18:50', '2026-05-23 06:18:50'),

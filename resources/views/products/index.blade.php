@@ -396,9 +396,13 @@
                 <label class="block text-xs text-gray-400 mb-1.5 font-medium">بحث</label>
                 <div class="relative">
                     <i class="fas fa-search absolute top-1/2 -translate-y-1/2 right-3 text-gray-400 text-xs pointer-events-none"></i>
-                    <input type="text" name="search" value="{{ request('search') }}"
+                    <input type="text" name="search" id="live-search" value="{{ request('search') }}"
                            placeholder="اسم المنتج، الكود، الباركود..."
-                           class="filter-input pr-8">
+                           class="filter-input pr-8"
+                           autocomplete="off">
+                    {{-- نتائج البحث المباشر --}}
+                    <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 hidden max-h-96 overflow-y-auto">
+                    </div>
                 </div>
             </div>
 
@@ -622,6 +626,84 @@
 function confirmDelete(form) {
     const name = form.closest('tr').querySelector('.product-name-ar')?.textContent?.trim() ?? 'هذا المنتج';
     return confirm(`هل أنت متأكد من حذف "${name}"؟\nلا يمكن التراجع عن هذا الإجراء.`);
+}
+
+// Live Search
+const searchInput = document.getElementById('live-search');
+const searchResults = document.getElementById('search-results');
+let searchTimeout;
+
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            searchResults.classList.add('hidden');
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            fetch(`{{ route('products.search') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    displaySearchResults(data.results);
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                });
+        }, 300);
+    });
+    
+    // إخفاء النتائج عند النقر خارجها
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.add('hidden');
+        }
+    });
+}
+
+function displaySearchResults(results) {
+    if (results.length === 0) {
+        searchResults.innerHTML = `
+            <div class="p-4 text-center text-gray-500">
+                <i class="fas fa-search text-2xl mb-2 opacity-50"></i>
+                <p class="text-sm">لا توجد نتائج</p>
+            </div>
+        `;
+        searchResults.classList.remove('hidden');
+        return;
+    }
+    
+    let html = '';
+    results.forEach(product => {
+        html += `
+            <a href="{{ route('products.show') }}/${product.id}" 
+               class="flex items-center gap-3 p-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
+                <img src="${product.image}" 
+                     alt="${product.name_ar}"
+                     class="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                     onerror="this.src='{{ asset('images/no-product.png') }}'">
+                <div class="flex-1 min-w-0">
+                    <div class="font-semibold text-gray-900 text-sm truncate">${product.name_ar}</div>
+                    <div class="text-xs text-gray-500 truncate">${product.name_en || ''}</div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">${product.sku}</span>
+                        <span class="text-xs text-[#146E6E] font-semibold">${product.sale_price} ر.س</span>
+                    </div>
+                </div>
+                <div class="text-left">
+                    <div class="text-xs text-gray-500">${product.category || ''}</div>
+                    <div class="text-xs ${product.quantity > 0 ? 'text-green-600' : 'text-red-600'}">
+                        ${product.quantity} ${product.unit || 'قطعة'}
+                    </div>
+                </div>
+            </a>
+        `;
+    });
+    
+    searchResults.innerHTML = html;
+    searchResults.classList.remove('hidden');
 }
 </script>
 @endpush

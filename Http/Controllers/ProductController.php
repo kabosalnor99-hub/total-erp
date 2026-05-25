@@ -11,6 +11,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -233,5 +234,44 @@ class ProductController extends Controller
         ActivityLog::record('adjusted', "تسوية مخزون: {$product->name_ar}", $product);
 
         return back()->with('success', 'تم تسوية المخزون بنجاح.');
+    }
+
+    // ─── بحث AJAX للمنتجات ─────────────────────────────────────────────
+
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->get('q', '');
+
+        if (strlen($query) < 2) {
+            return response()->json([
+                'results' => []
+            ]);
+        }
+
+        $products = Product::with('category')
+            ->where(function ($w) use ($query) {
+                $w->where('name_ar', 'like', "%{$query}%")
+                  ->orWhere('name_en', 'like', "%{$query}%")
+                  ->orWhere('sku', 'like', "%{$query}%")
+                  ->orWhere('barcode', 'like', "%{$query}%");
+            })
+            ->limit(10)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'sku' => $product->sku,
+                    'name_ar' => $product->name_ar,
+                    'name_en' => $product->name_en,
+                    'image' => $product->image_url,
+                    'sale_price' => $product->sale_price,
+                    'quantity' => $product->quantity,
+                    'category' => $product->category ? $product->category->name_ar : null,
+                ];
+            });
+
+        return response()->json([
+            'results' => $products
+        ]);
     }
 }
