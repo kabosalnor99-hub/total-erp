@@ -107,9 +107,15 @@ class Product extends Model
     /** رابط الصورة */
     public function getImageUrlAttribute(): string
     {
-        return $this->image
-            ? asset($this->image)
-            : asset('images/no-product.png');
+        if ($this->image) {
+            $imagePath = public_path($this->image);
+            // Check if file exists locally, otherwise use placeholder
+            if (file_exists($imagePath)) {
+                return asset($this->image);
+            }
+        }
+        // Use placeholder image from external service
+        return "https://via.placeholder.com/200x200/f3f4f6/6b7280?text=" . urlencode($this->name_ar);
     }
 
     /** حالة المخزون */
