@@ -212,6 +212,40 @@ class ProductController extends Controller
             ->with('success', 'تم حذف المنتج بنجاح.');
     }
 
+    // ─── البحث المباشر (Live Search) ─────────────────────────────────
+
+    public function search(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $q = trim($request->get('q', ''));
+
+        if (strlen($q) < 2) {
+            return response()->json(['results' => []]);
+        }
+
+        $products = Product::with('category')
+            ->where(function ($w) use ($q) {
+                $w->where('name_ar', 'like', "%{$q}%")
+                  ->orWhere('name_en', 'like', "%{$q}%")
+                  ->orWhere('sku', 'like', "%{$q}%")
+                  ->orWhere('barcode', 'like', "%{$q}%");
+            })
+            ->limit(10)
+            ->get()
+            ->map(fn($p) => [
+                'id'           => $p->id,
+                'name_ar'      => $p->name_ar,
+                'name_en'      => $p->name_en,
+                'sku'          => $p->sku,
+                'image'        => $p->image_url,
+                'sale_price'   => number_format($p->sale_price, 2),
+                'quantity'     => $p->quantity,
+                'unit'         => $p->unit,
+                'category'     => $p->category?->name_ar,
+            ]);
+
+        return response()->json(['results' => $products]);
+    }
+
     // ─── تسوية المخزون ───────────────────────────────────────────────
 
     public function adjust(Request $request, Product $product): RedirectResponse
