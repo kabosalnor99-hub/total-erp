@@ -115,8 +115,8 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
 
     Route::middleware('permission:products.view')->group(function () {
         Route::get('/products',           [ProductController::class, 'index'])->name('products.index');
-        Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
         Route::get('/products/search',    [ProductController::class, 'search'])->name('products.search');
+        Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
     });
     Route::middleware('permission:products.create')->group(function () {
         Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
