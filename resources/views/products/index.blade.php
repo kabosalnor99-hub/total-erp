@@ -623,176 +623,180 @@
 
 @push('scripts')
 <script>
+// ── تعريف المتغيرات من Blade مرة واحدة بعيداً عن template literals ──
+var SEARCH_URL     = '{{ route("products.search") }}';
+var NO_PRODUCT_IMG = '{{ asset("images/no-product.png") }}';
+
 function confirmDelete(form) {
-    const name = form.closest('tr').querySelector('.product-name-ar')?.textContent?.trim() ?? 'هذا المنتج';
-    return confirm(`هل أنت متأكد من حذف "${name}"؟\nلا يمكن التراجع عن هذا الإجراء.`);
+    var nameEl = form.closest('tr').querySelector('.product-name-ar');
+    var name   = nameEl ? nameEl.textContent.trim() : 'هذا المنتج';
+    return confirm('هل أنت متأكد من حذف "' + name + '"؟\nلا يمكن التراجع عن هذا الإجراء.');
 }
 
 // ──── Live Search (البحث الحي) ────
-const searchInput = document.getElementById('live-search');
-const searchResults = document.getElementById('search-results');
-let searchTimeout;
-let isSearching = false;
+var searchInput   = document.getElementById('live-search');
+var searchResults = document.getElementById('search-results');
+var searchTimeout = null;
 
 if (searchInput) {
-    // منع إرسال النموذج عند الضغط على Enter
+
     searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             e.stopPropagation();
-            return false;
         }
     });
 
-    // حدث الكتابة - البحث الحي
     searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
-        const query = this.value.trim();
-        
-        // إظهار رسالة "اكتب على الأقل حرفين"
+        var query = this.value.trim();
+
         if (query.length === 0) {
             searchResults.classList.add('hidden');
+            searchResults.innerHTML = '';
             return;
         }
 
         if (query.length < 2) {
-            showLoadingState();
             searchResults.classList.remove('hidden');
+            searchResults.innerHTML =
+                '<div class="p-3 text-center text-xs text-gray-400">اكتب حرفين على الأقل للبحث...</div>';
             return;
         }
-        
-        // مؤشر التحميل
+
         showLoadingState();
         searchResults.classList.remove('hidden');
-        isSearching = true;
 
-        // تأخير 300ms لتقليل عدد الطلبات
-        searchTimeout = setTimeout(() => {
+        searchTimeout = setTimeout(function() {
             performSearch(query);
-        }, 300);
+        }, 350);
     });
-    
-    // إخفاء النتائج عند النقر خارجها
+
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
             searchResults.classList.add('hidden');
         }
     });
+
+    searchInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
+            searchResults.classList.remove('hidden');
+        }
+    });
 }
 
 function performSearch(query) {
-    const searchUrl = `{{ route('products.search') }}?q=${encodeURIComponent(query)}`;
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    var url = SEARCH_URL + '?q=' + encodeURIComponent(query);
 
-    fetch(searchUrl, {
+    fetch(url, {
         method: 'GET',
-        credentials: 'same-origin',
         headers: {
             'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => {
-        // انتهت الجلسة أو لا صلاحية
-        if (response.status === 401) {
+    .then(function(response) {
+        if (response.status === 401) { window.location.reload(); return null; }
+        if (response.status === 403) { showErrorState('ليس لديك صلاحية لهذا الإجراء.'); return null; }
+        if (!response.ok)            { showErrorState('خطأ في الخادم (' + response.status + '). حاول مجدداً.'); return null; }
+
+        var ct = response.headers.get('content-type') || '';
+        if (ct.indexOf('application/json') === -1) {
             window.location.reload();
-            throw new Error('auth_error');
-        }
-        if (response.status === 403) {
-            throw new Error('permission_error');
-        }
-        if (!response.ok) {
-            throw new Error('http_' + response.status);
-        }
-        // التحقق أن الرد JSON وليس HTML (redirect)
-        const contentType = response.headers.get('content-type') ?? '';
-        if (!contentType.includes('application/json')) {
-            // الغالب أن الجلسة انتهت وتم redirect لصفحة login
-            window.location.reload();
-            throw new Error('auth_error');
+            return null;
         }
         return response.json();
     })
-    .then(data => {
-        isSearching = false;
+    .then(function(data) {
+        if (!data) return;
         displaySearchResults(data.results || []);
     })
-    .catch(error => {
-        isSearching = false;
-        if (error.message === 'auth_error') return;
-        console.error('Search error:', error.message);
-        showErrorState();
+    .catch(function(err) {
+        console.error('Live search error:', err);
+        showErrorState('تعذّر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.');
     });
 }
 
 function showLoadingState() {
-    searchResults.innerHTML = `
-        <div class="p-4 text-center">
-            <div class="inline-flex items-center gap-2 text-[#146E6E]">
-                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span class="text-sm">جاري البحث...</span>
-            </div>
-        </div>
-    `;
+    searchResults.innerHTML =
+        '<div class="p-4 text-center">' +
+            '<div class="inline-flex items-center gap-2 text-[#146E6E]">' +
+                '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
+                    '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+                    '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
+                '</svg>' +
+                '<span class="text-sm">جاري البحث...</span>' +
+            '</div>' +
+        '</div>';
 }
 
-function showErrorState() {
-    searchResults.innerHTML = `
-        <div class="p-4 text-center text-red-500">
-            <i class="fas fa-exclamation-circle text-2xl mb-2 opacity-50"></i>
-            <p class="text-sm">حدث خطأ في البحث. حاول مجدداً.</p>
-        </div>
-    `;
+function showErrorState(msg) {
+    var message = msg || 'حدث خطأ في البحث. حاول مجدداً.';
+    searchResults.innerHTML =
+        '<div class="p-4 text-center text-red-500">' +
+            '<i class="fas fa-exclamation-circle text-2xl mb-2 block opacity-60"></i>' +
+            '<p class="text-sm">' + message + '</p>' +
+        '</div>';
+    searchResults.classList.remove('hidden');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }
 
 function displaySearchResults(results) {
     if (results.length === 0) {
-        searchResults.innerHTML = `
-            <div class="p-4 text-center text-gray-500">
-                <i class="fas fa-search text-2xl mb-2 opacity-50"></i>
-                <p class="text-sm">لا توجد نتائج للبحث</p>
-            </div>
-        `;
+        searchResults.innerHTML =
+            '<div class="p-4 text-center text-gray-500">' +
+                '<i class="fas fa-search text-2xl mb-2 block opacity-40"></i>' +
+                '<p class="text-sm">لا توجد نتائج مطابقة</p>' +
+            '</div>';
         searchResults.classList.remove('hidden');
         return;
     }
-    
-    let html = `
-        <div class="px-3 py-2 bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
-            وجدنا <span class="font-semibold text-[#146E6E]">${results.length}</span> منتج
-        </div>
-    `;
-    
-    results.forEach(product => {
-        html += `
-            <a href="/products/${product.id}"
-               class="flex items-center gap-3 p-3 hover:bg-[#f0fdfa] transition border-b border-gray-100 last:border-0">
-                <img src="${product.image || '{{ asset('images/no-product.png') }}'}" 
-                     alt="${product.name_ar}"
-                     class="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0"
-                     onerror="this.src='{{ asset('images/no-product.png') }}'">
-                <div class="flex-1 min-w-0">
-                    <div class="font-semibold text-gray-900 text-sm truncate">${product.name_ar}</div>
-                    <div class="text-xs text-gray-500 truncate">${product.name_en || ''}</div>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono">${product.sku}</span>
-                        <span class="text-xs text-[#146E6E] font-bold">${parseFloat(product.sale_price).toLocaleString('ar-SA')} ر.س</span>
-                    </div>
-                </div>
-                <div class="text-left flex-shrink-0">
-                    <div class="text-xs text-gray-500 mb-1">${product.category || 'بدون فئة'}</div>
-                    <div class="text-xs font-bold ${product.quantity > 0 ? 'text-green-600' : 'text-red-600'}">
-                        ${product.quantity} قطعة
-                    </div>
-                </div>
-            </a>
-        `;
+
+    var html =
+        '<div class="px-3 py-2 bg-gray-50 border-b border-gray-100 text-xs text-gray-500">' +
+            'وجدنا <span class="font-semibold text-[#146E6E]">' + results.length + '</span> منتج' +
+        '</div>';
+
+    results.forEach(function(product) {
+        var imgSrc   = product.image ? escapeHtml(product.image) : NO_PRODUCT_IMG;
+        var nameAr   = escapeHtml(product.name_ar);
+        var nameEn   = escapeHtml(product.name_en);
+        var sku      = escapeHtml(product.sku);
+        var category = escapeHtml(product.category) || 'بدون فئة';
+        var price    = parseFloat(product.sale_price || 0).toLocaleString('ar-SA');
+        var qty      = parseInt(product.quantity, 10) || 0;
+        var qtyClass = qty > 0 ? 'text-green-600' : 'text-red-600';
+
+        html +=
+            '<a href="/products/' + product.id + '" ' +
+               'class="flex items-center gap-3 p-3 hover:bg-[#f0fdfa] transition border-b border-gray-100 last:border-0">' +
+                '<img src="' + imgSrc + '" ' +
+                     'alt="' + nameAr + '" ' +
+                     'class="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0" ' +
+                     'onerror="this.onerror=null;this.src='' + NO_PRODUCT_IMG + ''">' +
+                '<div class="flex-1 min-w-0">' +
+                    '<div class="font-semibold text-gray-900 text-sm truncate">' + nameAr + '</div>' +
+                    (nameEn ? '<div class="text-xs text-gray-500 truncate">' + nameEn + '</div>' : '') +
+                    '<div class="flex items-center gap-2 mt-1">' +
+                        '<span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono">' + sku + '</span>' +
+                        '<span class="text-xs text-[#146E6E] font-bold">' + price + ' ر.س</span>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="text-left flex-shrink-0">' +
+                    '<div class="text-xs text-gray-500 mb-1">' + category + '</div>' +
+                    '<div class="text-xs font-bold ' + qtyClass + '">' + qty + ' قطعة</div>' +
+                '</div>' +
+            '</a>';
     });
-    
+
     searchResults.innerHTML = html;
     searchResults.classList.remove('hidden');
 }
