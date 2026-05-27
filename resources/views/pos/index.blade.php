@@ -39,6 +39,7 @@
     --header-h:      58px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[x-cloak]{display:none !important}
 html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;background:var(--bg);color:var(--text);direction:rtl}
 .num-ltr{direction:ltr;text-align:right;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
 .num-ltr input{direction:ltr;text-align:right}
