@@ -656,7 +656,12 @@ if (searchInput) {
         }
 
         if (query.length < 2) {
-            showLoadingState();
+            searchResults.innerHTML = `
+                <div class="p-4 text-center text-gray-400">
+                    <i class="fas fa-keyboard text-2xl mb-2 opacity-50"></i>
+                    <p class="text-sm">اكتب حرفين على الأقل للبحث</p>
+                </div>
+            `;
             searchResults.classList.remove('hidden');
             return;
         }
@@ -682,12 +687,14 @@ if (searchInput) {
 
 function performSearch(query) {
     const searchUrl = `{{ route('products.search') }}?q=${encodeURIComponent(query)}`;
-    
+
     fetch(searchUrl, {
         method: 'GET',
+        credentials: 'same-origin',
         headers: {
             'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? ''
         }
     })
     .then(response => {
