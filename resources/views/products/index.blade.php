@@ -781,7 +781,7 @@ function displaySearchResults(results) {
                 '<img src="' + imgSrc + '" ' +
                      'alt="' + nameAr + '" ' +
                      'class="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0" ' +
-                     'onerror="this.onerror=null;this.src='' + NO_PRODUCT_IMG + ''">' +
+                     'onerror="this.onerror=null;this.src=\'' + NO_PRODUCT_IMG + '\'">' +
                 '<div class="flex-1 min-w-0">' +
                     '<div class="font-semibold text-gray-900 text-sm truncate">' + nameAr + '</div>' +
                     (nameEn ? '<div class="text-xs text-gray-500 truncate">' + nameEn + '</div>' : '') +
