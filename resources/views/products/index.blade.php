@@ -656,12 +656,7 @@ if (searchInput) {
         }
 
         if (query.length < 2) {
-            searchResults.innerHTML = `
-                <div class="p-4 text-center text-gray-400">
-                    <i class="fas fa-keyboard text-2xl mb-2 opacity-50"></i>
-                    <p class="text-sm">اكتب حرفين على الأقل للبحث</p>
-                </div>
-            `;
+            showLoadingState();
             searchResults.classList.remove('hidden');
             return;
         }
@@ -687,6 +682,7 @@ if (searchInput) {
 
 function performSearch(query) {
     const searchUrl = `{{ route('products.search') }}?q=${encodeURIComponent(query)}`;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
     fetch(searchUrl, {
         method: 'GET',
@@ -694,12 +690,27 @@ function performSearch(query) {
         headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? ''
+            'X-CSRF-TOKEN': csrfToken
         }
     })
     .then(response => {
+        // انتهت الجلسة أو لا صلاحية
+        if (response.status === 401) {
+            window.location.reload();
+            throw new Error('auth_error');
+        }
+        if (response.status === 403) {
+            throw new Error('permission_error');
+        }
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('http_' + response.status);
+        }
+        // التحقق أن الرد JSON وليس HTML (redirect)
+        const contentType = response.headers.get('content-type') ?? '';
+        if (!contentType.includes('application/json')) {
+            // الغالب أن الجلسة انتهت وتم redirect لصفحة login
+            window.location.reload();
+            throw new Error('auth_error');
         }
         return response.json();
     })
@@ -708,8 +719,9 @@ function performSearch(query) {
         displaySearchResults(data.results || []);
     })
     .catch(error => {
-        console.error('Search error:', error);
         isSearching = false;
+        if (error.message === 'auth_error') return;
+        console.error('Search error:', error.message);
         showErrorState();
     });
 }
