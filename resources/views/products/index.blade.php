@@ -400,9 +400,7 @@
                            placeholder="اسم المنتج، الكود، الباركود..."
                            class="filter-input pr-8"
                            autocomplete="off">
-                    {{-- نتائج البحث المباشر --}}
-                    <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 hidden max-h-96 overflow-y-auto">
-                    </div>
+
                 </div>
             </div>
 
@@ -451,6 +449,32 @@
             </div>
 
         </form>
+    </div>
+
+    {{-- ─── نتائج البحث المباشر (تظهر تحت شريط الفلاتر بعرض كامل) ────── --}}
+    <div id="search-results"
+         class="hidden"
+         style="
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9998;
+            pointer-events: none;
+         ">
+        <div id="search-results-panel"
+             style="
+                position: absolute;
+                background: #fff;
+                border: 1.5px solid #e5e7eb;
+                border-radius: 16px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(13,148,136,0.1);
+                max-height: 480px;
+                overflow-y: auto;
+                pointer-events: all;
+                z-index: 9999;
+             ">
+        </div>
     </div>
 
     {{-- ─── جدول المنتجات ─────────────────────────────────────────────── --}}
@@ -634,16 +658,37 @@ function confirmDelete(form) {
 }
 
 // ──── Live Search (البحث الحي) ────
-var searchInput   = document.getElementById('live-search');
-var searchResults = document.getElementById('search-results');
-var searchTimeout = null;
+var searchInput        = document.getElementById('live-search');
+var searchResults      = document.getElementById('search-results');
+var searchResultsPanel = document.getElementById('search-results-panel');
+var searchTimeout      = null;
+
+function positionSearchPanel() {
+    var filterBar = document.querySelector('.filter-bar');
+    if (!filterBar || !searchResults) return;
+    var rect = filterBar.getBoundingClientRect();
+    var panel = searchResultsPanel;
+    panel.style.top    = (rect.bottom + window.scrollY + 8) + 'px';
+    panel.style.left   = rect.left + 'px';
+    panel.style.width  = rect.width + 'px';
+    // reposition to fixed coords
+    panel.style.position = 'fixed';
+    panel.style.top    = (rect.bottom + 8) + 'px';
+    panel.style.left   = rect.left + 'px';
+}
 
 if (searchInput) {
 
     searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
+            // اضغط Enter لإرسال الفورم والبحث الكامل في الجدول
+            searchResults.classList.add('hidden');
+            searchResultsPanel.innerHTML = '';
+            searchInput.closest('form').submit();
+        }
+        if (e.key === 'Escape') {
+            searchResults.classList.add('hidden');
+            searchResultsPanel.innerHTML = '';
         }
     });
 
@@ -653,7 +698,7 @@ if (searchInput) {
 
         if (query.length === 0) {
             searchResults.classList.add('hidden');
-            searchResults.innerHTML = '';
+            searchResultsPanel.innerHTML = '';
             return;
         }
 
@@ -672,9 +717,17 @@ if (searchInput) {
         }, 350);
     });
 
-    document.addEventListener('click', function(e) {
+    window.addEventListener('scroll', function() {
+    if (!searchResults.classList.contains('hidden')) positionSearchPanel();
+}, { passive: true });
+window.addEventListener('resize', function() {
+    if (!searchResults.classList.contains('hidden')) positionSearchPanel();
+});
+
+document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
             searchResults.classList.add('hidden');
+            searchResultsPanel.innerHTML = '';
         }
     });
 
@@ -720,7 +773,9 @@ function performSearch(query) {
 }
 
 function showLoadingState() {
-    searchResults.innerHTML =
+    positionSearchPanel();
+    searchResults.classList.remove('hidden');
+    searchResultsPanel.innerHTML =
         '<div class="p-4 text-center">' +
             '<div class="inline-flex items-center gap-2 text-[#146E6E]">' +
                 '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
@@ -734,7 +789,8 @@ function showLoadingState() {
 
 function showErrorState(msg) {
     var message = msg || 'حدث خطأ في البحث. حاول مجدداً.';
-    searchResults.innerHTML =
+    positionSearchPanel();
+    searchResultsPanel.innerHTML =
         '<div class="p-4 text-center text-red-500">' +
             '<i class="fas fa-exclamation-circle text-2xl mb-2 block opacity-60"></i>' +
             '<p class="text-sm">' + message + '</p>' +
@@ -753,7 +809,8 @@ function escapeHtml(str) {
 
 function displaySearchResults(results) {
     if (results.length === 0) {
-        searchResults.innerHTML =
+        positionSearchPanel();
+        searchResultsPanel.innerHTML =
             '<div class="p-4 text-center text-gray-500">' +
                 '<i class="fas fa-search text-2xl mb-2 block opacity-40"></i>' +
                 '<p class="text-sm">لا توجد نتائج مطابقة</p>' +
@@ -763,8 +820,12 @@ function displaySearchResults(results) {
     }
 
     var html =
-        '<div class="px-3 py-2 bg-gray-50 border-b border-gray-100 text-xs text-gray-500">' +
-            'وجدنا <span class="font-semibold text-[#146E6E]">' + results.length + '</span> منتج' +
+        '<div style="position:sticky;top:0;z-index:1;background:linear-gradient(135deg,#f0fdfa,#ccfbf1);border-bottom:2px solid #0d9488;border-radius:16px 16px 0 0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">' +
+            '<span style="font-size:.8rem;font-weight:700;color:#0f766e;">' +
+                '<i class="fas fa-search" style="margin-left:6px;opacity:.7;"></i>' +
+                'وجدنا <span style="font-size:1.1rem;">' + results.length + '</span> منتج مطابق' +
+            '</span>' +
+            '<span style="font-size:.75rem;color:#6b7280;">اضغط على المنتج للتفاصيل</span>' +
         '</div>';
 
     results.forEach(function(product) {
@@ -779,27 +840,42 @@ function displaySearchResults(results) {
 
         html +=
             '<a href="/products/' + product.id + '" ' +
-               'class="flex items-center gap-3 p-3 hover:bg-[#f0fdfa] transition border-b border-gray-100 last:border-0">' +
+               'style="display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f3f4f6;text-decoration:none;transition:background .15s;"' +
+               'onmouseover="this.style.background=\'#f0fdfa\'" onmouseout="this.style.background=\'transparent\'">' +
+
                 '<img src="' + imgSrc + '" ' +
                      'alt="' + nameAr + '" ' +
-                     'class="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0" ' +
+                     'style="width:56px;height:56px;border-radius:12px;object-fit:cover;border:2px solid #e5e7eb;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.08);" ' +
                      'onerror="this.onerror=null;this.src=\'' + NO_PRODUCT_IMG + '\'">' +
-                '<div class="flex-1 min-w-0">' +
-                    '<div class="font-semibold text-gray-900 text-sm truncate">' + nameAr + '</div>' +
-                    (nameEn ? '<div class="text-xs text-gray-500 truncate">' + nameEn + '</div>' : '') +
-                    '<div class="flex items-center gap-2 mt-1">' +
-                        '<span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono">' + sku + '</span>' +
-                        '<span class="text-xs text-[#146E6E] font-bold">' + price + ' ر.س</span>' +
+
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="font-weight:700;color:#111827;font-size:.95rem;margin-bottom:3px;">' + nameAr + '</div>' +
+                    (nameEn ? '<div style="font-size:.8rem;color:#9ca3af;margin-bottom:4px;">' + nameEn + '</div>' : '') +
+                    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                        '<span style="background:linear-gradient(135deg,#f0fdfa,#ccfbf1);color:#0d9488;border:2px solid #99f6e4;border-radius:8px;padding:2px 10px;font-size:.78rem;font-weight:700;font-family:monospace;">' + sku + '</span>' +
+                        '<span style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:#166534;border:1px solid #86efac;border-radius:8px;padding:2px 8px;font-size:.78rem;font-weight:600;">' + category + '</span>' +
                     '</div>' +
                 '</div>' +
-                '<div class="text-left flex-shrink-0">' +
-                    '<div class="text-xs text-gray-500 mb-1">' + category + '</div>' +
-                    '<div class="text-xs font-bold ' + qtyClass + '">' + qty + ' قطعة</div>' +
+
+                '<div style="flex-shrink:0;text-align:center;">' +
+                    '<div style="font-size:1.1rem;font-weight:800;color:#0d9488;background:linear-gradient(135deg,#f0fdfa,#ccfbf1);padding:4px 12px;border-radius:10px;border:1px solid #99f6e4;white-space:nowrap;">' + price + ' ر.س</div>' +
+                    '<div style="font-size:.78rem;font-weight:700;margin-top:4px;color:' + (qty > 0 ? '#16a34a' : '#dc2626') + ';">' +
+                        (qty > 0 ? '✓ ' : '✗ ') + qty + ' ' + escapeHtml(product.unit || 'قطعة') +
+                    '</div>' +
                 '</div>' +
+
+                '<div style="flex-shrink:0;color:#9ca3af;font-size:1rem;"><i class="fas fa-chevron-left"></i></div>' +
+
             '</a>';
     });
 
-    searchResults.innerHTML = html;
+    html += '<div style="padding:10px 20px;background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;display:flex;align-items:center;justify-content:center;gap:8px;">' +
+        '<span style="font-size:.8rem;color:#6b7280;">اضغط</span>' +
+        '<kbd style="background:#fff;border:1px solid #d1d5db;border-radius:6px;padding:2px 8px;font-size:.78rem;color:#374151;box-shadow:0 1px 3px rgba(0,0,0,.1);">Enter</kbd>' +
+        '<span style="font-size:.8rem;color:#6b7280;">لعرض كل النتائج في الجدول</span>' +
+    '</div>';
+    positionSearchPanel();
+    searchResultsPanel.innerHTML = html;
     searchResults.classList.remove('hidden');
 }
 </script>
