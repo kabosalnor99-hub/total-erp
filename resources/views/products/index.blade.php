@@ -628,10 +628,11 @@ function confirmDelete(form) {
     return confirm(`هل أنت متأكد من حذف "${name}"؟\nلا يمكن التراجع عن هذا الإجراء.`);
 }
 
-// Live Search
+// ──── Live Search (البحث الحي) ────
 const searchInput = document.getElementById('live-search');
 const searchResults = document.getElementById('search-results');
 let searchTimeout;
+let isSearching = false;
 
 if (searchInput) {
     // منع إرسال النموذج عند الضغط على Enter
@@ -643,25 +644,32 @@ if (searchInput) {
         }
     });
 
+    // حدث الكتابة - البحث الحي
     searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         const query = this.value.trim();
         
-        if (query.length < 2) {
+        // إظهار رسالة "اكتب على الأقل حرفين"
+        if (query.length === 0) {
             searchResults.classList.add('hidden');
             return;
         }
+
+        if (query.length < 2) {
+            showLoadingState();
+            searchResults.classList.remove('hidden');
+            return;
+        }
         
+        // مؤشر التحميل
+        showLoadingState();
+        searchResults.classList.remove('hidden');
+        isSearching = true;
+
+        // تأخير 300ms لتقليل عدد الطلبات
         searchTimeout = setTimeout(() => {
-            fetch(`{{ route('products.search') }}?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    displaySearchResults(data.results);
-                })
-                .catch(error => {
-                    console.error('Search error:', error);
-                });
-        }, 150);
+            performSearch(query);
+        }, 300);
     });
     
     // إخفاء النتائج عند النقر خارجها
@@ -672,39 +680,94 @@ if (searchInput) {
     });
 }
 
+function performSearch(query) {
+    const searchUrl = `{{ route('products.search') }}?q=${encodeURIComponent(query)}`;
+    
+    fetch(searchUrl, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        isSearching = false;
+        displaySearchResults(data.results || []);
+    })
+    .catch(error => {
+        console.error('Search error:', error);
+        isSearching = false;
+        showErrorState();
+    });
+}
+
+function showLoadingState() {
+    searchResults.innerHTML = `
+        <div class="p-4 text-center">
+            <div class="inline-flex items-center gap-2 text-[#146E6E]">
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-sm">جاري البحث...</span>
+            </div>
+        </div>
+    `;
+}
+
+function showErrorState() {
+    searchResults.innerHTML = `
+        <div class="p-4 text-center text-red-500">
+            <i class="fas fa-exclamation-circle text-2xl mb-2 opacity-50"></i>
+            <p class="text-sm">حدث خطأ في البحث. حاول مجدداً.</p>
+        </div>
+    `;
+}
+
 function displaySearchResults(results) {
     if (results.length === 0) {
         searchResults.innerHTML = `
             <div class="p-4 text-center text-gray-500">
                 <i class="fas fa-search text-2xl mb-2 opacity-50"></i>
-                <p class="text-sm">لا توجد نتائج</p>
+                <p class="text-sm">لا توجد نتائج للبحث</p>
             </div>
         `;
         searchResults.classList.remove('hidden');
         return;
     }
     
-    let html = '';
+    let html = `
+        <div class="px-3 py-2 bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
+            وجدنا <span class="font-semibold text-[#146E6E]">${results.length}</span> منتج
+        </div>
+    `;
+    
     results.forEach(product => {
         html += `
-            <a href="/products/${product.id}"
-               class="flex items-center gap-3 p-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
-                <img src="${product.image}" 
+            <a href="{{ route('products.show', '') }}/${product.id}"
+               class="flex items-center gap-3 p-3 hover:bg-[#f0fdfa] transition border-b border-gray-100 last:border-0">
+                <img src="${product.image || '{{ asset('images/no-product.png') }}'}" 
                      alt="${product.name_ar}"
-                     class="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                     class="w-12 h-12 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                      onerror="this.src='{{ asset('images/no-product.png') }}'">
                 <div class="flex-1 min-w-0">
                     <div class="font-semibold text-gray-900 text-sm truncate">${product.name_ar}</div>
                     <div class="text-xs text-gray-500 truncate">${product.name_en || ''}</div>
                     <div class="flex items-center gap-2 mt-1">
-                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">${product.sku}</span>
-                        <span class="text-xs text-[#146E6E] font-semibold">${product.sale_price} ر.س</span>
+                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono">${product.sku}</span>
+                        <span class="text-xs text-[#146E6E] font-bold">${parseFloat(product.sale_price).toLocaleString('ar-SA')} ر.س</span>
                     </div>
                 </div>
-                <div class="text-left">
-                    <div class="text-xs text-gray-500">${product.category || ''}</div>
-                    <div class="text-xs ${product.quantity > 0 ? 'text-green-600' : 'text-red-600'}">
-                        ${product.quantity} ${product.unit || 'قطعة'}
+                <div class="text-left flex-shrink-0">
+                    <div class="text-xs text-gray-500 mb-1">${product.category || 'بدون فئة'}</div>
+                    <div class="text-xs font-bold ${product.quantity > 0 ? 'text-green-600' : 'text-red-600'}">
+                        ${product.quantity} قطعة
                     </div>
                 </div>
             </a>
