@@ -624,7 +624,7 @@
 @push('scripts')
 <script>
 // ── تعريف المتغيرات من Blade مرة واحدة بعيداً عن template literals ──
-var SEARCH_URL     = '{{ route("products.search") }}';
+var SEARCH_URL     = window.location.origin + '/products/search';
 var NO_PRODUCT_IMG = '{{ asset("images/no-product.png") }}';
 
 function confirmDelete(form) {
@@ -690,9 +690,11 @@ function performSearch(query) {
 
     fetch(url, {
         method: 'GET',
+        credentials: 'same-origin',
         headers: {
             'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         }
     })
     .then(function(response) {
