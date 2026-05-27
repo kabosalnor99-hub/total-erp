@@ -15,6 +15,11 @@ class CheckPermission
     public function handle(Request $request, Closure $next, string $permission): Response
     {
         if (!auth()->check()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'غير مصرح. يرجى تسجيل الدخول.',
+                ], 401);
+            }
             return redirect()->route('login');
         }
 
