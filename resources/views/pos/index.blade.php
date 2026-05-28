@@ -227,11 +227,20 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 /* Print */
 @media print{*{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}body{background:#fff;color:#000;direction:rtl;font-family:'Cairo',monospace}.no-print{display:none !important}.receipt-wrap{width:80mm;margin:0 auto}}
 
-/* Responsive Tablet */
+/* Responsive Tablet & Mobile */
 @media(max-width:768px){
     :root{--cart-w:100%}
-    .pos-wrapper{grid-template-columns:1fr;grid-template-rows:var(--header-h) 1fr auto}
-    .pos-cart{max-height:44vh;border-right:none;border-top:2px solid var(--teal)}
+    /* السماح بالسكرول الكامل على الموبايل */
+    html,body{overflow:auto;height:auto}
+    .pos-wrapper{display:flex;flex-direction:column;height:auto;min-height:100vh}
+    /* منطقة المنتجات بارتفاع ثابت مع سكرول داخلي */
+    .pos-products{height:58vh;min-height:320px;flex-shrink:0}
+    /* السلة تظهر كاملة تحت المنتجات */
+    .pos-cart{border-right:none;border-top:2px solid var(--teal);height:auto;max-height:none;flex-shrink:0;display:flex;flex-direction:column}
+    /* بنود السلة بحد أقصى مع سكرول */
+    .pos-cart-items{max-height:200px;overflow-y:auto}
+    /* ملخص وزر الدفع دائماً مرئي */
+    .pos-cart-summary{flex-shrink:0}
 }
 
 /* Responsive Mobile */
@@ -248,8 +257,9 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     .pos-search-input{font-size:13px;padding:7px 10px}
     .pos-categories{padding:6px 10px;gap:5px}
     .pos-cat-btn{padding:4px 11px;font-size:11px}
-    .pos-grid{padding:8px 10px;gap:8px;grid-template-columns:repeat(2,1fr)}
-    .product-card-img-placeholder{height:60px;font-size:24px}
+    .pos-grid{padding:8px 10px;gap:8px;grid-template-columns:repeat(2,1fr);grid-auto-rows:175px}
+    .product-card{height:175px}
+    .product-card-img-placeholder{height:95px;font-size:24px}
     .product-card-body{padding:6px 8px}
     .product-card-name{font-size:11px}
     .product-card-price{font-size:12px}
