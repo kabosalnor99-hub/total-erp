@@ -1,20 +1,26 @@
 <?php
 
+// المسار الكامل: app/Models/Warehouse.php
+
 namespace App\Models;
 
-use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Cache;
 
 class Warehouse extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name', 'code', 'location', 'manager_name',
-        'phone', 'is_active', 'is_default', 'notes',
+        'name',
+        'code',
+        'location',
+        'manager_name',
+        'phone',
+        'is_active',
+        'is_default',
+        'notes',
     ];
 
     protected $casts = [
@@ -24,11 +30,13 @@ class Warehouse extends Model
 
     // ─── العلاقات ────────────────────────────────────────────────────
 
+    /** حركات المخزون في هذا المستودع */
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
     }
 
+    /** حركات التحويل الواردة */
     public function incomingTransfers(): HasMany
     {
         return $this->hasMany(StockMovement::class, 'warehouse_to_id');
@@ -41,39 +49,16 @@ class Warehouse extends Model
         return $query->where('is_active', true);
     }
 
-    // ─── Cache ───────────────────────────────────────────────────────
+    // ─── Accessors / Helpers ─────────────────────────────────────────
 
-    /**
-     * جيب المستودعات النشطة من الـ cache
-     */
-    public static function cachedActive(): \Illuminate\Support\Collection
-    {
-        return Cache::remember(
-            CacheService::warehousesKey(),
-            CacheService::TTL_WAREHOUSES,
-            fn() => static::active()->get()
-        );
-    }
-
-    /**
-     * المستودع الافتراضي (مع cache)
-     */
+    /** المستودع الافتراضي */
     public static function getDefault(): ?self
     {
-        return static::cachedActive()->firstWhere('is_default', true)
-            ?? static::cachedActive()->first();
+        return self::where('is_default', true)->first()
+            ?? self::where('is_active', true)->first();
     }
 
-    // ─── إلغاء الـ cache تلقائياً ────────────────────────────────────
-
-    protected static function booted(): void
-    {
-        static::saved(fn()   => CacheService::forgetWarehouses());
-        static::deleted(fn() => CacheService::forgetWarehouses());
-    }
-
-    // ─── Accessors ───────────────────────────────────────────────────
-
+    /** إجمالي الكميات في هذا المستودع */
     public function getTotalItemsAttribute(): int
     {
         return StockMovement::where('warehouse_id', $this->id)
