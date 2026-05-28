@@ -11,7 +11,6 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
-use App\Services\CacheService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -64,16 +63,12 @@ class ProductController extends Controller
         $categories = Category::active()->orderBy('name_ar')->get();
 
         // إحصائيات سريعة
-        $stats = \Illuminate\Support\Facades\Cache::remember(
-            CacheService::productStatsKey(),
-            CacheService::TTL_STATS,
-            fn() => [
-                'total'        => Product::count(),
-                'active'       => Product::active()->count(),
-                'out_of_stock' => Product::outOfStock()->count(),
-                'critical'     => Product::critical()->count(),
-            ]
-        );
+        $stats = [
+            'total'         => Product::count(),
+            'active'        => Product::active()->count(),
+            'out_of_stock'  => Product::outOfStock()->count(),
+            'critical'      => Product::critical()->count(),
+        ];
 
         return view('products.index', compact('products', 'categories', 'stats'));
     }
@@ -159,8 +154,6 @@ class ProductController extends Controller
 
         ActivityLog::record('created', "إضافة منتج: {$product->name_ar}", $product);
 
-        CacheService::forgetProductStats();
-
         return redirect()->route('products.show', $product)
             ->with('success', 'تم إضافة المنتج بنجاح.');
     }
@@ -200,8 +193,6 @@ class ProductController extends Controller
 
         ActivityLog::record('updated', "تعديل منتج: {$product->name_ar}", $product, $old);
 
-        CacheService::forgetProductStats();
-
         return redirect()->route('products.show', $product)
             ->with('success', 'تم تحديث المنتج بنجاح.');
     }
@@ -216,8 +207,6 @@ class ProductController extends Controller
 
         ActivityLog::record('deleted', "حذف منتج: {$product->name_ar}", $product);
         $product->delete();
-
-        CacheService::forgetProductStats();
 
         return redirect()->route('products.index')
             ->with('success', 'تم حذف المنتج بنجاح.');
