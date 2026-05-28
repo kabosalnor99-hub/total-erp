@@ -52,9 +52,9 @@
         box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         transform: translateY(-4px);
     }
-    .stat-tile.active { 
-        border-color: #0d9488; 
-        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15), 0 8px 30px rgba(13, 148, 136, 0.2); 
+    .stat-tile.active {
+        border-color: #0d9488;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15), 0 8px 30px rgba(13, 148, 136, 0.2);
         background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
     }
     .stat-tile-icon {
@@ -75,6 +75,7 @@
         border-radius: 16px;
         padding: 1.5rem 1.75rem;
         box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        position: relative; /* مهم لحساب موضع البانل */
     }
     .filter-input {
         border: 2px solid #e5e7eb;
@@ -87,10 +88,10 @@
         background: #f9fafb;
         font-family: 'Tajawal', sans-serif;
     }
-    .filter-input:focus { 
-        border-color: #0d9488; 
-        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1); 
-        background:#fff; 
+    .filter-input:focus {
+        border-color: #0d9488;
+        box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+        background:#fff;
     }
 
     /* ── الجدول ── */
@@ -127,7 +128,7 @@
         transition: all .2s;
     }
     .products-table tbody tr:last-child { border-bottom: none; }
-    .products-table tbody tr:hover { 
+    .products-table tbody tr:hover {
         background: linear-gradient(135deg, #f0fdfa 0%, #f0fdf4 100%);
         transform: scale(1.005);
     }
@@ -174,10 +175,10 @@
 
     /* ── سعر ── */
     .price-purchase { color: #6b7280; font-size: .9rem; font-weight: 500; }
-    .price-sale { 
-        color: #0d9488; 
-        font-weight: 800; 
-        font-size: 1.05rem; 
+    .price-sale {
+        color: #0d9488;
+        font-weight: 800;
+        font-size: 1.05rem;
         background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
         padding: .25rem .6rem;
         border-radius: 8px;
@@ -194,48 +195,48 @@
         white-space: nowrap;
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .stock-green  { 
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); 
-        color: #166534; 
-        border: 1px solid #86efac; 
+    .stock-green  {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: #166534;
+        border: 1px solid #86efac;
     }
-    .stock-yellow { 
-        background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); 
-        color: #854d0e; 
-        border: 1px solid #fde047; 
+    .stock-yellow {
+        background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+        color: #854d0e;
+        border: 1px solid #fde047;
     }
-    .stock-red    { 
-        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%); 
-        color: #9f1239; 
-        border: 1px solid #fda4af; 
+    .stock-red    {
+        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%);
+        color: #9f1239;
+        border: 1px solid #fda4af;
     }
-    .stock-gray   { 
-        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); 
-        color: #6b7280; 
-        border: 1px solid #d1d5db; 
+    .stock-gray   {
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        color: #6b7280;
+        border: 1px solid #d1d5db;
     }
 
     /* ── الحالة ── */
-    .status-active   { 
-        display:inline-flex; align-items:center; gap:.4rem; 
-        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); 
-        color:#065f46; 
-        border: 1px solid #6ee7b7; 
-        border-radius:24px; 
-        padding:.3rem .85rem; 
-        font-size:.8rem; 
-        font-weight:700; 
+    .status-active   {
+        display:inline-flex; align-items:center; gap:.4rem;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        color:#065f46;
+        border: 1px solid #6ee7b7;
+        border-radius:24px;
+        padding:.3rem .85rem;
+        font-size:.8rem;
+        font-weight:700;
         box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
     }
-    .status-inactive { 
-        display:inline-flex; align-items:center; gap:.4rem; 
-        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%); 
-        color:#9f1239; 
-        border: 1px solid #fda4af; 
-        border-radius:24px; 
-        padding:.3rem .85rem; 
-        font-size:.8rem; 
-        font-weight:700; 
+    .status-inactive {
+        display:inline-flex; align-items:center; gap:.4rem;
+        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%);
+        color:#9f1239;
+        border: 1px solid #fda4af;
+        border-radius:24px;
+        padding:.3rem .85rem;
+        font-size:.8rem;
+        font-weight:700;
         box-shadow: 0 2px 8px rgba(244, 63, 94, 0.15);
     }
     .status-dot { width:7px; height:7px; border-radius:50%; box-shadow: 0 0 8px currentColor; }
@@ -254,24 +255,24 @@
         cursor: pointer;
         background: none;
     }
-    .action-btn:hover { 
+    .action-btn:hover {
         transform: scale(1.1);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .action-btn.view:hover  { 
-        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); 
-        border-color: #99f6e4; 
-        color: #0d9488; 
+    .action-btn.view:hover  {
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+        border-color: #99f6e4;
+        color: #0d9488;
     }
-    .action-btn.edit:hover  { 
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); 
-        border-color: #93c5fd; 
-        color: #2563eb; 
+    .action-btn.edit:hover  {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #93c5fd;
+        color: #2563eb;
     }
-    .action-btn.del:hover   { 
-        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%); 
-        border-color: #fda4af; 
-        color: #e11d48; 
+    .action-btn.del:hover   {
+        background: linear-gradient(135deg, #fff1f2 0%, #fecdd3 100%);
+        border-color: #fda4af;
+        color: #e11d48;
     }
 
     /* ── فارغ ── */
@@ -280,10 +281,10 @@
         padding: 5rem 2rem;
         color: #9ca3af;
     }
-    .empty-state i { 
-        font-size: 4rem; 
-        display: block; 
-        margin-bottom: 1.5rem; 
+    .empty-state i {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 1.5rem;
         opacity: .3;
         background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
         -webkit-background-clip: text;
@@ -299,6 +300,19 @@
         align-items: center;
         justify-content: center;
         background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+
+    /* ── البانل العائم للبحث الحي ── */
+    #search-results-panel {
+        position: fixed;
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(13,148,136,0.1);
+        max-height: 480px;
+        overflow-y: auto;
+        z-index: 9999;
+        display: none; /* مخفي افتراضياً */
     }
 
     /* ── تسليط الضوء على صف محدد ── */
@@ -387,7 +401,7 @@
     </div>
 
     {{-- ─── شريط الفلاتر ──────────────────────────────────────────────── --}}
-    <div class="filter-bar">
+    <div class="filter-bar" id="filter-bar">
         <form method="GET" action="{{ route('products.index') }}"
               class="flex flex-wrap md:flex-nowrap items-end gap-3">
 
@@ -400,7 +414,6 @@
                            placeholder="اسم المنتج، الكود، الباركود..."
                            class="filter-input pr-8"
                            autocomplete="off">
-
                 </div>
             </div>
 
@@ -451,31 +464,8 @@
         </form>
     </div>
 
-    {{-- ─── نتائج البحث المباشر (تظهر تحت شريط الفلاتر بعرض كامل) ────── --}}
-    <div id="search-results"
-         class="hidden"
-         style="
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 9998;
-            pointer-events: none;
-         ">
-        <div id="search-results-panel"
-             style="
-                position: absolute;
-                background: #fff;
-                border: 1.5px solid #e5e7eb;
-                border-radius: 16px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(13,148,136,0.1);
-                max-height: 480px;
-                overflow-y: auto;
-                pointer-events: all;
-                z-index: 9999;
-             ">
-        </div>
-    </div>
+    {{-- ─── بانل نتائج البحث الحي (خارج أي container) ─────────────────── --}}
+    <div id="search-results-panel"></div>
 
     {{-- ─── جدول المنتجات ─────────────────────────────────────────────── --}}
     <div class="products-table-wrap">
@@ -647,7 +637,7 @@
 
 @push('scripts')
 <script>
-// ── تعريف المتغيرات من Blade مرة واحدة بعيداً عن template literals ──
+// ── المتغيرات العامة ──
 var SEARCH_URL     = window.location.origin + '/products/search';
 var NO_PRODUCT_IMG = '{{ asset("images/no-product.png") }}';
 
@@ -658,37 +648,44 @@ function confirmDelete(form) {
 }
 
 // ──── Live Search (البحث الحي) ────
-var searchInput        = document.getElementById('live-search');
-var searchResults      = document.getElementById('search-results');
-var searchResultsPanel = document.getElementById('search-results-panel');
-var searchTimeout      = null;
+var searchInput   = document.getElementById('live-search');
+var searchPanel   = document.getElementById('search-results-panel');
+var searchTimeout = null;
 
+/**
+ * يحسب موضع البانل تحت شريط الفلاتر مباشرةً
+ * البانل هو position:fixed مستقل — نضبط top/left/width بناءً على getBoundingClientRect
+ */
 function positionSearchPanel() {
-    var filterBar = document.querySelector('.filter-bar');
-    if (!filterBar || !searchResults) return;
+    var filterBar = document.getElementById('filter-bar');
+    if (!filterBar || !searchPanel) return;
+
     var rect = filterBar.getBoundingClientRect();
-    var panel = searchResultsPanel;
-    panel.style.top    = (rect.bottom + window.scrollY + 8) + 'px';
-    panel.style.left   = rect.left + 'px';
-    panel.style.width  = rect.width + 'px';
-    // reposition to fixed coords
-    panel.style.position = 'fixed';
-    panel.style.top    = (rect.bottom + 8) + 'px';
-    panel.style.left   = rect.left + 'px';
+
+    searchPanel.style.top   = (rect.bottom + 8) + 'px';
+    searchPanel.style.left  = rect.left + 'px';
+    searchPanel.style.width = rect.width + 'px';
+}
+
+function showPanel() {
+    positionSearchPanel();
+    searchPanel.style.display = 'block';
+}
+
+function hidePanel() {
+    searchPanel.style.display = 'none';
+    searchPanel.innerHTML = '';
 }
 
 if (searchInput) {
 
     searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
-            // اضغط Enter لإرسال الفورم والبحث الكامل في الجدول
-            searchResults.classList.add('hidden');
-            searchResultsPanel.innerHTML = '';
+            hidePanel();
             searchInput.closest('form').submit();
         }
         if (e.key === 'Escape') {
-            searchResults.classList.add('hidden');
-            searchResultsPanel.innerHTML = '';
+            hidePanel();
         }
     });
 
@@ -697,43 +694,43 @@ if (searchInput) {
         var query = this.value.trim();
 
         if (query.length === 0) {
-            searchResults.classList.add('hidden');
-            searchResultsPanel.innerHTML = '';
+            hidePanel();
             return;
         }
 
         if (query.length < 2) {
-            searchResults.classList.remove('hidden');
-            searchResults.innerHTML =
-                '<div class="p-3 text-center text-xs text-gray-400">اكتب حرفين على الأقل للبحث...</div>';
+            searchPanel.innerHTML =
+                '<div style="padding:12px 16px;text-align:center;font-size:.85rem;color:#9ca3af;">اكتب حرفين على الأقل للبحث...</div>';
+            showPanel();
             return;
         }
 
         showLoadingState();
-        searchResults.classList.remove('hidden');
 
         searchTimeout = setTimeout(function() {
             performSearch(query);
         }, 350);
     });
 
-    window.addEventListener('scroll', function() {
-    if (!searchResults.classList.contains('hidden')) positionSearchPanel();
-}, { passive: true });
-window.addEventListener('resize', function() {
-    if (!searchResults.classList.contains('hidden')) positionSearchPanel();
-});
-
-document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-            searchResults.classList.add('hidden');
-            searchResultsPanel.innerHTML = '';
+    searchInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2 && searchPanel.innerHTML !== '') {
+            showPanel();
         }
     });
 
-    searchInput.addEventListener('focus', function() {
-        if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
-            searchResults.classList.remove('hidden');
+    // إعادة تحديد الموضع عند scroll أو resize
+    window.addEventListener('scroll', function() {
+        if (searchPanel.style.display !== 'none') positionSearchPanel();
+    }, { passive: true });
+
+    window.addEventListener('resize', function() {
+        if (searchPanel.style.display !== 'none') positionSearchPanel();
+    });
+
+    // إغلاق عند النقر خارج البانل أو خارج الـ input
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchPanel.contains(e.target)) {
+            hidePanel();
         }
     });
 }
@@ -747,7 +744,7 @@ function performSearch(query) {
         headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') || {}).getAttribute('content') || ''
         }
     })
     .then(function(response) {
@@ -773,29 +770,26 @@ function performSearch(query) {
 }
 
 function showLoadingState() {
-    positionSearchPanel();
-    searchResults.classList.remove('hidden');
-    searchResultsPanel.innerHTML =
-        '<div class="p-4 text-center">' +
-            '<div class="inline-flex items-center gap-2 text-[#146E6E]">' +
-                '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
-                    '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
-                    '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
+    searchPanel.innerHTML =
+        '<div style="padding:16px;text-align:center;">' +
+            '<div style="display:inline-flex;align-items:center;gap:8px;color:#146E6E;">' +
+                '<svg style="animation:spin 1s linear infinite;width:18px;height:18px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
+                    '<circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+                    '<path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>' +
                 '</svg>' +
-                '<span class="text-sm">جاري البحث...</span>' +
+                '<span style="font-size:.9rem;">جاري البحث...</span>' +
             '</div>' +
         '</div>';
+    showPanel();
 }
 
 function showErrorState(msg) {
-    var message = msg || 'حدث خطأ في البحث. حاول مجدداً.';
-    positionSearchPanel();
-    searchResultsPanel.innerHTML =
-        '<div class="p-4 text-center text-red-500">' +
-            '<i class="fas fa-exclamation-circle text-2xl mb-2 block opacity-60"></i>' +
-            '<p class="text-sm">' + message + '</p>' +
+    searchPanel.innerHTML =
+        '<div style="padding:16px;text-align:center;color:#e11d48;">' +
+            '<i class="fas fa-exclamation-circle" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:.6;"></i>' +
+            '<p style="font-size:.85rem;">' + (msg || 'حدث خطأ في البحث. حاول مجدداً.') + '</p>' +
         '</div>';
-    searchResults.classList.remove('hidden');
+    showPanel();
 }
 
 function escapeHtml(str) {
@@ -809,13 +803,12 @@ function escapeHtml(str) {
 
 function displaySearchResults(results) {
     if (results.length === 0) {
-        positionSearchPanel();
-        searchResultsPanel.innerHTML =
-            '<div class="p-4 text-center text-gray-500">' +
-                '<i class="fas fa-search text-2xl mb-2 block opacity-40"></i>' +
-                '<p class="text-sm">لا توجد نتائج مطابقة</p>' +
+        searchPanel.innerHTML =
+            '<div style="padding:24px;text-align:center;color:#6b7280;">' +
+                '<i class="fas fa-search" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.35;"></i>' +
+                '<p style="font-size:.9rem;">لا توجد نتائج مطابقة</p>' +
             '</div>';
-        searchResults.classList.remove('hidden');
+        showPanel();
         return;
     }
 
@@ -823,7 +816,7 @@ function displaySearchResults(results) {
         '<div style="position:sticky;top:0;z-index:1;background:linear-gradient(135deg,#f0fdfa,#ccfbf1);border-bottom:2px solid #0d9488;border-radius:16px 16px 0 0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">' +
             '<span style="font-size:.8rem;font-weight:700;color:#0f766e;">' +
                 '<i class="fas fa-search" style="margin-left:6px;opacity:.7;"></i>' +
-                'وجدنا <span style="font-size:1.1rem;">' + results.length + '</span> منتج مطابق' +
+                'وجدنا <span style="font-size:1.05rem;">' + results.length + '</span> منتج مطابق' +
             '</span>' +
             '<span style="font-size:.75rem;color:#6b7280;">اضغط على المنتج للتفاصيل</span>' +
         '</div>';
@@ -836,11 +829,11 @@ function displaySearchResults(results) {
         var category = escapeHtml(product.category) || 'بدون فئة';
         var price    = parseFloat(product.sale_price || 0).toLocaleString('ar-SA');
         var qty      = parseInt(product.quantity, 10) || 0;
-        var qtyClass = qty > 0 ? 'text-green-600' : 'text-red-600';
+        var unit     = escapeHtml(product.unit || 'قطعة');
 
         html +=
             '<a href="/products/' + product.id + '" ' +
-               'style="display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f3f4f6;text-decoration:none;transition:background .15s;"' +
+               'style="display:flex;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f3f4f6;text-decoration:none;transition:background .15s;" ' +
                'onmouseover="this.style.background=\'#f0fdfa\'" onmouseout="this.style.background=\'transparent\'">' +
 
                 '<img src="' + imgSrc + '" ' +
@@ -858,9 +851,9 @@ function displaySearchResults(results) {
                 '</div>' +
 
                 '<div style="flex-shrink:0;text-align:center;">' +
-                    '<div style="font-size:1.1rem;font-weight:800;color:#0d9488;background:linear-gradient(135deg,#f0fdfa,#ccfbf1);padding:4px 12px;border-radius:10px;border:1px solid #99f6e4;white-space:nowrap;">' + price + ' ر.س</div>' +
+                    '<div style="font-size:1.05rem;font-weight:800;color:#0d9488;background:linear-gradient(135deg,#f0fdfa,#ccfbf1);padding:4px 12px;border-radius:10px;border:1px solid #99f6e4;white-space:nowrap;">' + price + ' ر.س</div>' +
                     '<div style="font-size:.78rem;font-weight:700;margin-top:4px;color:' + (qty > 0 ? '#16a34a' : '#dc2626') + ';">' +
-                        (qty > 0 ? '✓ ' : '✗ ') + qty + ' ' + escapeHtml(product.unit || 'قطعة') +
+                        (qty > 0 ? '✓ ' : '✗ ') + qty + ' ' + unit +
                     '</div>' +
                 '</div>' +
 
@@ -869,14 +862,20 @@ function displaySearchResults(results) {
             '</a>';
     });
 
-    html += '<div style="padding:10px 20px;background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;display:flex;align-items:center;justify-content:center;gap:8px;">' +
-        '<span style="font-size:.8rem;color:#6b7280;">اضغط</span>' +
-        '<kbd style="background:#fff;border:1px solid #d1d5db;border-radius:6px;padding:2px 8px;font-size:.78rem;color:#374151;box-shadow:0 1px 3px rgba(0,0,0,.1);">Enter</kbd>' +
-        '<span style="font-size:.8rem;color:#6b7280;">لعرض كل النتائج في الجدول</span>' +
-    '</div>';
-    positionSearchPanel();
-    searchResultsPanel.innerHTML = html;
-    searchResults.classList.remove('hidden');
+    html +=
+        '<div style="padding:10px 20px;background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;display:flex;align-items:center;justify-content:center;gap:8px;">' +
+            '<span style="font-size:.8rem;color:#6b7280;">اضغط</span>' +
+            '<kbd style="background:#fff;border:1px solid #d1d5db;border-radius:6px;padding:2px 8px;font-size:.78rem;color:#374151;box-shadow:0 1px 3px rgba(0,0,0,.1);">Enter</kbd>' +
+            '<span style="font-size:.8rem;color:#6b7280;">لعرض كل النتائج في الجدول</span>' +
+        '</div>';
+
+    searchPanel.innerHTML = html;
+    showPanel();
 }
+
+// CSS للـ spin animation
+var style = document.createElement('style');
+style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
 </script>
 @endpush
