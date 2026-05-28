@@ -92,6 +92,21 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .stock-badge{position:absolute;top:5px;left:5px;background:linear-gradient(135deg,var(--danger) 0%,#b91c1c 100%);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:6px}
 .stock-badge.low{background:linear-gradient(135deg,var(--warning) 0%,#d97706 100%)}
 
+/* زر التفاصيل */
+.btn-product-detail{position:absolute;top:5px;right:5px;background:rgba(13,148,136,.85);border:none;border-radius:6px;color:#fff;font-size:10px;font-weight:700;padding:3px 7px;cursor:pointer;z-index:5;opacity:0;transition:opacity .2s;backdrop-filter:blur(4px);line-height:1.4}
+.product-card:hover .btn-product-detail{opacity:1}
+.btn-product-detail:hover{background:var(--teal)!important}
+
+/* مودال تفاصيل المنتج */
+.product-detail-img{width:100%;height:200px;object-fit:cover;border-radius:var(--radius-sm);margin-bottom:16px;background:var(--bg-3);display:flex;align-items:center;justify-content:center;font-size:60px;overflow:hidden}
+.product-detail-img img{width:100%;height:100%;object-fit:cover;display:block}
+.product-detail-price{font-size:28px;font-weight:800;color:var(--teal-light);margin:8px 0 4px}
+.product-detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.product-detail-row:last-child{border-bottom:none}
+.product-detail-label{color:var(--text-muted);font-size:12px}
+.product-detail-value{color:var(--text);font-weight:600}
+.product-detail-desc{background:var(--bg);border-radius:var(--radius-sm);padding:12px;font-size:13px;color:var(--text-muted);line-height:1.7;margin-top:8px}
+
 /* Cart Panel */
 .pos-cart{background:var(--bg-2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:-4px 0 20px rgba(0,0,0,.2)}
 .pos-cart-header{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-3)}
@@ -369,6 +384,13 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                     <template x-if="p.quantity > 0 && p.stock_status === 'low'">
                         <span class="stock-badge low">كمية قليلة</span>
                     </template>
+
+                    {{-- زر التفاصيل --}}
+                    <button
+                        class="btn-product-detail"
+                        @click.stop="openProductDetail(p)"
+                        title="عرض التفاصيل"
+                    >🔍 تفاصيل</button>
 
                     {{-- صورة --}}
                     <div class="product-card-img-placeholder">
@@ -761,6 +783,94 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
             <div class="pos-modal-footer">
                 <button type="button" class="btn-pos-cancel" @click="showCloseSessionModal=false">إلغاء</button>
                 <button type="submit" form="closeSessionForm" class="btn-pos-danger">🔴 إغلاق الجلسة</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════ MODAL: تفاصيل المنتج ══════════════════ --}}
+    <div class="pos-modal-overlay" x-show="showProductDetailModal" x-cloak @click.self="showProductDetailModal=false">
+        <div class="pos-modal" x-data style="max-width:420px">
+            <h3>📦 تفاصيل المنتج</h3>
+
+            <template x-if="selectedProduct">
+                <div>
+                    {{-- الصورة --}}
+                    <div class="product-detail-img">
+                        <template x-if="selectedProduct.image_url">
+                            <img :src="selectedProduct.image_url" :alt="selectedProduct.name">
+                        </template>
+                        <template x-if="!selectedProduct.image_url">
+                            <span>🔧</span>
+                        </template>
+                    </div>
+
+                    {{-- الاسم والسعر --}}
+                    <div x-text="selectedProduct.name" style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px"></div>
+                    <div class="product-detail-price num-ltr" x-text="fmt(selectedProduct.sale_price) + ' ج.س'"></div>
+
+                    {{-- بيانات المنتج --}}
+                    <div style="margin-top:12px">
+                        <template x-if="selectedProduct.category">
+                            <div class="product-detail-row">
+                                <span class="product-detail-label">الفئة</span>
+                                <span class="product-detail-value" x-text="selectedProduct.category"></span>
+                            </div>
+                        </template>
+
+                        <template x-if="selectedProduct.sku">
+                            <div class="product-detail-row">
+                                <span class="product-detail-label">كود المنتج</span>
+                                <span class="product-detail-value num-ltr" x-text="selectedProduct.sku"></span>
+                            </div>
+                        </template>
+
+                        <template x-if="selectedProduct.barcode">
+                            <div class="product-detail-row">
+                                <span class="product-detail-label">الباركود</span>
+                                <span class="product-detail-value num-ltr" x-text="selectedProduct.barcode"></span>
+                            </div>
+                        </template>
+
+                        <div class="product-detail-row">
+                            <span class="product-detail-label">الكمية المتاحة</span>
+                            <span class="product-detail-value num-ltr"
+                                :style="selectedProduct.quantity <= 0 ? 'color:var(--danger)' : selectedProduct.stock_status === 'low' ? 'color:var(--warning)' : 'color:var(--success)'"
+                                x-text="selectedProduct.quantity + ' وحدة'"></span>
+                        </div>
+
+                        <template x-if="selectedProduct.cost_price">
+                            <div class="product-detail-row">
+                                <span class="product-detail-label">سعر التكلفة</span>
+                                <span class="product-detail-value num-ltr" x-text="fmt(selectedProduct.cost_price) + ' ج.س'"></span>
+                            </div>
+                        </template>
+
+                        <template x-if="selectedProduct.unit">
+                            <div class="product-detail-row">
+                                <span class="product-detail-label">الوحدة</span>
+                                <span class="product-detail-value" x-text="selectedProduct.unit"></span>
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- الوصف --}}
+                    <template x-if="selectedProduct.description">
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:14px;margin-bottom:6px">الوصف</div>
+                            <div class="product-detail-desc" x-text="selectedProduct.description"></div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <div class="pos-modal-footer">
+                <button
+                    class="btn-pos-primary"
+                    @click="addToCart(selectedProduct); showProductDetailModal=false"
+                    :disabled="selectedProduct && selectedProduct.quantity <= 0"
+                    x-text="selectedProduct && selectedProduct.quantity <= 0 ? 'نفد المخزون' : '🛒 أضف للسلة'"
+                ></button>
+                <button class="btn-pos-cancel" @click="showProductDetailModal=false">إغلاق</button>
             </div>
         </div>
     </div>
