@@ -41,14 +41,16 @@ class PosController extends Controller
      */
     public function searchProducts(Request $request): JsonResponse
     {
-        $q          = $request->q ?? '';
-        $categoryId = $request->category_id;
+        $q          = $request->get('q', '');
+        $categoryId = $request->get('category_id');
 
         $query = Product::query()
-            ->where('is_active', true)
-            ->where('quantity', '>', 0);
+            ->where('is_active', true);
 
-        if ($q) {
+        // ✅ لا نُقيّد بـ quantity > 0 حتى تظهر كل المنتجات النشطة
+        // المنتجات المنفدة ستظهر بشارة "نفد" وتكون غير قابلة للضغط
+
+        if ($q !== '') {
             $query->where(function ($sub) use ($q) {
                 $sub->where('name_ar', 'like', "%{$q}%")
                     ->orWhere('name_en', 'like', "%{$q}%")
@@ -62,22 +64,26 @@ class PosController extends Controller
         }
 
         $products = $query->with('category')
+            ->orderByRaw('quantity > 0 DESC') // المتاح أولاً
             ->orderBy('name_ar')
-            ->limit(48)
+            ->limit(60)
             ->get()
             ->map(fn($p) => [
                 'id'           => $p->id,
                 'name'         => $p->name_ar,
-                'sku'          => $p->sku,
-                'barcode'      => $p->barcode,
+                'sku'          => $p->sku ?? '',
+                'barcode'      => $p->barcode ?? '',
                 'sale_price'   => (float) $p->sale_price,
                 'quantity'     => (int) $p->quantity,
                 'image_url'    => $p->image_url,
-                'category'     => $p->category?->name_ar,
-                'stock_status' => $p->stock_status,
+                'category'     => $p->category?->name_ar ?? '',
+                'stock_status' => $p->quantity <= 0 ? 'out_of_stock' : ($p->quantity <= ($p->reorder_point ?: 5) ? 'low' : 'ok'),
             ]);
 
-        return response()->json(['products' => $products]);
+        return response()->json([
+            'products' => $products,
+            'count'    => $products->count(),
+        ]);
     }
 
     /**
