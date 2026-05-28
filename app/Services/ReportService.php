@@ -247,7 +247,7 @@ class ReportService
      */
     public function salesSummary(string $dateFrom, string $dateTo): array
     {
-        $invoices = Invoice::whereBetween('invoice_date', [$dateFrom, $dateTo])
+        $invoices = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
             ->selectRaw('
                 COUNT(*) as total_invoices,
@@ -260,9 +260,9 @@ class ReportService
             ')
             ->first();
 
-        $monthly = Invoice::whereBetween('invoice_date', [$dateFrom, $dateTo])
+        $monthly = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
-            ->selectRaw('DATE_FORMAT(invoice_date, "%Y-%m") as month, SUM(total) as total')
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total) as total')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -280,7 +280,7 @@ class ReportService
      */
     public function salesByCustomer(string $dateFrom, string $dateTo): array
     {
-        $rows = Invoice::whereBetween('invoice_date', [$dateFrom, $dateTo])
+        $rows = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
             ->with('customer')
             ->selectRaw('customer_id, COUNT(*) as total_invoices, SUM(total) as total_amount, SUM(total - paid_amount) as balance')
@@ -301,7 +301,7 @@ class ReportService
     public function salesByProduct(string $dateFrom, string $dateTo): array
     {
         $rows = InvoiceItem::whereHas('invoice', fn($q) => $q
-            ->whereBetween('invoice_date', [$dateFrom, $dateTo])
+            ->whereDate('created_at', '>=', $dateFrom)->whereDate('created_at', '<=', $dateTo)
             ->where('status', '!=', 'cancelled')
         )->with('product')
             ->selectRaw('product_id, SUM(quantity) as total_qty, SUM(subtotal) as total_amount')
