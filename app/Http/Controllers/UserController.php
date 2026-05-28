@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\CacheService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -127,7 +126,6 @@ class UserController extends Controller
 
         // تحديث الدور
         $user->roles()->sync([$data['role_id']]);
-        CacheService::forgetUserPermissions($user->id);
 
         ActivityLog::record('updated', "تعديل مستخدم: {$user->name}", $user, $old, $user->fresh()->only(['name', 'email', 'phone', 'status']));
 
