@@ -82,12 +82,13 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .product-card:hover{background:var(--card-hover);border-color:var(--teal);transform:translateY(-3px);box-shadow:var(--shadow-teal)}
 .product-card:active{transform:scale(.96)}
 .product-card.out-of-stock{opacity:.4;cursor:not-allowed;pointer-events:none}
-.product-card-img-placeholder{width:100%;height:120px;background:linear-gradient(135deg,var(--bg-3) 0%,var(--border) 100%);display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--text-muted);border-bottom:1px solid var(--border);overflow:hidden}
-.product-card-body{padding:10px 12px}
-.product-card-name{font-size:14px;font-weight:700;line-height:1.35;color:var(--text);margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.product-card-category{font-size:10px;color:var(--text-muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.product-card-price{font-size:15px;font-weight:800;color:var(--teal-light)}
-.product-card-stock{font-size:12px;color:var(--text-muted);margin-top:3px}
+.product-card-img-placeholder{width:100%;height:120px;background:linear-gradient(135deg,var(--bg-3) 0%,var(--border) 100%);display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--text-muted);border-bottom:1px solid var(--border);overflow:hidden;position:relative}
+.product-card-img-placeholder img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.product-card-body{padding:10px 12px;background:#1e3040}
+.product-card-name{font-size:13px;font-weight:700;line-height:1.4;color:#e8f4f6 !important;margin-bottom:5px;display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%}
+.product-card-category{font-size:10px;color:#7ea8b8;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.product-card-price{font-size:14px;font-weight:800;color:#14b8a6 !important;display:block}
+.product-card-stock{font-size:11px;color:#7ea8b8;margin-top:3px;display:block}
 .stock-badge{position:absolute;top:5px;left:5px;background:linear-gradient(135deg,var(--danger) 0%,#b91c1c 100%);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:6px}
 .stock-badge.low{background:linear-gradient(135deg,var(--warning) 0%,#d97706 100%)}
 
@@ -369,10 +370,10 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                         <span class="stock-badge low">كمية قليلة</span>
                     </template>
 
-                    {{-- صورة - معطلة لتحسين السرعة --}}
+                    {{-- صورة --}}
                     <div class="product-card-img-placeholder">
                         <template x-if="p.image_url">
-                            <img :src="p.image_url" :alt="p.name" style="width:100%;height:100%;object-fit:cover">
+                            <img :src="p.image_url" :alt="p.name">
                         </template>
                         <template x-if="!p.image_url">
                             <span>🔧</span>
@@ -380,12 +381,12 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                     </div>
 
                     <div class="product-card-body">
-                        <div class="product-card-name" x-text="p.name"></div>
+                        <p class="product-card-name" x-text="p.name" style="color:#e8f4f6"></p>
                         <template x-if="p.category">
-                            <div class="product-card-category" x-text="p.category"></div>
+                            <p class="product-card-category" x-text="p.category"></p>
                         </template>
-                        <div class="product-card-price num-ltr" x-text="fmt(p.sale_price) + ' ج.س'"></div>
-                        <div class="product-card-stock num-ltr" x-text="'متاح: ' + p.quantity"></div>
+                        <p class="product-card-price num-ltr" x-text="fmt(p.sale_price) + ' ج.س'" style="color:#14b8a6"></p>
+                        <p class="product-card-stock num-ltr" x-text="'متاح: ' + p.quantity" style="color:#7ea8b8"></p>
                     </div>
                 </div>
             </template>
