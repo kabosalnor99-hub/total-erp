@@ -283,17 +283,19 @@
                              open: false,
                              notifications: [],
                              loading: false,
-                             async fetchNotifications() {
+                             fetchNotifications() {
                                  this.loading = true;
-                                 try {
-                                     const res = await fetch('{{ route('notifications.api.recent') }}', {
-                                         credentials: 'same-origin',
-                                         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-                                     });
-                                     const data = await res.json();
-                                     this.notifications = data.notifications || [];
-                                 } catch(e) {}
-                                 this.loading = false;
+                                 var self = this;
+                                 fetch('/notifications/api/recent', {
+                                     credentials: 'same-origin',
+                                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                                 })
+                                 .then(function(res) { return res.json(); })
+                                 .then(function(data) {
+                                     self.notifications = data.notifications || [];
+                                     self.loading = false;
+                                 })
+                                 .catch(function() { self.loading = false; });
                              }
                          }"
                          @click.outside="open = false">
@@ -339,7 +341,6 @@
                             </div>
                         </div>
                     </div>
-
 
                     {{-- المستخدم --}}
                     <div class="relative" x-data="{ open: false }">
