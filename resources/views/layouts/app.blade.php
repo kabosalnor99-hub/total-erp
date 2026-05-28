@@ -278,27 +278,68 @@
                     </a>
 
                     {{-- الإشعارات --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="relative p-2 text-gray-500 hover:text-primary transition">
+                    <div class="relative"
+                         x-data="{
+                             open: false,
+                             notifications: [],
+                             loading: false,
+                             async fetchNotifications() {
+                                 this.loading = true;
+                                 try {
+                                     const res = await fetch('{{ route('notifications.api.recent') }}', {
+                                         credentials: 'same-origin',
+                                         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                                     });
+                                     const data = await res.json();
+                                     this.notifications = data.notifications || [];
+                                 } catch(e) {}
+                                 this.loading = false;
+                             }
+                         }"
+                         @click.outside="open = false">
+                        <button @click="open = !open; if(open && !notifications.length) fetchNotifications()"
+                                class="relative p-2 text-gray-500 hover:text-primary transition">
                             <i class="fa fa-bell text-lg"></i>
-                            @php $unreadCount = 0; @endphp
-                            @if($unreadCount > 0)
+                            @if(($unreadCount ?? 0) > 0)
                             <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                                 {{ $unreadCount }}
                             </span>
                             @endif
                         </button>
-                        <div x-show="open" @click.outside="open = false"
-                            class="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
-                            <div class="px-4 py-3 border-b bg-gray-50">
+                        <div x-show="open" x-cloak
+                            class="absolute left-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                            <div class="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
                                 <p class="font-bold text-sm text-gray-700">الإشعارات</p>
+                                <a href="{{ route('notifications.index') }}" class="text-xs text-primary hover:underline">عرض الكل</a>
                             </div>
-                            <div class="py-6 text-center text-gray-400 text-sm">
+                            <div x-show="loading" class="py-6 text-center text-gray-400 text-sm">
+                                <i class="fa fa-spinner fa-spin text-xl"></i>
+                            </div>
+                            <div x-show="!loading && notifications.length === 0" class="py-6 text-center text-gray-400 text-sm">
                                 <i class="fa fa-bell-slash text-2xl mb-2 block"></i>
-                                لا توجد إشعارات جديدة
+                                لا توجد إشعارات
+                            </div>
+                            <div x-show="!loading && notifications.length > 0" class="max-h-80 overflow-y-auto">
+                                <template x-for="n in notifications" :key="n.id">
+                                    <a :href="n.url || '#'"
+                                       class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition"
+                                       :class="n.is_read ? 'opacity-70' : 'bg-blue-50/30'">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm"
+                                             :class="'bg-' + n.color + '-100 text-' + n.color + '-600'">
+                                            <i :class="'fa fa-' + n.icon"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-800 truncate" x-text="n.title"></p>
+                                            <p class="text-xs text-gray-500 truncate" x-text="n.body"></p>
+                                            <p class="text-xs text-gray-400 mt-0.5" x-text="n.time"></p>
+                                        </div>
+                                        <span x-show="!n.is_read" class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></span>
+                                    </a>
+                                </template>
                             </div>
                         </div>
                     </div>
+
 
                     {{-- المستخدم --}}
                     <div class="relative" x-data="{ open: false }">
