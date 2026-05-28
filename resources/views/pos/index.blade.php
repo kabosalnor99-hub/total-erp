@@ -236,11 +236,11 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     /* منطقة المنتجات بارتفاع ثابت مع سكرول داخلي */
     .pos-products{height:58vh;min-height:320px;flex-shrink:0}
     /* السلة تظهر كاملة تحت المنتجات */
-    .pos-cart{border-right:none;border-top:2px solid var(--teal);height:auto;max-height:none;flex-shrink:0;display:flex;flex-direction:column}
-    /* بنود السلة بحد أقصى مع سكرول */
-    .pos-cart-items{max-height:200px;overflow-y:auto}
-    /* ملخص وزر الدفع دائماً مرئي */
-    .pos-cart-summary{flex-shrink:0}
+    .pos-cart{border-right:none;border-top:2px solid var(--teal);height:auto;max-height:none;flex-shrink:0;display:block;overflow:visible}
+    /* بنود السلة سكرول طبيعي ضمن الصفحة */
+    .pos-cart-items{max-height:none;overflow-y:visible;flex:none}
+    /* ملخص وزر الدفع - sticky في الأسفل */
+    .pos-cart-summary{position:sticky;bottom:0;z-index:20;box-shadow:0 -4px 20px rgba(0,0,0,.3)}
 }
 
 /* Responsive Mobile */
