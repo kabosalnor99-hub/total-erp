@@ -1,80 +1,50 @@
 <?php
 
-// المسار الكامل: app/Models/Category.php
-
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Category extends Model
 {
-    use HasFactory;
+    protected $fillable = ['name_ar', 'name_en', 'description', 'is_active', 'sort_order'];
 
-    protected $fillable = [
-        'name_ar',
-        'name_en',
-        'parent_id',
-        'icon',
-        'color',
-        'is_active',
-        'sort_order',
-    ];
+    protected $casts = ['is_active' => 'boolean'];
 
-    protected $casts = [
-        'is_active'  => 'boolean',
-        'sort_order' => 'integer',
-    ];
+    // ─── العلاقات ────────────────────────────────────────────────
 
-    // ─── العلاقات ────────────────────────────────────────────────────
-
-    /** الفئة الأب */
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(Category::class, 'parent_id');
-    }
-
-    /** الفئات الفرعية */
-    public function children(): HasMany
-    {
-        return $this->hasMany(Category::class, 'parent_id');
-    }
-
-    /** المنتجات في هذه الفئة */
-    public function products(): HasMany
+    public function products()
     {
         return $this->hasMany(Product::class);
     }
 
-    // ─── Scopes ──────────────────────────────────────────────────────
+    // ─── Scopes ──────────────────────────────────────────────────
 
-    /** الفئات الرئيسية فقط (بدون أب) */
-    public function scopeRoot($query)
-    {
-        return $query->whereNull('parent_id');
-    }
-
-    /** الفئات النشطة فقط */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    // ─── Accessors ───────────────────────────────────────────────────
+    // ─── Cache ───────────────────────────────────────────────────
 
-    /** الاسم حسب اللغة الحالية */
-    public function getNameAttribute(): string
+    /**
+     * جيب الفئات النشطة من الـ cache — تُستخدم في Dropdowns
+     */
+    public static function cachedActive(): \Illuminate\Support\Collection
     {
-        return app()->getLocale() === 'ar'
-            ? $this->name_ar
-            : ($this->name_en ?? $this->name_ar);
+        return Cache::remember(
+            CacheService::categoriesKey(),
+            CacheService::TTL_CATEGORIES,
+            fn() => static::active()->orderBy('name_ar')->get()
+        );
     }
 
-    /** عدد المنتجات في الفئة */
-    public function getProductsCountAttribute(): int
+    // ─── إلغاء الـ cache تلقائياً عند الحفظ/الحذف ────────────────
+
+    protected static function booted(): void
     {
-        return $this->products()->count();
+        static::saved(fn()   => CacheService::forgetCategories());
+        static::deleted(fn() => CacheService::forgetCategories());
     }
 }
