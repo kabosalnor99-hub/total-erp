@@ -22,33 +22,36 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-    {
-        Gate::before(function ($user, string $ability) {
-            if ($user && method_exists($user, 'hasPermission')) {
-                return $user->hasPermission($ability);
-            }
-
-            return null;
-        });
-
-        Blade::if('canPermission', function (string $permission): bool {
-            $user = auth()->user();
-
-            return $user !== null && $user->hasPermission($permission);
-        });
-
-        View::composer('layouts.app', function ($view): void {
-            if ($view->offsetExists('lang')) {
-                return;
-            }
-
-            $locale = Session::get('locale', config('app.locale', 'ar'));
-            if (! in_array($locale, ['ar', 'en'], true)) {
-                $locale = 'ar';
-            }
-
-            $view->with('lang', $locale);
-            $view->with('dir', $locale === 'ar' ? 'rtl' : 'ltr');
-        });
+{
+    if ($this->app->environment('production')) {
+        \URL::forceScheme('https');
     }
+
+    Gate::before(function ($user, string $ability) {
+        if ($user && method_exists($user, 'hasPermission')) {
+            return $user->hasPermission($ability);
+        }
+
+        return null;
+    });
+
+    Blade::if('canPermission', function (string $permission): bool {
+        $user = auth()->user();
+
+        return $user !== null && $user->hasPermission($permission);
+    });
+
+    View::composer('layouts.app', function ($view): void {
+        if ($view->offsetExists('lang')) {
+            return;
+        }
+
+        $locale = Session::get('locale', config('app.locale', 'ar'));
+        if (! in_array($locale, ['ar', 'en'], true)) {
+            $locale = 'ar';
+        }
+
+        $view->with('lang', $locale);
+        $view->with('dir', $locale === 'ar' ? 'rtl' : 'ltr');
+    });
 }
