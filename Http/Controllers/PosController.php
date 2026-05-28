@@ -78,6 +78,9 @@ class PosController extends Controller
                 'image_url'    => $p->image_url,
                 'category'     => $p->category?->name_ar ?? '',
                 'stock_status' => $p->quantity <= 0 ? 'out_of_stock' : ($p->quantity <= ($p->reorder_point ?: 5) ? 'low' : 'ok'),
+                'description'  => $p->description ?? '',
+                'cost_price'   => (float) ($p->purchase_price ?? 0),
+                'unit'         => $p->unit ?? '',
             ]);
 
         return response()->json([
