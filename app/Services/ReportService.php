@@ -526,7 +526,7 @@ class ReportService
      */
     public function purchaseSummary(string $dateFrom, string $dateTo): array
     {
-        $orders = PurchaseOrder::whereBetween('order_date', [$dateFrom, $dateTo])
+        $orders = PurchaseOrder::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
             ->with('supplier')
             ->selectRaw('supplier_id, COUNT(*) as total_orders, SUM(total) as total_amount')
@@ -534,7 +534,7 @@ class ReportService
             ->orderByDesc('total_amount')
             ->get();
 
-        $total = PurchaseOrder::whereBetween('order_date', [$dateFrom, $dateTo])
+        $total = PurchaseOrder::whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
             ->sum('total');
 
@@ -552,7 +552,7 @@ class ReportService
     public function supplierStatement(int $supplierId, string $dateFrom, string $dateTo): array
     {
         $orders = PurchaseOrder::where('supplier_id', $supplierId)
-            ->whereBetween('order_date', [$dateFrom, $dateTo])
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
             ->where('status', '!=', 'cancelled')
             ->get();
 
