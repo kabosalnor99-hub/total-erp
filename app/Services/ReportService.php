@@ -304,7 +304,7 @@ class ReportService
             ->whereDate('created_at', '>=', $dateFrom)->whereDate('created_at', '<=', $dateTo)
             ->where('status', '!=', 'cancelled')
         )->with('product')
-            ->selectRaw('product_id, SUM(quantity) as total_qty, SUM(subtotal) as total_amount')
+            ->selectRaw('product_id, SUM(quantity) as total_qty, SUM(total) as total_amount')
             ->groupBy('product_id')
             ->orderByDesc('total_amount')
             ->get();
