@@ -407,8 +407,8 @@ class ReportService
     public function stockMovements(?int $productId, string $dateFrom, string $dateTo): array
     {
         $query = StockMovement::with(['product', 'warehouse'])
-            ->whereBetween('movement_date', [$dateFrom, $dateTo])
-            ->orderBy('movement_date');
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->orderBy('created_at');
 
         if ($productId) $query->where('product_id', $productId);
 
@@ -430,13 +430,13 @@ class ReportService
         $cutoff = now()->subDays($days)->toDateString();
 
         $products = Product::with('category')
-            ->whereDoesntHave('stockMovements', fn($q) => $q->whereDate('movement_date', '>=', $cutoff))
+            ->whereDoesntHave('stockMovements', fn($q) => $q->whereDate('created_at', '>=', $cutoff))
             ->get()
             ->map(fn($p) => [
                 'sku'           => $p->sku,
                 'name'          => app()->getLocale() === 'ar' ? $p->name_ar : $p->name_en,
                 'category'      => $p->category->name_ar ?? '-',
-                'last_movement' => optional($p->stockMovements()->latest('movement_date')->first())->movement_date?->format('Y-m-d') ?? __('reports.never'),
+                'last_movement' => optional($p->stockMovements()->latest('created_at')->first())->created_at?->format('Y-m-d') ?? __('reports.never'),
             ]);
 
         return [
