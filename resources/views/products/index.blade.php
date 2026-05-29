@@ -292,15 +292,35 @@
     }
     .empty-state p { font-size: 1rem; }
 
-    /* ── pagination ── */
-    .pagination-wrap {
-        padding: 1.25rem 2rem;
+    /* ── Infinite Scroll sentinel & loader ── */
+    #infinite-scroll-sentinel {
+        height: 1px;
+    }
+    #infinite-scroll-loader {
+        padding: 1.5rem 2rem;
         border-top: 2px solid #f3f4f6;
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
+        gap: .75rem;
         background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        color: #0d9488;
+        font-size: .9rem;
+        font-weight: 600;
     }
+    #infinite-scroll-loader.active { display: flex; }
+    #infinite-scroll-end {
+        padding: 1.25rem 2rem;
+        border-top: 2px solid #f3f4f6;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        color: #9ca3af;
+        font-size: .82rem;
+    }
+    #infinite-scroll-end.visible { display: flex; }
 
     /* ── البانل العائم للبحث الحي ── */
     #search-results-panel {
@@ -473,7 +493,8 @@
         {{-- رأس الجدول: عدد النتائج --}}
         <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-white">
             <span class="text-xs text-gray-400 font-medium">
-                عرض {{ $products->count() }} من {{ $products->total() }} منتج
+                عرض <span id="showing-count">{{ $products->count() }}</span> من
+                <span id="total-count">{{ $products->total() }}</span> منتج
             </span>
             @if(request()->hasAny(['search','category_id','type','status','filter']))
             <a href="{{ route('products.index') }}"
@@ -498,7 +519,10 @@
                         <th style="text-align:center; min-width:110px">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="products-tbody"
+                       data-next-page="{{ $products->hasMorePages() ? 2 : '' }}"
+                       data-has-more="{{ $products->hasMorePages() ? 'true' : 'false' }}"
+                       data-load-url="{{ route('products.index', request()->query()) }}">
                     @forelse($products as $product)
                     <tr id="row-{{ $product->id }}">
 
@@ -623,12 +647,26 @@
             </table>
         </div>
 
-        {{-- Pagination --}}
-        @if($products->hasPages())
-        <div class="pagination-wrap">
-            {{ $products->appends(request()->query())->links() }}
+        {{-- ─── Infinite Scroll ──────────────────────────────────────── --}}
+        <div id="infinite-scroll-sentinel"></div>
+
+        <div id="infinite-scroll-loader">
+            <svg class="spin" style="width:20px;height:20px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            جاري تحميل المزيد من المنتجات...
         </div>
-        @endif
+
+        <div id="infinite-scroll-end">
+            <i class="fas fa-check-circle" style="color:#0d9488;font-size:1rem;"></i>
+            تم عرض جميع المنتجات
+            <span id="scroll-total-badge"
+                  style="background:linear-gradient(135deg,#f0fdfa,#ccfbf1);color:#0f766e;border:1px solid #99f6e4;
+                         border-radius:20px;padding:2px 10px;font-size:.78rem;font-weight:700;margin-right:4px;">
+                {{ $products->total() }}
+            </span>
+        </div>
 
     </div>
 
@@ -647,15 +685,110 @@ function confirmDelete(form) {
     return confirm('هل أنت متأكد من حذف "' + name + '"؟\nلا يمكن التراجع عن هذا الإجراء.');
 }
 
-// ──── Live Search (البحث الحي) ────
+// ──────────────────────────────────────────────────────────────────────────
+// ── Infinite Scroll (Lazy Loading) ────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────
+(function () {
+    var tbody      = document.getElementById('products-tbody');
+    var sentinel   = document.getElementById('infinite-scroll-sentinel');
+    var loader     = document.getElementById('infinite-scroll-loader');
+    var endBanner  = document.getElementById('infinite-scroll-end');
+    var showingEl  = document.getElementById('showing-count');
+
+    if (!tbody || !sentinel) return;
+
+    var isLoading = false;
+    var hasMore   = tbody.dataset.hasMore === 'true';
+    var nextPage  = parseInt(tbody.dataset.nextPage, 10) || null;
+    var baseUrl   = tbody.dataset.loadUrl || window.location.href;
+
+    // إذا لا توجد صفحات إضافية من البداية، أظهر نهاية القائمة فوراً
+    if (!hasMore) {
+        endBanner.classList.add('visible');
+    }
+
+    function buildPageUrl(page) {
+        var url    = new URL(baseUrl, window.location.origin);
+        var params = new URLSearchParams(url.search);
+        params.set('page', page);
+        url.search = params.toString();
+        return url.toString();
+    }
+
+    function loadNextPage() {
+        if (isLoading || !hasMore || !nextPage) return;
+
+        isLoading = true;
+        loader.classList.add('active');
+
+        fetch(buildPageUrl(nextPage), {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Accept':           'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN':     (document.querySelector('meta[name="csrf-token"]') || {}).getAttribute('content') || ''
+            }
+        })
+        .then(function (response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.json();
+        })
+        .then(function (data) {
+            // أضف الصفوف الجديدة إلى الـ tbody
+            var temp = document.createElement('tbody');
+            temp.innerHTML = data.html;
+            while (temp.firstChild) {
+                tbody.insertBefore(temp.firstChild, sentinel);
+            }
+
+            // حدّث العداد
+            if (showingEl && data.showing) {
+                showingEl.textContent = data.showing;
+            }
+
+            hasMore  = data.hasMore;
+            nextPage = data.hasMore ? data.nextPage : null;
+
+            loader.classList.remove('active');
+            isLoading = false;
+
+            if (!hasMore) {
+                endBanner.classList.add('visible');
+                // لم نعد نحتاج الـ observer
+                if (observer) observer.disconnect();
+            }
+        })
+        .catch(function (err) {
+            console.error('Infinite scroll error:', err);
+            loader.classList.remove('active');
+            isLoading = false;
+        });
+    }
+
+    // ── IntersectionObserver: يراقب الـ sentinel في نهاية الجدول ──────────
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting && !isLoading && hasMore) {
+                loadNextPage();
+            }
+        });
+    }, {
+        root:       null,         // viewport
+        rootMargin: '0px 0px 200px 0px',  // ابدأ التحميل 200px قبل الوصول
+        threshold:  0
+    });
+
+    observer.observe(sentinel);
+})();
+
+// ──────────────────────────────────────────────────────────────────────────
+// ── Live Search (البحث الحي) ──────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────
 var searchInput   = document.getElementById('live-search');
 var searchPanel   = document.getElementById('search-results-panel');
 var searchTimeout = null;
 
-/**
- * يحسب موضع البانل تحت شريط الفلاتر مباشرةً
- * البانل هو position:fixed مستقل — نضبط top/left/width بناءً على getBoundingClientRect
- */
 function positionSearchPanel() {
     var filterBar = document.getElementById('filter-bar');
     if (!filterBar || !searchPanel) return;
@@ -718,7 +851,6 @@ if (searchInput) {
         }
     });
 
-    // إعادة تحديد الموضع عند scroll أو resize
     window.addEventListener('scroll', function() {
         if (searchPanel.style.display !== 'none') positionSearchPanel();
     }, { passive: true });
@@ -727,7 +859,6 @@ if (searchInput) {
         if (searchPanel.style.display !== 'none') positionSearchPanel();
     });
 
-    // إغلاق عند النقر خارج البانل أو خارج الـ input
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !searchPanel.contains(e.target)) {
             hidePanel();
