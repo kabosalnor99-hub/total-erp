@@ -136,7 +136,7 @@ class AccountingService
             $entry = JournalEntry::create([
                 'entry_number'   => JournalEntry::generateNumber(),
                 'date'           => $transaction->created_at->toDateString(),
-                'description'    => "مبيعات POS #{$transaction->transaction_number}",
+                'description'    => "مبيعات POS #{$transaction->receipt_number}",
                 'user_id'        => auth()->id() ?? $transaction->session->user_id,
                 'status'         => 'posted',
                 'reference_type' => PosTransaction::class,
@@ -160,7 +160,7 @@ class AccountingService
                 'account_id'  => $salesAccount->id,
                 'debit'       => 0,
                 'credit'      => $transaction->total,
-                'description' => "إيراد POS — {$transaction->transaction_number}",
+                'description' => "إيراد POS — {$transaction->receipt_number}",
                 'sort_order'  => 2,
             ]);
 
