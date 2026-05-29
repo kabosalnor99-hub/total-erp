@@ -3,7 +3,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>كاشير | توتال الكلاكلة</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -141,7 +141,7 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .btn-remove-item:hover{opacity:1}
 
 /* Cart Summary */
-.pos-cart-summary{border-top:1px solid var(--border);padding:12px 16px;background:var(--bg-3)}
+.pos-cart-summary{border-top:1px solid var(--border);padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));background:var(--bg-3)}
 .summary-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-muted);padding:3px 0}
 .summary-row.discount{color:var(--danger)}
 .summary-row.tax{color:var(--warning)}
@@ -238,7 +238,7 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     .pos-products{flex:0 0 56vh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
     .pos-grid{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
     /* السلة: 44% من الشاشة - دائماً ظاهرة */
-    .pos-cart{flex:0 0 44vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none}
+    .pos-cart{flex:0 0 44vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none;padding-bottom:env(safe-area-inset-bottom, 0px)}
     /* بنود السلة تسكرول داخلياً */
     .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
     /* الملخص وزر الدفع دائماً في الأسفل */
