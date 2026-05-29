@@ -4,9 +4,11 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Warehouse extends Model
 {
@@ -27,6 +29,36 @@ class Warehouse extends Model
         'is_active'  => 'boolean',
         'is_default' => 'boolean',
     ];
+
+    // ─── Cache ───────────────────────────────────────────────────────
+
+    /**
+     * جلب المستودعات النشطة من الـ cache
+     * يُستخدم في القوائم المنسدلة وحركات المخزون
+     */
+    public static function cachedActive(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Cache::remember(
+            CacheService::warehousesKey(),
+            CacheService::TTL_WAREHOUSES,
+            fn () => self::active()
+                ->orderByDesc('is_default')
+                ->orderBy('name')
+                ->get()
+        );
+    }
+
+    /**
+     * مسح الـ cache تلقائياً عند أي تعديل على المستودعات
+     */
+    protected static function booted(): void
+    {
+        $flush = fn () => CacheService::forgetWarehouses();
+
+        static::created($flush);
+        static::updated($flush);
+        static::deleted($flush);
+    }
 
     // ─── العلاقات ────────────────────────────────────────────────────
 
