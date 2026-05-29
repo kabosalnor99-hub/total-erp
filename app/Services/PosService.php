@@ -13,10 +13,14 @@ use App\Models\PosTransaction;
 use App\Models\PosTransactionItem;
 use App\Models\Product;
 use App\Models\StockMovement;
+use App\Services\AccountingService;
 use Illuminate\Support\Facades\DB;
 
 class PosService
 {
+    public function __construct(
+        protected AccountingService $accountingService
+    ) {}
     /**
      * فتح جلسة كاشير جديدة
      */
@@ -246,6 +250,9 @@ class PosService
 
             // ── 6. تحديث إحصائيات الجلسة ────────────────────────────
             $session->recalculate();
+
+            // ── 7. تسجيل القيد المحاسبي ──────────────────────────────
+            $this->accountingService->createPosEntry($transaction);
 
             return $transaction->load(['items.product', 'customer', 'user']);
         });
