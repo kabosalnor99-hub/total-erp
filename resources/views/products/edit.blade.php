@@ -476,30 +476,56 @@
                     </div>
                     <div class="edit-card-body">
 
+                        {{-- ★ سعر الصرف الحالي --}}
+                        @php $currentRate = \App\Models\ExchangeRate::currentRate(); @endphp
+                        @if($currentRate)
+                        <div class="mb-4 flex items-center gap-2 bg-teal-50 border border-teal-200 rounded-lg px-4 py-2 text-sm text-teal-700">
+                            <i class="fas fa-exchange-alt"></i>
+                            سعر الصرف الحالي: <strong>1 USD = {{ number_format($currentRate, 0) }} ج.س</strong>
+                            <span class="text-teal-400 text-xs mr-auto">يُحسب تلقائياً عند الإدخال</span>
+                        </div>
+                        @else
+                        <div class="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-600">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            لم يُحدَّد سعر الصرف —
+                            <a href="{{ route('exchange-rates.index') }}" class="underline font-medium">حدده الآن</a>
+                        </div>
+                        @endif
+
                         <div class="grid grid-cols-3 gap-4 mb-4">
-                            {{-- سعر الشراء --}}
+                            {{-- سعر الشراء USD --}}
                             <div>
-                                <label class="edit-label">سعر الشراء <span class="required">*</span></label>
+                                <label class="edit-label">سعر الشراء (USD) <span class="required">*</span></label>
                                 <div class="relative">
-                                    <input type="number" name="purchase_price" id="purchase_price"
-                                           value="{{ old('purchase_price', $product->purchase_price) }}"
+                                    <input type="number" name="purchase_price_usd" id="purchase_price_usd"
+                                           value="{{ old('purchase_price_usd', $product->purchase_price_usd ?? round($product->purchase_price / ($currentRate ?: 1), 2)) }}"
                                            class="edit-input"
-                                           style="padding-left: 2.5rem;"
+                                           style="padding-left:2.5rem;"
                                            step="0.01" min="0" required>
-                                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.8rem;color:#9ca3af;font-weight:600;">ر.س</span>
+                                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.8rem;color:#16a34a;font-weight:700;">$</span>
                                 </div>
+                                <div class="mt-1 text-xs text-gray-400 flex items-center gap-1">
+                                    <i class="fas fa-arrow-left text-[10px]"></i>
+                                    <span id="purchase_sdg_preview">{{ number_format($product->purchase_price, 0) }} ج.س</span>
+                                </div>
+                                <input type="hidden" name="purchase_price" id="purchase_price" value="{{ $product->purchase_price }}">
                             </div>
-                            {{-- سعر البيع --}}
+                            {{-- سعر البيع USD --}}
                             <div>
-                                <label class="edit-label">سعر البيع <span class="required">*</span></label>
+                                <label class="edit-label">سعر البيع (USD) <span class="required">*</span></label>
                                 <div class="relative">
-                                    <input type="number" name="sale_price" id="sale_price"
-                                           value="{{ old('sale_price', $product->sale_price) }}"
+                                    <input type="number" name="price_usd" id="price_usd"
+                                           value="{{ old('price_usd', $product->price_usd ?? round($product->sale_price / ($currentRate ?: 1), 2)) }}"
                                            class="edit-input"
-                                           style="padding-left: 2.5rem;"
+                                           style="padding-left:2.5rem;"
                                            step="0.01" min="0" required>
-                                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.8rem;color:#9ca3af;font-weight:600;">ر.س</span>
+                                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.8rem;color:#16a34a;font-weight:700;">$</span>
                                 </div>
+                                <div class="mt-1 text-xs text-gray-400 flex items-center gap-1">
+                                    <i class="fas fa-arrow-left text-[10px]"></i>
+                                    <span id="sale_sdg_preview">{{ number_format($product->sale_price, 0) }} ج.س</span>
+                                </div>
+                                <input type="hidden" name="sale_price" id="sale_price" value="{{ $product->sale_price }}">
                             </div>
                             {{-- هامش الربح --}}
                             <div>
@@ -643,24 +669,31 @@ function previewImage(input) {
 }
 
 function calcMargin() {
-    var p = parseFloat(document.getElementById('purchase_price').value) || 0;
-    var s = parseFloat(document.getElementById('sale_price').value) || 0;
-    var el = document.getElementById('profit_display');
+    var rate = {{ $currentRate ?? 0 }};
+    var p    = parseFloat(document.getElementById('purchase_price_usd').value) || 0;
+    var s    = parseFloat(document.getElementById('price_usd').value) || 0;
+    var el   = document.getElementById('profit_display');
+
+    if (rate > 0) {
+        document.getElementById('purchase_sdg_preview').textContent =
+            Math.round(p * rate).toLocaleString('en') + ' ج.س';
+        document.getElementById('sale_sdg_preview').textContent =
+            Math.round(s * rate).toLocaleString('en') + ' ج.س';
+        document.getElementById('purchase_price').value = (p * rate).toFixed(2);
+        document.getElementById('sale_price').value     = (s * rate).toFixed(2);
+    }
+
     if (p > 0) {
         var margin = ((s - p) / p * 100).toFixed(2);
         el.textContent = margin + '%';
-        if (parseFloat(margin) < 0) {
-            el.classList.add('negative');
-        } else {
-            el.classList.remove('negative');
-        }
+        el.classList.toggle('negative', parseFloat(margin) < 0);
     } else {
         el.textContent = '0%';
         el.classList.remove('negative');
     }
 }
 
-document.getElementById('purchase_price').addEventListener('input', calcMargin);
-document.getElementById('sale_price').addEventListener('input', calcMargin);
+document.getElementById('purchase_price_usd').addEventListener('input', calcMargin);
+document.getElementById('price_usd').addEventListener('input', calcMargin);
 </script>
 @endpush
