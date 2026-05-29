@@ -10,70 +10,66 @@ use Illuminate\Support\Facades\File;
 
 class ImportLocalDatabaseSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // قراءة ملف SQL المُصدّر
         $sqlFile = database_path('seeders/total_erp_local.sql');
-        
+
         if (!File::exists($sqlFile)) {
-            $this->command->warn('SQL file not found: ' . $sqlFile);
+            $this->command->warn('⚠️  SQL file not found: ' . $sqlFile . ' — skipping import.');
             return;
         }
 
-        // قراءة محتوى ملف SQL
         $sql = File::get($sqlFile);
-        
-        // تقسيم SQL إلى جمل منفصلة
         $statements = $this->splitSqlStatements($sql);
-        
-        // تنفيذ كل جملة SQL
+
         $this->command->info('Importing local database...');
-        
+
+        $errors = 0;
         foreach ($statements as $index => $statement) {
             if (empty(trim($statement))) {
                 continue;
             }
-            
+
             try {
                 DB::statement($statement);
-                
+
                 if (($index + 1) % 100 === 0) {
                     $this->command->info('Imported ' . ($index + 1) . ' statements...');
                 }
             } catch (\Exception $e) {
-                $this->command->error('Error executing statement: ' . $e->getMessage());
-                $this->command->error('Statement: ' . substr($statement, 0, 100) . '...');
+                $errors++;
+                // سجّل الخطأ الأول فقط لتجنب فيضان اللوقات
+                if ($errors <= 5) {
+                    $this->command->warn('Statement error #' . $errors . ': ' . $e->getMessage());
+                } elseif ($errors === 6) {
+                    $this->command->warn('... (further statement errors suppressed)');
+                }
             }
         }
-        
-        $this->command->info('Local database import completed!');
+
+        if ($errors > 0) {
+            $this->command->warn("Import completed with {$errors} error(s).");
+        } else {
+            $this->command->info('✅ Local database import completed successfully!');
+        }
     }
 
-    /**
-     * تقسيم SQL إلى جمل منفصلة
-     */
     private function splitSqlStatements(string $sql): array
     {
-        // إزالة التعليقات
-        $sql = preg_replace('/--.*$/m', '', $sql);
+        // إزالة تعليقات MySQL الشرطية (/*!40101 ... */) قبل المعالجة
+        // هذه التعليقات تُنفَّذ في MySQL لكن splitSqlStatements تكسرها
+        $sql = preg_replace('/\/\*![\d]+.*?\*\//s', '', $sql);
+
+        // إزالة التعليقات العادية
+        $sql = preg_replace('/--[^\n]*$/m', '', $sql);
         $sql = preg_replace('/\/\*.*?\*\//s', '', $sql);
-        
+
         // تقسيم بناءً على الفاصلة المنقوطة
         $statements = explode(';', $sql);
-        
-        // تنظيف الجمل
-        $statements = array_map(function ($statement) {
-            return trim($statement);
-        }, $statements);
-        
-        // إزالة الجمل الفارغة
-        $statements = array_filter($statements, function ($statement) {
-            return !empty($statement);
-        });
-        
-        return array_values($statements);
+
+        return array_values(array_filter(
+            array_map('trim', $statements),
+            fn($s) => $s !== ''
+        ));
     }
 }
