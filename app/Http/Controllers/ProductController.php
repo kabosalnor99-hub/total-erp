@@ -12,9 +12,11 @@ use App\Models\ExchangeRate;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use App\Services\CacheService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -57,14 +59,18 @@ class ProductController extends Controller
         }
 
         $products   = $query->paginate(20)->withQueryString();
-        $categories = Category::active()->orderBy('name_ar')->get();
+        $categories = Category::cachedActive();
 
-        $stats = [
-            'total'        => Product::count(),
-            'active'       => Product::active()->count(),
-            'out_of_stock' => Product::outOfStock()->count(),
-            'critical'     => Product::critical()->count(),
-        ];
+        $stats = Cache::remember(
+            CacheService::productStatsKey(),
+            CacheService::TTL_STATS,
+            fn () => [
+                'total'        => Product::count(),
+                'active'       => Product::active()->count(),
+                'out_of_stock' => Product::outOfStock()->count(),
+                'critical'     => Product::critical()->count(),
+            ]
+        );
 
         $currentRate = ExchangeRate::currentRate();
 
@@ -101,8 +107,8 @@ class ProductController extends Controller
 
     public function create(): View
     {
-        $categories  = Category::active()->orderBy('name_ar')->get();
-        $warehouses  = Warehouse::active()->get();
+        $categories  = Category::cachedActive();
+        $warehouses  = Warehouse::cachedActive();
         $nextSku     = Product::generateSku();
         $currentRate = ExchangeRate::currentRate();
 
@@ -151,6 +157,7 @@ class ProductController extends Controller
         }
 
         ActivityLog::record('created', "إضافة منتج: {$product->name_ar}", $product);
+        CacheService::forgetProductStats();
 
         return redirect()->route('products.show', $product)
             ->with('success', 'تم إضافة المنتج بنجاح.');
@@ -160,7 +167,7 @@ class ProductController extends Controller
 
     public function edit(Product $product): View
     {
-        $categories  = Category::active()->orderBy('name_ar')->get();
+        $categories  = Category::cachedActive();
         $product->load('category');
         $currentRate = ExchangeRate::currentRate();
 
@@ -189,6 +196,7 @@ class ProductController extends Controller
         $product->update($data);
 
         ActivityLog::record('updated', "تعديل منتج: {$product->name_ar}", $product, $old);
+        CacheService::forgetProductStats();
 
         return redirect()->route('products.show', $product)
             ->with('success', 'تم تحديث المنتج بنجاح.');
@@ -204,6 +212,7 @@ class ProductController extends Controller
 
         ActivityLog::record('deleted', "حذف منتج: {$product->name_ar}", $product);
         $product->delete();
+        CacheService::forgetProductStats();
 
         return redirect()->route('products.index')
             ->with('success', 'تم حذف المنتج بنجاح.');
