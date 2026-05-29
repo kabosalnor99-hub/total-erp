@@ -8,9 +8,11 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\ActivityLog;
 use App\Models\Category;
+use App\Models\ExchangeRate;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,7 +25,6 @@ class ProductController extends Controller
     {
         $query = Product::with('category')->latest();
 
-        // البحث
         if ($request->filled('search')) {
             $q = $request->search;
             $query->where(function ($w) use ($q) {
@@ -34,17 +35,14 @@ class ProductController extends Controller
             });
         }
 
-        // فلتر الفئة
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
-        // فلتر النوع
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
 
-        // فلتر حالة المخزون
         if ($request->filled('filter')) {
             match ($request->filter) {
                 'out_of_stock' => $query->outOfStock(),
@@ -54,23 +52,23 @@ class ProductController extends Controller
             };
         }
 
-        // فلتر الحالة
         if ($request->filled('status')) {
             $query->where('is_active', $request->status === 'active');
         }
 
-        $products   = $query->paginate(100)->withQueryString();
+        $products   = $query->paginate(20)->withQueryString();
         $categories = Category::active()->orderBy('name_ar')->get();
 
-        // إحصائيات سريعة
         $stats = [
-            'total'         => Product::count(),
-            'active'        => Product::active()->count(),
-            'out_of_stock'  => Product::outOfStock()->count(),
-            'critical'      => Product::critical()->count(),
+            'total'        => Product::count(),
+            'active'       => Product::active()->count(),
+            'out_of_stock' => Product::outOfStock()->count(),
+            'critical'     => Product::critical()->count(),
         ];
 
-        return view('products.index', compact('products', 'categories', 'stats'));
+        $currentRate = ExchangeRate::currentRate();
+
+        return view('products.index', compact('products', 'categories', 'stats', 'currentRate'));
     }
 
     // ─── عرض منتج واحد ───────────────────────────────────────────────
@@ -94,18 +92,21 @@ class ProductController extends Controller
             return $w;
         });
 
-        return view('products.show', compact('product', 'movements', 'warehouses'));
+        $currentRate = ExchangeRate::currentRate();
+
+        return view('products.show', compact('product', 'movements', 'warehouses', 'currentRate'));
     }
 
     // ─── نموذج إنشاء منتج ────────────────────────────────────────────
 
     public function create(): View
     {
-        $categories = Category::active()->orderBy('name_ar')->get();
-        $warehouses = Warehouse::active()->get();
-        $nextSku    = Product::generateSku();
+        $categories  = Category::active()->orderBy('name_ar')->get();
+        $warehouses  = Warehouse::active()->get();
+        $nextSku     = Product::generateSku();
+        $currentRate = ExchangeRate::currentRate();
 
-        return view('products.create', compact('categories', 'warehouses', 'nextSku'));
+        return view('products.create', compact('categories', 'warehouses', 'nextSku', 'currentRate'));
     }
 
     // ─── حفظ منتج جديد ───────────────────────────────────────────────
@@ -114,12 +115,10 @@ class ProductController extends Controller
     {
         $data = $request->validated();
 
-        // رفع الصورة الرئيسية
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('products', 'public');
         }
 
-        // رفع صور إضافية
         if ($request->hasFile('extra_images')) {
             $extraImages = [];
             foreach ($request->file('extra_images') as $img) {
@@ -128,17 +127,16 @@ class ProductController extends Controller
             $data['images'] = $extraImages;
         }
 
-        // حساب هامش الربح تلقائياً
+        // حساب هامش الربح من USD مباشرة
         $data['profit_margin'] = Product::calcProfitMargin(
-            $data['purchase_price'] ?? 0,
-            $data['sale_price'] ?? 0
+            (float) ($data['purchase_price_usd'] ?? 0),
+            (float) ($data['price_usd'] ?? 0)
         );
 
         $data['created_by'] = auth()->id();
 
         $product = Product::create($data);
 
-        // إضافة مخزون ابتدائي إن وجد
         if (!empty($data['initial_quantity']) && $data['initial_quantity'] > 0) {
             $warehouseId = $data['warehouse_id'] ?? Warehouse::getDefault()?->id;
             if ($warehouseId) {
@@ -162,10 +160,11 @@ class ProductController extends Controller
 
     public function edit(Product $product): View
     {
-        $categories = Category::active()->orderBy('name_ar')->get();
+        $categories  = Category::active()->orderBy('name_ar')->get();
         $product->load('category');
+        $currentRate = ExchangeRate::currentRate();
 
-        return view('products.edit', compact('product', 'categories'));
+        return view('products.edit', compact('product', 'categories', 'currentRate'));
     }
 
     // ─── تحديث منتج ──────────────────────────────────────────────────
@@ -174,7 +173,6 @@ class ProductController extends Controller
     {
         $data = $request->validated();
 
-        // رفع صورة جديدة
         if ($request->hasFile('image')) {
             if ($product->image) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($product->image);
@@ -182,13 +180,12 @@ class ProductController extends Controller
             $data['image'] = $request->file('image')->store('products', 'public');
         }
 
-        // إعادة حساب هامش الربح
-        $data['profit_margin'] = Product::calcProfitMargin(
-            $data['purchase_price'] ?? $product->purchase_price,
-            $data['sale_price'] ?? $product->sale_price
-        );
+        $priceUsd    = (float) ($data['price_usd']          ?? $product->price_usd);
+        $purchaseUsd = (float) ($data['purchase_price_usd'] ?? $product->purchase_price_usd);
 
-        $old = $product->only(['name_ar', 'sale_price', 'purchase_price', 'quantity']);
+        $data['profit_margin'] = Product::calcProfitMargin($purchaseUsd, $priceUsd);
+
+        $old = $product->only(['name_ar', 'price_usd', 'purchase_price_usd', 'quantity']);
         $product->update($data);
 
         ActivityLog::record('updated', "تعديل منتج: {$product->name_ar}", $product, $old);
@@ -212,48 +209,14 @@ class ProductController extends Controller
             ->with('success', 'تم حذف المنتج بنجاح.');
     }
 
-    // ─── البحث المباشر (Live Search) ─────────────────────────────────
-
-    public function search(Request $request): \Illuminate\Http\JsonResponse
-    {
-        $q = trim($request->get('q', ''));
-
-        if (strlen($q) < 2) {
-            return response()->json(['results' => []]);
-        }
-
-        $products = Product::with('category')
-            ->where(function ($w) use ($q) {
-                $w->where('name_ar', 'like', "%{$q}%")
-                  ->orWhere('name_en', 'like', "%{$q}%")
-                  ->orWhere('sku', 'like', "%{$q}%")
-                  ->orWhere('barcode', 'like', "%{$q}%");
-            })
-            ->limit(10)
-            ->get()
-            ->map(fn($p) => [
-                'id'           => $p->id,
-                'name_ar'      => $p->name_ar,
-                'name_en'      => $p->name_en,
-                'sku'          => $p->sku,
-                'image'        => $p->image_url,
-                'sale_price'   => number_format($p->sale_price, 2),
-                'quantity'     => $p->quantity,
-                'unit'         => $p->unit,
-                'category'     => $p->category?->name_ar,
-            ]);
-
-        return response()->json(['results' => $products]);
-    }
-
     // ─── تسوية المخزون ───────────────────────────────────────────────
 
     public function adjust(Request $request, Product $product): RedirectResponse
     {
         $request->validate([
-            'new_quantity'  => 'required|integer|min:0',
-            'warehouse_id'  => 'required|exists:warehouses,id',
-            'reason'        => 'required|string|max:255',
+            'new_quantity' => 'required|integer|min:0',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'reason'       => 'required|string|max:255',
         ]);
 
         StockMovement::record(
@@ -267,5 +230,44 @@ class ProductController extends Controller
         ActivityLog::record('adjusted', "تسوية مخزون: {$product->name_ar}", $product);
 
         return back()->with('success', 'تم تسوية المخزون بنجاح.');
+    }
+
+    // ─── بحث AJAX ────────────────────────────────────────────────────
+
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->get('q', '');
+
+        if (strlen($query) < 2) {
+            return response()->json(['results' => []]);
+        }
+
+        $currentRate = ExchangeRate::currentRate();
+
+        $products = Product::with('category')
+            ->where(function ($w) use ($query) {
+                $w->where('name_ar', 'like', "%{$query}%")
+                  ->orWhere('name_en', 'like', "%{$query}%")
+                  ->orWhere('sku', 'like', "%{$query}%")
+                  ->orWhere('barcode', 'like', "%{$query}%");
+            })
+            ->limit(10)
+            ->get()
+            ->map(fn($product) => [
+                'id'                 => $product->id,
+                'sku'                => $product->sku,
+                'name_ar'            => $product->name_ar,
+                'name_en'            => $product->name_en,
+                'image'              => $product->image_url,
+                'price_usd'          => (float) $product->price_usd,
+                'sale_price_sdg'     => $product->sale_price_sdg,
+                'purchase_price_usd' => (float) $product->purchase_price_usd,
+                'purchase_price_sdg' => $product->purchase_price_sdg,
+                'quantity'           => $product->quantity,
+                'category'           => $product->category?->name_ar,
+                'exchange_rate'      => $currentRate,
+            ]);
+
+        return response()->json(['results' => $products]);
     }
 }
