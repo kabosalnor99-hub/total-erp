@@ -305,6 +305,7 @@ class ReportController extends Controller
             'stock-status'       => $this->reportService->stockStatus(),
             'low-stock'          => $this->reportService->lowStockProducts(),
             'payroll-summary'    => $this->reportService->payrollSummary(now()->month, now()->year),
+            'purchase-summary'   => $this->reportService->purchaseSummary($dateFrom, $dateTo),
             default              => [],
         };
     }
