@@ -8,10 +8,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-family: 'DejaVu Sans', sans-serif;
             font-size: 12px;
             color: #1A2E35;
             direction: rtl;
+            text-align: right;
             background: #fff;
         }
 
