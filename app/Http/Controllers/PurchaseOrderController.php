@@ -138,7 +138,14 @@ class PurchaseOrderController extends Controller
         $purchaseOrder->load(['supplier', 'items.product', 'user']);
 
         $pdf = Pdf::loadView('pdf.purchase_order', compact('purchaseOrder'))
-            ->setPaper('a4', 'portrait');
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'isRemoteEnabled'         => true,
+                'isHtml5ParserEnabled'    => true,
+                'isFontSubsettingEnabled' => true,
+                'defaultMediaType'        => 'print',
+                'defaultFont'             => 'cairo',
+            ]);
 
         return $pdf->download("purchase-order-{$purchaseOrder->order_number}.pdf");
     }
