@@ -23,7 +23,7 @@ class ProductController extends Controller
 {
     // ─── قائمة المنتجات ──────────────────────────────────────────────
 
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
         $query = Product::with('category')->latest();
 
@@ -58,7 +58,25 @@ class ProductController extends Controller
             $query->where('is_active', $request->status === 'active');
         }
 
-        $products   = $query->paginate(20)->withQueryString();
+        $products = $query->paginate(20)->withQueryString();
+
+        // ── AJAX: إرجاع JSON لطلبات Infinite Scroll ──────────────────────
+        if ($request->ajax()) {
+            $html = '';
+            foreach ($products as $product) {
+                $html .= view('products._product_row', compact('product'))->render();
+            }
+
+            return response()->json([
+                'html'     => $html,
+                'hasMore'  => $products->hasMorePages(),
+                'nextPage' => $products->currentPage() + 1,
+                'total'    => $products->total(),
+                'showing'  => $products->lastItem(),
+            ]);
+        }
+
+        // ── طلب عادي: عرض الصفحة الكاملة ────────────────────────────────
         $categories = Category::cachedActive();
 
         $stats = Cache::remember(
