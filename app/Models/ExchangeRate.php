@@ -50,9 +50,6 @@ class ExchangeRate extends Model
 
     // ─── Static Helpers ──────────────────────────────────────────────
 
-    /**
-     * الحصول على سعر الصرف الحالي (مع Cache)
-     */
     public static function getCurrent(): float
     {
         return (float) Cache::rememberForever('current_exchange_rate', function () {
@@ -63,40 +60,23 @@ class ExchangeRate extends Model
         });
     }
 
-    /**
-     * Alias لـ getCurrent() — للاستخدام في الـ Views والـ Models
-     */
     public static function currentRate(): float
     {
         return static::getCurrent();
     }
 
-    /**
-     * مسح الـ Cache عند تغيير السعر
-     */
     public static function clearCache(): void
     {
         Cache::forget('current_exchange_rate');
         Cache::forget('exchange_rate_stats');
     }
 
-    /**
-     * تفعيل سعر جديد وتحديث أسعار جميع المنتجات
-     *
-     * @param  float  $newRate   سعر الصرف الجديد (SDG/USD)
-     * @param  string $date      تاريخ السريان
-     * @param  string $notes     ملاحظات
-     * @param  int    $userId    معرف المستخدم
-     * @return static
-     */
     public static function activateNew(float $newRate, string $date, string $notes, int $userId): static
     {
         return DB::transaction(function () use ($newRate, $date, $notes, $userId) {
 
-            // السعر الحالي قبل التغيير
             $previousRate = static::getCurrent();
 
-            // نسبة التغيير
             $changePercent = $previousRate > 0
                 ? round((($newRate - $previousRate) / $previousRate) * 100, 2)
                 : 0;
@@ -115,8 +95,7 @@ class ExchangeRate extends Model
                 'created_by'     => $userId,
             ]);
 
-            // ─── تحديث أسعار جميع المنتجات ─────────────────────────
-            // sale_price (SDG) = price_usd * newRate
+            // ─── تحديث أسعار جميع المنتجات بالجنيه ─────────────────
             DB::statement('
                 UPDATE products
                 SET
@@ -139,26 +118,17 @@ class ExchangeRate extends Model
         });
     }
 
-    /**
-     * تحويل مبلغ من USD إلى SDG
-     */
     public static function toSDG(float $usd): float
     {
         return round($usd * static::getCurrent(), 2);
     }
 
-    /**
-     * تحويل مبلغ من SDG إلى USD
-     */
     public static function toUSD(float $sdg): float
     {
         $rate = static::getCurrent();
         return $rate > 0 ? round($sdg / $rate, 4) : 0;
     }
 
-    /**
-     * إحصائيات سعر الصرف للتقارير
-     */
     public static function getStats(): array
     {
         return Cache::remember('exchange_rate_stats', 3600, function () {
@@ -172,14 +142,14 @@ class ExchangeRate extends Model
             $previous = $rates->skip(1)->first();
 
             return [
-                'current'          => (float) $current->rate,
-                'previous'         => $previous ? (float) $previous->rate : null,
-                'change_percent'   => (float) $current->change_percent,
-                'highest_30d'      => (float) $rates->max('rate'),
-                'lowest_30d'       => (float) $rates->min('rate'),
-                'avg_30d'          => round((float) $rates->avg('rate'), 2),
-                'last_updated'     => $current->effective_date->format('Y-m-d'),
-                'updates_count_30d'=> $rates->count(),
+                'current'           => (float) $current->rate,
+                'previous'          => $previous ? (float) $previous->rate : null,
+                'change_percent'    => (float) $current->change_percent,
+                'highest_30d'       => (float) $rates->max('rate'),
+                'lowest_30d'        => (float) $rates->min('rate'),
+                'avg_30d'           => round((float) $rates->avg('rate'), 2),
+                'last_updated'      => $current->effective_date->format('Y-m-d'),
+                'updates_count_30d' => $rates->count(),
             ];
         });
     }
