@@ -230,6 +230,11 @@ class ReportController extends Controller
 
     public function supplierStatement(Request $request): View
     {
+        // عرض الصفحة فارغة إذا لم يُختر مورد بعد
+        if (!$request->filled('supplier_id')) {
+            return view('reports.supplier-statement', ['data' => []]);
+        }
+
         $request->validate(['supplier_id' => 'required|exists:suppliers,id']);
 
         $data = $this->reportService->supplierStatement(
