@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            {{-- بطاقات المعلومات المفصلة --}}
+            {{-- بطاقات المعلومات الأساسية --}}
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
                     <div class="flex items-center gap-2 text-blue-600 mb-2">
@@ -98,31 +98,101 @@
                 </div>
             </div>
 
-            {{-- بطاقات الأسعار --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-                    <div class="flex items-center gap-2 text-gray-500 mb-2">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="text-xs font-medium">سعر الشراء</span>
+            {{-- ★ بطاقات الأسعار — USD + SDG ──────────────────────── --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-dollar-sign text-teal-600"></i>
+                    الأسعار
+                    @php $currentRate = \App\Models\ExchangeRate::currentRate(); @endphp
+                    @if($currentRate)
+                    <span class="mr-auto text-xs bg-teal-50 text-teal-600 border border-teal-200 px-3 py-1 rounded-full font-normal">
+                        سعر الصرف: 1 USD = {{ number_format($currentRate, 0) }} ج.س
+                    </span>
+                    @endif
+                </h3>
+
+                {{-- سعر البيع --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {{-- بطاقة سعر البيع --}}
+                    <div class="rounded-2xl overflow-hidden border border-teal-200 shadow-sm">
+                        <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-4 py-2 flex items-center gap-2">
+                            <i class="fas fa-tag text-white text-sm"></i>
+                            <span class="text-white text-sm font-medium">سعر البيع</span>
+                        </div>
+                        <div class="p-4 bg-white">
+                            {{-- USD --}}
+                            <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-sm">$</span>
+                                    <span class="text-gray-500 text-sm">دولار أمريكي</span>
+                                </div>
+                                <span class="text-2xl font-black text-gray-800 font-mono">
+                                    {{ $product->price_usd ? number_format($product->price_usd, 2) : number_format($product->sale_price / ($currentRate ?: 1), 2) }}
+                                </span>
+                            </div>
+                            {{-- SDG --}}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center text-teal-700 font-bold text-xs">ج.س</span>
+                                    <span class="text-gray-500 text-sm">جنيه سوداني</span>
+                                </div>
+                                <span class="text-2xl font-black text-teal-600 font-mono">
+                                    {{ number_format($product->sale_price, 2) }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-2xl font-bold text-gray-800">{{ number_format($product->purchase_price, 2) }}</div>
-                    <div class="text-xs text-gray-400 mt-1">ج.س</div>
+
+                    {{-- بطاقة سعر الشراء --}}
+                    <div class="rounded-2xl overflow-hidden border border-blue-200 shadow-sm">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 flex items-center gap-2">
+                            <i class="fas fa-shopping-cart text-white text-sm"></i>
+                            <span class="text-white text-sm font-medium">سعر الشراء</span>
+                        </div>
+                        <div class="p-4 bg-white">
+                            {{-- USD --}}
+                            <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-sm">$</span>
+                                    <span class="text-gray-500 text-sm">دولار أمريكي</span>
+                                </div>
+                                <span class="text-2xl font-black text-gray-800 font-mono">
+                                    {{ $product->purchase_price_usd ? number_format($product->purchase_price_usd, 2) : number_format($product->purchase_price / ($currentRate ?: 1), 2) }}
+                                </span>
+                            </div>
+                            {{-- SDG --}}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-xs">ج.س</span>
+                                    <span class="text-gray-500 text-sm">جنيه سوداني</span>
+                                </div>
+                                <span class="text-2xl font-black text-blue-600 font-mono">
+                                    {{ number_format($product->purchase_price, 2) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-5 shadow-lg">
-                    <div class="flex items-center gap-2 text-teal-100 mb-2">
-                        <i class="fas fa-tag"></i>
-                        <span class="text-xs font-medium">سعر البيع</span>
+
+                {{-- هامش الربح --}}
+                <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-4 flex items-center justify-between text-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-chart-line text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-green-100 text-xs">هامش الربح</div>
+                            <div class="text-sm font-medium">
+                                @php
+                                    $profitUsd = ($product->price_usd ?? 0) - ($product->purchase_price_usd ?? 0);
+                                @endphp
+                                @if($profitUsd > 0)
+                                ربح: ${{ number_format($profitUsd, 2) }} للوحدة
+                                @endif
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-3xl font-bold text-white">{{ number_format($product->sale_price, 2) }}</div>
-                    <div class="text-xs text-teal-200 mt-1">ج.س</div>
-                </div>
-                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 shadow-lg">
-                    <div class="flex items-center gap-2 text-green-100 mb-2">
-                        <i class="fas fa-chart-line"></i>
-                        <span class="text-xs font-medium">هامش الربح</span>
-                    </div>
-                    <div class="text-3xl font-bold text-white">{{ $product->profit_margin }}%</div>
-                    <div class="text-xs text-green-200 mt-1">من السعر</div>
+                    <div class="text-4xl font-black">{{ $product->profit_margin }}%</div>
                 </div>
             </div>
 
@@ -170,9 +240,9 @@
                                 <td class="text-xs text-gray-500 px-4 py-3">{{ $mv->created_at->format('Y-m-d H:i') }}</td>
                                 <td class="px-4 py-3">
                                     <span class="px-2 py-1 rounded-full text-xs font-medium
-                                        {{ $mv->type === 'in' ? 'bg-green-100 text-green-700' : 
-                                           ($mv->type === 'out' ? 'bg-red-100 text-red-700' : 
-                                           ($mv->type === 'adjust' ? 'bg-yellow-100 text-yellow-700' : 
+                                        {{ $mv->type === 'in' ? 'bg-green-100 text-green-700' :
+                                           ($mv->type === 'out' ? 'bg-red-100 text-red-700' :
+                                           ($mv->type === 'adjust' ? 'bg-yellow-100 text-yellow-700' :
                                            'bg-blue-100 text-blue-700')) }}">
                                         {{ $mv->type_label }}
                                     </span>
@@ -218,6 +288,60 @@
                         حد الطلب الأدنى: {{ $product->reorder_point }} {{ $product->unit }}
                     </div>
                 </div>
+            </div>
+
+            {{-- ★ بطاقة ملخص الأسعار الجانبية --}}
+            @php $rate = \App\Models\ExchangeRate::currentRate(); @endphp
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-coins text-yellow-500"></i>
+                    ملخص الأسعار
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span class="text-gray-500 text-sm">البيع بالدولار</span>
+                        <span class="font-bold text-green-600 font-mono">
+                            ${{ number_format($product->price_usd ?? ($product->sale_price / ($rate ?: 1)), 2) }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span class="text-gray-500 text-sm">البيع بالجنيه</span>
+                        <span class="font-bold text-teal-600 font-mono">
+                            {{ number_format($product->sale_price, 0) }} ج.س
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span class="text-gray-500 text-sm">الشراء بالدولار</span>
+                        <span class="font-bold text-blue-600 font-mono">
+                            ${{ number_format($product->purchase_price_usd ?? ($product->purchase_price / ($rate ?: 1)), 2) }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span class="text-gray-500 text-sm">الشراء بالجنيه</span>
+                        <span class="font-bold text-blue-500 font-mono">
+                            {{ number_format($product->purchase_price, 0) }} ج.س
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-500 text-sm">سعر الصرف الحالي</span>
+                        <span class="font-bold text-orange-600 font-mono text-sm">
+                            @if($rate)
+                                1$ = {{ number_format($rate, 0) }}
+                            @else
+                                <span class="text-red-400 text-xs">غير محدد</span>
+                            @endif
+                        </span>
+                    </div>
+                </div>
+                @if($rate)
+                <a href="{{ route('exchange-rates.index') }}" class="mt-4 w-full flex items-center justify-center gap-2 text-xs text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-lg px-3 py-2 transition">
+                    <i class="fas fa-exchange-alt"></i> إدارة أسعار الصرف
+                </a>
+                @else
+                <a href="{{ route('exchange-rates.index') }}" class="mt-4 w-full flex items-center justify-center gap-2 text-xs text-red-600 bg-red-50 hover:bg-red-100 rounded-lg px-3 py-2 transition">
+                    <i class="fas fa-exclamation-triangle"></i> لم يُحدَّد سعر الصرف بعد
+                </a>
+                @endif
             </div>
 
             {{-- نموذج تسوية المخزون --}}
