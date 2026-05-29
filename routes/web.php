@@ -26,6 +26,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
@@ -504,5 +505,16 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
         Route::post('/{id}/read',     [NotificationController::class, 'markRead'])->name('mark-read');
         Route::delete('/{id}',        [NotificationController::class, 'destroy'])->name('destroy');
     });
+
+    // ─── أسعار الصرف (USD / SDG) ──────────────────────────────────────
+    Route::middleware('permission:settings.edit')->group(function () {
+        Route::get('/exchange-rates',                    [ExchangeRateController::class, 'index'])->name('exchange-rates.index');
+        Route::post('/exchange-rates',                   [ExchangeRateController::class, 'store'])->name('exchange-rates.store');
+        Route::post('/exchange-rates/{id}/activate',    [ExchangeRateController::class, 'activate'])->name('exchange-rates.activate');
+        Route::delete('/exchange-rates/{id}',           [ExchangeRateController::class, 'destroy'])->name('exchange-rates.destroy');
+    });
+
+    // API عام لجلب السعر الحالي من JavaScript
+    Route::get('/api/exchange-rate/current', [ExchangeRateController::class, 'current'])->name('exchange-rates.current');
 
 }); // نهاية middleware(['auth', 'setlocale'])
