@@ -141,7 +141,9 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .btn-remove-item:hover{opacity:1}
 
 /* Cart Summary */
-.pos-cart-summary{border-top:1px solid var(--border);padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));background:var(--bg-3)}
+.pos-cart-summary{border-top:1px solid var(--border);padding:12px 16px;background:var(--bg-3);overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* أزرار السلة - ثابتة في الأسفل */
+.pos-cart-actions{flex-shrink:0;padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom,12px));background:var(--bg-3);border-top:1px solid var(--border);box-shadow:0 -4px 20px rgba(0,0,0,.3)}
 .summary-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-muted);padding:3px 0}
 .summary-row.discount{color:var(--danger)}
 .summary-row.tax{color:var(--warning)}
@@ -230,21 +232,22 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 /* Responsive Tablet & Mobile */
 @media(max-width:768px){
     :root{--cart-w:100%}
-    /* الصفحة كلها ثابتة - لا scroll خارجي */
     html,body{overflow:hidden;height:100%;height:100dvh}
-    /* الـ wrapper عمود رأسي بالطول الكامل */
     .pos-wrapper{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-    /* منطقة المنتجات: 52% من الشاشة مع scroll داخلي */
-    .pos-products{flex:0 0 52vh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+    /* المنتجات: 50% */
+    .pos-products{flex:0 0 50vh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
     .pos-grid{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-    /* السلة: 48% من الشاشة - دائماً ظاهرة */
-    .pos-cart{flex:0 0 48vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none}
-    /* بنود السلة تسكرول داخلياً */
-    .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
-    /* الملخص وزر الدفع: قابل للسكرول إذا المحتوى طويل */
-    .pos-cart-summary{flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;max-height:46vh;padding-bottom:calc(10px + env(safe-area-inset-bottom,16px));box-shadow:0 -4px 20px rgba(0,0,0,.3)}
+    /* السلة: 50% - flex column */
+    .pos-cart{flex:0 0 50vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none}
+    /* header وعميل: ثابتان */
     .pos-cart-header{flex-shrink:0}
     .pos-customer-row{flex-shrink:0}
+    /* بنود السلة: تأخذ المساحة المتبقية وتسكرول */
+    .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
+    /* الملخص: حجم تلقائي */
+    .pos-cart-summary{flex-shrink:0}
+    /* الأزرار: ثابتة في الأسفل */
+    .pos-cart-actions{flex-shrink:0}
 }
 
 /* Responsive Mobile */
@@ -273,10 +276,11 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     .cart-item{padding:7px 12px;gap:8px}
     .cart-item-name{font-size:11px}
     .cart-item-total{font-size:12px;min-width:44px}
-    .pos-cart-summary{padding:8px 12px;padding-bottom:calc(8px + env(safe-area-inset-bottom,16px))}
+    .pos-cart-summary{padding:8px 12px}
+    .pos-cart-actions{padding:8px 12px;padding-bottom:calc(8px + env(safe-area-inset-bottom,16px))}
     .summary-row.total{font-size:17px}
     .btn-checkout{font-size:14px;padding:11px}
-    /* نسب الشاشات الصغيرة جداً: منتجات 48% / سلة 52% */
+    /* نسب الشاشات الصغيرة: منتجات 48% / سلة 52% */
     .pos-products{flex-basis:48vh}
     .pos-cart{flex-basis:52vh}
     .pos-modal{padding:18px}
@@ -546,7 +550,10 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                 <span>الإجمالي</span>
                 <span class="num-ltr" x-text="fmt(grandTotal) + ' ج.س'"></span>
             </div>
+        </div>
 
+        {{-- الأزرار ثابتة في أسفل السلة دائماً --}}
+        <div class="pos-cart-actions">
             <button
                 class="btn-checkout"
                 :disabled="cart.length === 0"
