@@ -230,17 +230,21 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 /* Responsive Tablet & Mobile */
 @media(max-width:768px){
     :root{--cart-w:100%}
-    /* السماح بالسكرول الكامل على الموبايل */
-    html,body{overflow:auto;height:auto}
-    .pos-wrapper{display:flex;flex-direction:column;height:auto;min-height:100vh}
-    /* منطقة المنتجات بارتفاع ثابت مع سكرول داخلي */
-    .pos-products{height:58vh;min-height:320px;flex-shrink:0}
-    /* السلة تظهر كاملة تحت المنتجات */
-    .pos-cart{border-right:none;border-top:2px solid var(--teal);height:auto;max-height:none;flex-shrink:0;display:block;overflow:visible}
-    /* بنود السلة سكرول طبيعي ضمن الصفحة */
-    .pos-cart-items{max-height:none;overflow-y:visible;flex:none}
-    /* ملخص وزر الدفع - sticky في الأسفل */
-    .pos-cart-summary{position:sticky;bottom:0;z-index:20;box-shadow:0 -4px 20px rgba(0,0,0,.3)}
+    /* الصفحة كلها ثابتة - لا scroll خارجي */
+    html,body{overflow:hidden;height:100%;height:100dvh}
+    /* الـ wrapper عمود رأسي بالطول الكامل */
+    .pos-wrapper{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+    /* منطقة المنتجات: 56% من الشاشة مع scroll داخلي */
+    .pos-products{flex:0 0 56vh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+    .pos-grid{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    /* السلة: 44% من الشاشة - دائماً ظاهرة */
+    .pos-cart{flex:0 0 44vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none}
+    /* بنود السلة تسكرول داخلياً */
+    .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
+    /* الملخص وزر الدفع دائماً في الأسفل */
+    .pos-cart-summary{flex-shrink:0;box-shadow:0 -4px 20px rgba(0,0,0,.3)}
+    .pos-cart-header{flex-shrink:0}
+    .pos-customer-row{flex-shrink:0}
 }
 
 /* Responsive Mobile */
@@ -272,6 +276,9 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     .pos-cart-summary{padding:10px 12px}
     .summary-row.total{font-size:17px}
     .btn-checkout{font-size:14px;padding:11px}
+    /* نسب الشاشات الصغيرة جداً: منتجات 52% / سلة 48% */
+    .pos-products{flex-basis:52vh}
+    .pos-cart{flex-basis:48vh}
     .pos-modal{padding:18px}
     .pos-modal h3{font-size:15px}
     .session-summary-grid{grid-template-columns:1fr 1fr}
