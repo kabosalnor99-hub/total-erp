@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\CacheService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -36,7 +37,7 @@ class UserController extends Controller
         }
 
         $users = $query->paginate(15)->withQueryString();
-        $roles = Role::all();
+        $roles = Role::cachedAll();
 
         return view('users.index', compact('users', 'roles'));
     }
@@ -54,7 +55,7 @@ class UserController extends Controller
 
     public function create(): View
     {
-        $roles = Role::all();
+        $roles = Role::cachedAll();
         return view('users.create', compact('roles'));
     }
 
@@ -96,9 +97,8 @@ class UserController extends Controller
 
     public function edit(User $user): View
     {
-        $roles = Role::all();
+        $roles = Role::cachedAll();
         $user->load('roles');
-        return view('users.edit', compact('user', 'roles'));
     }
 
     // ─── تحديث مستخدم ────────────────────────────────────────────────
@@ -124,8 +124,9 @@ class UserController extends Controller
         $old = $user->only(['name', 'email', 'phone', 'status']);
         $user->update($data);
 
-        // تحديث الدور
+        // تحديث الدور + مسح cache الصلاحيات
         $user->roles()->sync([$data['role_id']]);
+        CacheService::forgetUserPermissions($user->id);
 
         ActivityLog::record('updated', "تعديل مستخدم: {$user->name}", $user, $old, $user->fresh()->only(['name', 'email', 'phone', 'status']));
 
@@ -142,6 +143,7 @@ class UserController extends Controller
         }
 
         ActivityLog::record('deleted', "حذف مستخدم: {$user->name}", $user);
+        CacheService::forgetUserPermissions($user->id);
         $user->delete();
 
         return redirect()->route('users.index')
