@@ -39,7 +39,7 @@
             @if($purchaseOrder->status === 'draft')
             @can('purchase-orders.send')
             <form action="{{ route('purchase-orders.mark-sent', $purchaseOrder) }}" method="POST" class="inline">
-                @csrf @method('PATCH')
+                @csrf
                 <button type="submit" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition">
                     تأكيد الإرسال للمورد
                 </button>
@@ -61,7 +61,7 @@
             @can('purchase-orders.cancel')
             <form action="{{ route('purchase-orders.cancel', $purchaseOrder) }}" method="POST" class="inline"
                   onsubmit="return confirm('هل تريد إلغاء هذا الأمر؟')">
-                @csrf @method('PATCH')
+                @csrf
                 <button type="submit" class="border border-red-200 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg text-sm transition">
                     إلغاء الأمر
                 </button>
