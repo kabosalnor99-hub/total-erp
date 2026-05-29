@@ -22,8 +22,8 @@ class Product extends Model
         'category_id',
         'brand',
         'unit',
-        'purchase_price',
-        'sale_price',
+        'purchase_price_usd',   // سعر الشراء بالدولار (الاسم الجديد بعد rename)
+        'price_usd',            // سعر البيع بالدولار  (الاسم الجديد بعد rename)
         'profit_margin',
         'quantity',
         'reorder_point',
@@ -36,30 +36,27 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'purchase_price' => 'decimal:2',
-        'sale_price'     => 'decimal:2',
-        'profit_margin'  => 'decimal:2',
-        'quantity'       => 'integer',
-        'reorder_point'  => 'integer',
-        'images'         => 'array',
-        'is_active'      => 'boolean',
+        'purchase_price_usd' => 'decimal:2',
+        'price_usd'          => 'decimal:2',
+        'profit_margin'      => 'decimal:2',
+        'quantity'           => 'integer',
+        'reorder_point'      => 'integer',
+        'images'             => 'array',
+        'is_active'          => 'boolean',
     ];
 
     // ─── العلاقات ────────────────────────────────────────────────────
 
-    /** الفئة */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    /** المنشئ */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /** حركات المخزون */
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
@@ -67,26 +64,22 @@ class Product extends Model
 
     // ─── Scopes ──────────────────────────────────────────────────────
 
-    /** منتجات نشطة */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    /** منتجات حرجة (وصلت للحد الأدنى) */
     public function scopeCritical($query)
     {
         return $query->whereColumn('quantity', '<=', 'reorder_point')
                      ->where('quantity', '>', 0);
     }
 
-    /** منتجات نفدت */
     public function scopeOutOfStock($query)
     {
         return $query->where('quantity', 0);
     }
 
-    /** منتجات راكدة (لم تتحرك 90 يوم) */
     public function scopeStagnant($query)
     {
         return $query->whereDoesntHave('stockMovements', function ($q) {
@@ -94,9 +87,8 @@ class Product extends Model
         });
     }
 
-    // ─── Accessors ───────────────────────────────────────────────────
+    // ─── Accessors — أساسية ──────────────────────────────────────────
 
-    /** الاسم حسب اللغة الحالية */
     public function getNameAttribute(): string
     {
         return app()->getLocale() === 'ar'
@@ -104,76 +96,105 @@ class Product extends Model
             : ($this->name_en ?? $this->name_ar);
     }
 
-    /** رابط الصورة */
     public function getImageUrlAttribute(): string
     {
         if ($this->image) {
             $imagePath = public_path($this->image);
-            // Check if file exists locally, otherwise use placeholder
             if (file_exists($imagePath)) {
                 return asset($this->image);
             }
         }
-        // Use placeholder image from external service
         return "https://via.placeholder.com/200x200/f3f4f6/6b7280?text=" . urlencode($this->name_ar);
     }
 
-    /** حالة المخزون */
     public function getStockStatusAttribute(): string
     {
-        if ($this->quantity <= 0) {
-            return 'out_of_stock';
-        }
-        if ($this->quantity <= $this->reorder_point) {
-            return 'critical';
-        }
+        if ($this->quantity <= 0)                    return 'out_of_stock';
+        if ($this->quantity <= $this->reorder_point) return 'critical';
         return 'available';
     }
 
-    /** تسمية حالة المخزون بالعربية */
     public function getStockStatusLabelAttribute(): string
     {
-        $labels = [
+        return match($this->stock_status) {
             'out_of_stock' => 'نفد المخزون',
             'critical'     => 'مخزون حرج',
-        ];
-        return $labels[$this->stock_status] ?? 'متوفر';
+            default        => 'متوفر',
+        };
     }
 
-    /** لون badge حالة المخزون */
     public function getStockStatusColorAttribute(): string
     {
-        $colors = [
+        return match($this->stock_status) {
             'out_of_stock' => 'danger',
             'critical'     => 'warning',
-        ];
-        return $colors[$this->stock_status] ?? 'success';
+            default        => 'success',
+        };
     }
 
-    /** نوع المنتج بالعربية */
     public function getTypeLabelAttribute(): string
     {
         $types = [
-            'power_tools'  => 'أدوات كهربائية',
-            'hand_tools'   => 'أدوات يدوية',
-            'equipment'    => 'معدات',
-            'spare_parts'  => 'قطع غيار',
+            'power_tools' => 'أدوات كهربائية',
+            'hand_tools'  => 'أدوات يدوية',
+            'equipment'   => 'معدات',
+            'spare_parts' => 'قطع غيار',
         ];
         return $types[$this->type] ?? 'أخرى';
     }
 
+    // ─── Accessors — الأسعار USD / SDG ───────────────────────────────
+
+    /**
+     * سعر البيع بالجنيه السوداني (يُحسب من USD × سعر الصرف)
+     */
+    public function getSalePriceSdgAttribute(): float
+    {
+        $rate = ExchangeRate::currentRate();
+        return $rate > 0 ? round((float) $this->price_usd * $rate, 2) : (float) $this->price_usd;
+    }
+
+    /**
+     * سعر الشراء بالجنيه السوداني
+     */
+    public function getPurchasePriceSdgAttribute(): float
+    {
+        $rate = ExchangeRate::currentRate();
+        return $rate > 0 ? round((float) $this->purchase_price_usd * $rate, 2) : (float) $this->purchase_price_usd;
+    }
+
+    /**
+     * هامش الربح بالدولار
+     */
+    public function getProfitUsdAttribute(): float
+    {
+        return round((float) $this->price_usd - (float) $this->purchase_price_usd, 2);
+    }
+
+    /**
+     * سعر البيع منسَّق — USD
+     */
+    public function getFormattedPriceUsdAttribute(): string
+    {
+        return '$' . number_format($this->price_usd, 2);
+    }
+
+    /**
+     * سعر البيع منسَّق — SDG
+     */
+    public function getFormattedSalePriceSdgAttribute(): string
+    {
+        return number_format($this->sale_price_sdg, 0) . ' ج.س';
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────
 
-    /** حساب هامش الربح تلقائياً */
     public static function calcProfitMargin(float $purchase, float $sale): float
     {
-        if ($purchase <= 0) {
-            return 0;
-        }
+        if ($purchase <= 0) return 0;
         return round((($sale - $purchase) / $purchase) * 100, 2);
     }
 
-    /** إنشاء SKU تلقائي */
     public static function generateSku(string $prefix = 'TL'): string
     {
         $last = self::withTrashed()->latest('id')->value('id') ?? 0;
