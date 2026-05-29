@@ -9,9 +9,10 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Warehouse;
+use App\Services\CacheService;
 use App\Services\InvoiceService;
-use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
@@ -98,6 +99,8 @@ class InvoiceController extends Controller
                 'details'    => "إنشاء فاتورة: {$invoice->invoice_number}",
             ]);
 
+            CacheService::forgetDashboard();
+
             return redirect()->route('invoices.show', $invoice)
                 ->with('success', "تم إنشاء الفاتورة {$invoice->invoice_number} بنجاح.");
 
@@ -149,6 +152,8 @@ class InvoiceController extends Controller
                 'model_id'   => $invoice->id,
                 'details'    => "إلغاء فاتورة: {$invoice->invoice_number}",
             ]);
+
+            CacheService::forgetDashboard();
 
             return back()->with('success', 'تم إلغاء الفاتورة.');
         } catch (\Exception $e) {
