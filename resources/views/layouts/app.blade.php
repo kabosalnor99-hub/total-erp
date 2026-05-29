@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'لوحة التحكم') — توتال الكلاكلة</title>
+    <title>@yield('title', __('common.dashboard')) — توتال الكلاكلة</title>
 
     {{-- Tailwind CSS CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
@@ -61,223 +61,231 @@
 <body class="bg-gray-100 text-gray-800" x-data="{ sidebarOpen: true }">
 
     {{-- ════════════════════════════════════════════════════════ --}}
-    {{-- الشريط الجانبي                                          --}}
+    {{-- Sidebar                                                  --}}
     {{-- ════════════════════════════════════════════════════════ --}}
     <aside
         :class="sidebarOpen ? 'w-64' : 'w-16'"
-        class="fixed top-0 right-0 h-full bg-primary text-white transition-all duration-300 z-50 flex flex-col overflow-hidden shadow-xl"
+        class="fixed top-0 h-full bg-primary text-white transition-all duration-300 z-50 flex flex-col overflow-hidden shadow-xl {{ ($lang ?? 'ar') === 'ar' ? 'right-0' : 'left-0' }}"
         x-cloak
     >
-        {{-- الشعار --}}
+        {{-- Logo --}}
         <div class="flex items-center gap-3 px-4 py-5 border-b border-white/20">
             <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center flex-shrink-0">
                 <span class="text-primary font-bold text-lg">T</span>
             </div>
             <div x-show="sidebarOpen" x-transition class="leading-tight">
                 <p class="font-bold text-sm">توتال الكلاكلة</p>
-                <p class="text-xs text-white/70">نظام ERP</p>
+                <p class="text-xs text-white/70">{{ __('common.erp_system') }}</p>
             </div>
         </div>
 
-        {{-- روابط التنقل --}}
+        {{-- Navigation --}}
         <nav class="flex-1 overflow-y-auto py-4 space-y-1 px-2">
 
-            {{-- لوحة التحكم --}}
+            {{-- Dashboard --}}
             <a href="{{ route('dashboard') }}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <i class="fa fa-gauge-high w-5 text-center"></i>
-                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">لوحة التحكم</span>
+                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">{{ __('common.dashboard') }}</span>
             </a>
 
-            {{-- المخزون --}}
+            {{-- Inventory --}}
             @canPermission('products.view')
             <div x-data="{ open: {{ request()->routeIs('products.*','categories.*','warehouses.*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                     class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition">
                     <i class="fa fa-boxes-stacked w-5 text-center"></i>
-                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 text-right">المخزون</span>
+                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 {{ ($lang ?? 'ar') === 'ar' ? 'text-right' : 'text-left' }}">{{ __('common.inventory') }}</span>
                     <i x-show="sidebarOpen" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'" class="fa text-xs"></i>
                 </button>
-                <div x-show="open" x-collapse class="mr-6 space-y-1 mt-1">
+                <div x-show="open" x-collapse class="{{ ($lang ?? 'ar') === 'ar' ? 'mr-6' : 'ml-6' }} space-y-1 mt-1">
                     <a href="{{ route('products.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm {{ request()->routeIs('products.*') ? 'active' : '' }}">
                         <i class="fa fa-box w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">المنتجات</span>
+                        <span x-show="sidebarOpen">{{ __('common.products') }}</span>
                     </a>
                     <a href="{{ route('categories.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm {{ request()->routeIs('categories.*') ? 'active' : '' }}">
                         <i class="fa fa-tags w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">الفئات</span>
+                        <span x-show="sidebarOpen">{{ __('common.categories') }}</span>
                     </a>
                     <a href="{{ route('warehouses.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm {{ request()->routeIs('warehouses.*') ? 'active' : '' }}">
                         <i class="fa fa-warehouse w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">المستودعات</span>
+                        <span x-show="sidebarOpen">{{ __('common.warehouses') }}</span>
                     </a>
                 </div>
             </div>
             @endcanPermission
 
-            {{-- المبيعات --}}
+            {{-- Sales --}}
             @canPermission('invoices.view')
             <div x-data="{ open: {{ request()->routeIs('invoices.*','customers.*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                     class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition">
                     <i class="fa fa-file-invoice-dollar w-5 text-center"></i>
-                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 text-right">المبيعات</span>
+                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 {{ ($lang ?? 'ar') === 'ar' ? 'text-right' : 'text-left' }}">{{ __('common.sales') }}</span>
                     <i x-show="sidebarOpen" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'" class="fa text-xs"></i>
                 </button>
-                <div x-show="open" x-collapse class="mr-6 space-y-1 mt-1">
+                <div x-show="open" x-collapse class="{{ ($lang ?? 'ar') === 'ar' ? 'mr-6' : 'ml-6' }} space-y-1 mt-1">
                     <a href="{{ route('invoices.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-receipt w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">الفواتير</span>
+                        <span x-show="sidebarOpen">{{ __('common.invoices') }}</span>
                     </a>
                     <a href="{{ route('customers.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-users w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">العملاء</span>
+                        <span x-show="sidebarOpen">{{ __('common.customers') }}</span>
                     </a>
                 </div>
             </div>
             @endcanPermission
 
-            {{-- نقطة البيع --}}
+            {{-- POS --}}
             @canPermission('pos.access')
             <a href="{{ route('pos.index') }}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition {{ request()->routeIs('pos.*') ? 'active' : '' }}">
                 <i class="fa fa-cash-register w-5 text-center"></i>
-                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">نقطة البيع</span>
+                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">{{ __('common.pos') }}</span>
             </a>
             @endcanPermission
 
-            {{-- المشتريات --}}
+            {{-- Purchases --}}
             @canPermission('purchases.view')
             <div x-data="{ open: {{ request()->routeIs('suppliers.*','purchase*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                     class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition">
                     <i class="fa fa-truck w-5 text-center"></i>
-                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 text-right">المشتريات</span>
+                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 {{ ($lang ?? 'ar') === 'ar' ? 'text-right' : 'text-left' }}">{{ __('common.purchases') }}</span>
                     <i x-show="sidebarOpen" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'" class="fa text-xs"></i>
                 </button>
-                <div x-show="open" x-collapse class="mr-6 space-y-1 mt-1">
+                <div x-show="open" x-collapse class="{{ ($lang ?? 'ar') === 'ar' ? 'mr-6' : 'ml-6' }} space-y-1 mt-1">
                     <a href="{{ route('purchase-orders.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-clipboard-list w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">أوامر الشراء</span>
+                        <span x-show="sidebarOpen">{{ __('common.purchase_orders') }}</span>
                     </a>
                     <a href="{{ route('suppliers.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-industry w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">الموردون</span>
+                        <span x-show="sidebarOpen">{{ __('common.suppliers') }}</span>
                     </a>
                 </div>
             </div>
             @endcanPermission
 
-            {{-- المحاسبة --}}
+            {{-- Accounting --}}
             @canPermission('accounts.view')
             <div x-data="{ open: {{ request()->routeIs('accounts.*','journal.*','vouchers.*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                     class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition">
                     <i class="fa fa-calculator w-5 text-center"></i>
-                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 text-right">المحاسبة</span>
+                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 {{ ($lang ?? 'ar') === 'ar' ? 'text-right' : 'text-left' }}">{{ __('common.accounting') }}</span>
                     <i x-show="sidebarOpen" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'" class="fa text-xs"></i>
                 </button>
-                <div x-show="open" x-collapse class="mr-6 space-y-1 mt-1">
+                <div x-show="open" x-collapse class="{{ ($lang ?? 'ar') === 'ar' ? 'mr-6' : 'ml-6' }} space-y-1 mt-1">
                     <a href="{{ route('accounts.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-book w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">دليل الحسابات</span>
+                        <span x-show="sidebarOpen">{{ __('common.chart_of_accounts') }}</span>
                     </a>
                     <a href="{{ route('journal.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-journal-whills w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">القيود</span>
+                        <span x-show="sidebarOpen">{{ __('common.journal_entries') }}</span>
                     </a>
                     <a href="{{ route('vouchers.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-file-invoice w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">السندات</span>
+                        <span x-show="sidebarOpen">{{ __('common.vouchers') }}</span>
                     </a>
                 </div>
             </div>
             @endcanPermission
 
-            {{-- الموارد البشرية --}}
+            {{-- HR --}}
             @canPermission('hr.view')
             <div x-data="{ open: {{ request()->routeIs('employees.*','payroll.*','leaves.*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                     class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition">
                     <i class="fa fa-id-badge w-5 text-center"></i>
-                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 text-right">الموارد البشرية</span>
+                    <span x-show="sidebarOpen" x-transition class="text-sm font-medium flex-1 {{ ($lang ?? 'ar') === 'ar' ? 'text-right' : 'text-left' }}">{{ __('common.hr') }}</span>
                     <i x-show="sidebarOpen" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'" class="fa text-xs"></i>
                 </button>
-                <div x-show="open" x-collapse class="mr-6 space-y-1 mt-1">
+                <div x-show="open" x-collapse class="{{ ($lang ?? 'ar') === 'ar' ? 'mr-6' : 'ml-6' }} space-y-1 mt-1">
                     <a href="{{ route('employees.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-user-tie w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">الموظفون</span>
+                        <span x-show="sidebarOpen">{{ __('common.employees') }}</span>
                     </a>
                     <a href="{{ route('payroll.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-money-check-dollar w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">الرواتب</span>
+                        <span x-show="sidebarOpen">{{ __('common.payroll') }}</span>
                     </a>
                     <a href="{{ route('leaves.index') }}" class="sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/20 text-sm">
                         <i class="fa fa-calendar-days w-4 text-center text-xs"></i>
-                        <span x-show="sidebarOpen">الإجازات</span>
+                        <span x-show="sidebarOpen">{{ __('common.leaves') }}</span>
                     </a>
                 </div>
             </div>
             @endcanPermission
 
-            {{-- التقارير --}}
+            {{-- Reports --}}
             @canPermission('reports.view')
             <a href="{{ route('reports.index') }}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                 <i class="fa fa-chart-pie w-5 text-center"></i>
-                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">التقارير</span>
+                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">{{ __('common.reports') }}</span>
             </a>
             @endcanPermission
 
-            {{-- إدارة المستخدمين --}}
+            {{-- Users --}}
             @canPermission('users.view')
             <a href="{{ route('users.index') }}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition {{ request()->routeIs('users.*') ? 'active' : '' }}">
                 <i class="fa fa-users-gear w-5 text-center"></i>
-                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">المستخدمون</span>
+                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">{{ __('common.users') }}</span>
             </a>
             @endcanPermission
 
-            {{-- الإعدادات --}}
+            {{-- Settings --}}
             @canPermission('settings.view')
             <a href="{{ route('settings.index') }}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/20 transition {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                 <i class="fa fa-gear w-5 text-center"></i>
-                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">الإعدادات</span>
+                <span x-show="sidebarOpen" x-transition class="text-sm font-medium">{{ __('common.settings') }}</span>
             </a>
             @endcanPermission
 
         </nav>
 
-        {{-- زر طي الشريط --}}
+        {{-- Toggle sidebar button --}}
         <button @click="sidebarOpen = !sidebarOpen"
             class="p-3 border-t border-white/20 hover:bg-white/20 transition text-center">
-            <i :class="sidebarOpen ? 'fa-angles-right' : 'fa-angles-left'" class="fa text-sm"></i>
+            @if(($lang ?? 'ar') === 'ar')
+                <i :class="sidebarOpen ? 'fa-angles-right' : 'fa-angles-left'" class="fa text-sm"></i>
+            @else
+                <i :class="sidebarOpen ? 'fa-angles-left' : 'fa-angles-right'" class="fa text-sm"></i>
+            @endif
         </button>
     </aside>
 
     {{-- ════════════════════════════════════════════════════════ --}}
-    {{-- المحتوى الرئيسي                                         --}}
+    {{-- Main content                                             --}}
     {{-- ════════════════════════════════════════════════════════ --}}
-    <div :class="sidebarOpen ? 'mr-64' : 'mr-16'" class="transition-all duration-300 min-h-screen flex flex-col" x-cloak>
+    <div
+        :class="sidebarOpen ? '{{ ($lang ?? 'ar') === 'ar' ? 'mr-64' : 'ml-64' }}' : '{{ ($lang ?? 'ar') === 'ar' ? 'mr-16' : 'ml-16' }}'"
+        class="transition-all duration-300 min-h-screen flex flex-col"
+        x-cloak
+    >
 
-        {{-- الشريط العلوي --}}
+        {{-- Top bar --}}
         <header class="bg-white shadow-sm sticky top-0 z-40">
             <div class="flex items-center justify-between px-6 py-3">
 
-                {{-- العنوان --}}
-                <h1 class="text-lg font-bold text-gray-700">@yield('page-title', 'لوحة التحكم')</h1>
+                {{-- Page title --}}
+                <h1 class="text-lg font-bold text-gray-700">@yield('page-title', __('common.dashboard'))</h1>
 
-                {{-- اليمين: الإشعارات + المستخدم --}}
+                {{-- Right: notifications + user --}}
                 <div class="flex items-center gap-4">
 
-                    {{-- تبديل اللغة --}}
+                    {{-- Language switch --}}
                     <a href="{{ route('lang.switch', ($lang ?? 'ar') === 'ar' ? 'en' : 'ar') }}"
                        class="text-sm text-gray-500 hover:text-primary transition font-medium">
                         {{ ($lang ?? 'ar') === 'ar' ? 'EN' : 'ع' }}
                     </a>
 
-                    {{-- الإشعارات --}}
+                    {{-- Notifications --}}
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" class="relative p-2 text-gray-500 hover:text-primary transition">
                             <i class="fa fa-bell text-lg"></i>
@@ -289,38 +297,38 @@
                             @endif
                         </button>
                         <div x-show="open" @click.outside="open = false"
-                            class="absolute left-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                            class="{{ ($lang ?? 'ar') === 'ar' ? 'left-0' : 'right-0' }} absolute mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
                             <div class="px-4 py-3 border-b bg-gray-50">
-                                <p class="font-bold text-sm text-gray-700">الإشعارات</p>
+                                <p class="font-bold text-sm text-gray-700">{{ __('common.notifications') }}</p>
                             </div>
                             <div class="py-6 text-center text-gray-400 text-sm">
                                 <i class="fa fa-bell-slash text-2xl mb-2 block"></i>
-                                لا توجد إشعارات جديدة
+                                {{ __('common.no_new_notifications') }}
                             </div>
                         </div>
                     </div>
 
-                    {{-- المستخدم --}}
+                    {{-- User --}}
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" class="flex items-center gap-2 hover:opacity-80 transition">
                             <img src="{{ auth()->user()->avatar_url }}"
                                  class="w-8 h-8 rounded-full object-cover border-2 border-primary"
                                  alt="{{ auth()->user()->name }}">
-                            <div class="hidden sm:block text-right">
+                            <div class="hidden sm:block {{ ($lang ?? 'ar') === 'ar' ? 'text-right' : 'text-left' }}">
                                 <p class="text-sm font-medium text-gray-700 leading-tight">{{ auth()->user()->name }}</p>
                                 <p class="text-xs text-gray-400">{{ auth()->user()->role_name }}</p>
                             </div>
                         </button>
                         <div x-show="open" @click.outside="open = false"
-                            class="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                            class="{{ ($lang ?? 'ar') === 'ar' ? 'left-0' : 'right-0' }} absolute mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
                             <a href="{{ route('profile') }}" class="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700">
-                                <i class="fa fa-user-circle w-4"></i> الملف الشخصي
+                                <i class="fa fa-user-circle w-4"></i> {{ __('common.profile') }}
                             </a>
                             <hr>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button class="w-full flex items-center gap-2 px-4 py-3 hover:bg-red-50 text-sm text-red-600">
-                                    <i class="fa fa-right-from-bracket w-4"></i> تسجيل الخروج
+                                    <i class="fa fa-right-from-bracket w-4"></i> {{ __('common.logout') }}
                                 </button>
                             </form>
                         </div>
@@ -330,11 +338,11 @@
             </div>
         </header>
 
-        {{-- المسار التنقلي --}}
+        {{-- Breadcrumb --}}
         @hasSection('breadcrumb')
         <div class="bg-white border-b px-6 py-2">
             <nav class="text-sm text-gray-500 flex items-center gap-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-primary">الرئيسية</a>
+                <a href="{{ route('dashboard') }}" class="hover:text-primary">{{ __('common.home') }}</a>
                 @yield('breadcrumb')
             </nav>
         </div>
@@ -364,7 +372,7 @@
             <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3">
                 <div class="flex items-center gap-2 mb-1">
                     <i class="fa fa-triangle-exclamation text-red-500"></i>
-                    <span class="text-sm font-medium">يوجد أخطاء في البيانات:</span>
+                    <span class="text-sm font-medium">{{ __('common.data_errors') }}</span>
                 </div>
                 <ul class="text-sm list-disc list-inside space-y-1">
                     @foreach($errors->all() as $error)
@@ -375,14 +383,14 @@
             @endif
         </div>
 
-        {{-- المحتوى --}}
+        {{-- Content --}}
         <main class="flex-1 p-6">
             @yield('content')
         </main>
 
-        {{-- الذيل --}}
+        {{-- Footer --}}
         <footer class="text-center text-xs text-gray-400 py-4 border-t">
-            توتال الكلاكلة &copy; {{ date('Y') }} — نظام ERP
+            توتال الكلاكلة &copy; {{ date('Y') }} — {{ __('common.erp_system') }}
         </footer>
     </div>
 
