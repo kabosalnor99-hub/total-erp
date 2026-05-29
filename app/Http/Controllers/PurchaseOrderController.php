@@ -40,15 +40,32 @@ class PurchaseOrderController extends Controller
         $products         = Product::active()->orderBy('name_ar')->get();
         $purchaseRequests = PurchaseRequest::where('status', 'approved')->latest()->get();
 
+        // تجهيز بيانات المنتجات كـ JSON جاهز للـ View
+        $productsJson = $products->map(fn($p) => [
+            'id'             => $p->id,
+            'purchase_price' => $p->purchase_price,
+        ])->values()->toJson();
+
         // تحميل بنود طلب الشراء إذا مرر
-        $fromRequest = null;
+        $fromRequest     = null;
+        $fromRequestJson = 'null';
+
         if ($request->from_request) {
             $fromRequest = PurchaseRequest::with('items.product')
                 ->findOrFail($request->from_request);
+
+            $fromRequestJson = $fromRequest->items->map(fn($i) => [
+                'product_id' => $i->product_id,
+                'quantity'   => $i->quantity,
+                'unit_price' => $i->estimated_price ?? 0,
+                'discount'   => 0,
+                'total'      => $i->quantity * ($i->estimated_price ?? 0),
+            ])->values()->toJson();
         }
 
         return view('purchase-orders.create', compact(
-            'suppliers', 'products', 'purchaseRequests', 'fromRequest'
+            'suppliers', 'products', 'purchaseRequests',
+            'fromRequest', 'productsJson', 'fromRequestJson'
         ));
     }
 
