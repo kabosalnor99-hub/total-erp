@@ -4,10 +4,12 @@
 
 namespace App\Models;
 
+use App\Services\CacheService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Category extends Model
 {
@@ -27,6 +29,38 @@ class Category extends Model
         'is_active'  => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    // ─── Cache ───────────────────────────────────────────────────────
+
+    /**
+     * جلب الفئات النشطة مع فئاتها الفرعية من الـ cache
+     * يُستخدم في القوائم المنسدلة وصفحات المنتجات
+     */
+    public static function cachedActive(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Cache::remember(
+            CacheService::categoriesKey(),
+            CacheService::TTL_CATEGORIES,
+            fn () => self::with('children')
+                ->active()
+                ->root()
+                ->orderBy('sort_order')
+                ->orderBy('name_ar')
+                ->get()
+        );
+    }
+
+    /**
+     * مسح الـ cache تلقائياً عند أي تعديل على الفئات
+     */
+    protected static function booted(): void
+    {
+        $flush = fn () => CacheService::forgetCategories();
+
+        static::created($flush);
+        static::updated($flush);
+        static::deleted($flush);
+    }
 
     // ─── العلاقات ────────────────────────────────────────────────────
 
