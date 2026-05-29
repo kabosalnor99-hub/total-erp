@@ -6,13 +6,16 @@ namespace Database\Seeders;
 
 use App\Models\Account;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class ChartOfAccountsSeeder extends Seeder
 {
     public function run(): void
     {
         // مسح الحسابات الموجودة (للتشغيل مرة واحدة)
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Account::query()->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $accounts = [
 
