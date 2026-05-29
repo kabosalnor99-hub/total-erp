@@ -2,6 +2,16 @@
 
 namespace App\Providers;
 
+use App\Models\Invoice;
+use App\Models\Payment;
+use App\Models\PosTransaction;
+use App\Models\Product;
+use App\Models\StockMovement;
+use App\Observers\InvoiceObserver;
+use App\Observers\PaymentObserver;
+use App\Observers\PosTransactionObserver;
+use App\Observers\ProductObserver;
+use App\Observers\StockMovementObserver;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
@@ -23,6 +33,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ─── Observers ───────────────────────────────────────────────
+        Invoice::observe(InvoiceObserver::class);
+        Payment::observe(PaymentObserver::class);
+        Product::observe(ProductObserver::class);
+        StockMovement::observe(StockMovementObserver::class);
+        PosTransaction::observe(PosTransactionObserver::class);
+
         if ($this->app->environment('production')) {
             \URL::forceScheme('https');
         }
