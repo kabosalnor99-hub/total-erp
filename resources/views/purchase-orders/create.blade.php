@@ -201,20 +201,8 @@
 
 <script>
 function purchaseOrder() {
-    const products = @json($products->map(fn($p) => ['id' => $p->id, 'purchase_price' => $p->purchase_price]));
-
-    // Pre-fill from purchase request if available
-    @if($fromRequest)
-    const preItems = @json($fromRequest->items->map(fn($i) => [
-        'product_id' => $i->product_id,
-        'quantity'   => $i->quantity,
-        'unit_price' => $i->estimated_price ?? 0,
-        'discount'   => 0,
-        'total'      => ($i->quantity * ($i->estimated_price ?? 0)),
-    ]));
-    @else
-    const preItems = null;
-    @endif
+    const products = {!! $productsJson !!};
+    const preItems = {!! $fromRequestJson !!};
 
     return {
         items: preItems ?? [{ product_id: '', quantity: 1, unit_price: 0, discount: 0, total: 0 }],
