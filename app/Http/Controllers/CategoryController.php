@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Category;
+use App\Services\CacheService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -87,7 +88,7 @@ class CategoryController extends Controller
         }
 
         ActivityLog::record('deleted', "حذف فئة: {$category->name_ar}", $category);
-        $category->delete();
+        $category->delete(); // ← booted() يمسح الـ cache تلقائياً
 
         return back()->with('success', 'تم حذف الفئة بنجاح.');
     }
