@@ -56,6 +56,18 @@ class Setting extends Model
     {
         static::where('key', $key)->update(['value' => $value]);
         Cache::forget("setting_{$key}");
+        Cache::forget('all_settings_flat');
+    }
+
+    /**
+     * Get all settings as a flat key => value array.
+     * Used by PDF views and other places that need $settings['key'] syntax.
+     */
+    public static function getAll(): array
+    {
+        return Cache::remember('all_settings_flat', 3600, function () {
+            return static::all()->pluck('value', 'key')->toArray();
+        });
     }
 
     /**
