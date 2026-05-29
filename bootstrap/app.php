@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // ثق بجميع الـ proxies (مطلوب على Railway وأي بيئة خلف Load Balancer)
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'setlocale' => \App\Http\Middleware\SetLocale::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
