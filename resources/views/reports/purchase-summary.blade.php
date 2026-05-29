@@ -24,12 +24,12 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">من تاريخ</label>
-                <input type="date" name="date_from" value="{{ request('date_from', $data['date_from']) }}"
+                <input type="date" name="date_from" value="{{ request('date_from', $data['date_from'] ?? now()->startOfMonth()->toDateString()) }}"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">إلى تاريخ</label>
-                <input type="date" name="date_to" value="{{ request('date_to', $data['date_to']) }}"
+                <input type="date" name="date_to" value="{{ request('date_to', $data['date_to'] ?? now()->toDateString()) }}"
                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
             </div>
             <div class="flex items-end gap-2">
@@ -94,7 +94,7 @@
                             </div>
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <a href="{{ route('reports.supplier-statement') }}?supplier_id={{ $row->supplier_id }}&date_from={{ $data['date_from'] }}&date_to={{ $data['date_to'] }}"
+                            <a href="{{ route('reports.supplier-statement') }}?supplier_id={{ $row->supplier_id }}&date_from={{ $data['date_from'] ?? now()->startOfMonth()->toDateString() }}&date_to={{ $data['date_to'] ?? now()->toDateString() }}"
                                class="text-xs text-teal-600 hover:underline">كشف الحساب</a>
                         </td>
                     </tr>
