@@ -321,6 +321,9 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
     Route::middleware('permission:purchase-requests.approve')->group(function () {
         Route::post('/purchase-requests/{purchaseRequest}/approve', [PurchaseRequestController::class, 'approve'])->name('purchase-requests.approve');
         Route::post('/purchase-requests/{purchaseRequest}/reject',  [PurchaseRequestController::class, 'reject'])->name('purchase-requests.reject');
+        // تحويل GET إلى صفحة الطلب بدلاً من إظهار 405
+        Route::get('/purchase-requests/{purchaseRequest}/approve', fn($purchaseRequest) => redirect()->route('purchase-requests.show', $purchaseRequest));
+        Route::get('/purchase-requests/{purchaseRequest}/reject',  fn($purchaseRequest) => redirect()->route('purchase-requests.show', $purchaseRequest));
     });
     Route::middleware('permission:purchase-requests.delete')->group(function () {
         Route::delete('/purchase-requests/{purchaseRequest}', [PurchaseRequestController::class, 'destroy'])->name('purchase-requests.destroy');
