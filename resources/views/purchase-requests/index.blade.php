@@ -104,7 +104,7 @@
                                 @can('purchase-requests.approve')
                                 @if($req->status === 'pending')
                                 <form action="{{ route('purchase-requests.approve', $req) }}" method="POST" class="inline">
-                                    @csrf @method('PATCH')
+                                    @csrf
                                     <button type="submit" class="text-green-600 hover:text-green-800 text-xs font-medium">اعتماد</button>
                                 </form>
                                 @endif
