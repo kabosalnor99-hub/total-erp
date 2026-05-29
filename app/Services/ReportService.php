@@ -5,22 +5,24 @@
 namespace App\Services;
 
 use App\Models\Account;
-use App\Models\JournalEntryLine;
+use App\Models\Attendance;
+use App\Models\Customer;
+use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\JournalEntryLine;
+use App\Models\Leave;
+use App\Models\Payroll;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\StockMovement;
-use App\Models\Customer;
 use App\Models\Supplier;
 use App\Models\SupplierPayment;
-use App\Models\PurchaseOrder;
-use App\Models\Employee;
-use App\Models\Payroll;
-use App\Models\Leave;
-use App\Models\Attendance;
 use App\Models\Voucher;
-use Illuminate\Support\Facades\DB;
+use App\Services\CacheService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class ReportService
 {
@@ -247,32 +249,36 @@ class ReportService
      */
     public function salesSummary(string $dateFrom, string $dateTo): array
     {
-        $invoices = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
-            ->where('status', '!=', 'cancelled')
-            ->selectRaw('
-                COUNT(*) as total_invoices,
-                SUM(total) as total_amount,
-                SUM(discount_amount) as total_discount,
-                SUM(tax_amount) as total_tax,
-                SUM(paid_amount) as total_paid,
-                SUM(total - paid_amount) as total_due,
-                AVG(total) as avg_invoice
-            ')
-            ->first();
+        $key = "report_sales_summary_{$dateFrom}_{$dateTo}";
 
-        $monthly = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
-            ->where('status', '!=', 'cancelled')
-            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total) as total')
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
+        return Cache::remember($key, CacheService::TTL_REPORT, function () use ($dateFrom, $dateTo) {
+            $invoices = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
+                ->where('status', '!=', 'cancelled')
+                ->selectRaw('
+                    COUNT(*) as total_invoices,
+                    SUM(total) as total_amount,
+                    SUM(discount_amount) as total_discount,
+                    SUM(tax_amount) as total_tax,
+                    SUM(paid_amount) as total_paid,
+                    SUM(total - paid_amount) as total_due,
+                    AVG(total) as avg_invoice
+                ')
+                ->first();
 
-        return [
-            'summary'   => $invoices,
-            'monthly'   => $monthly,
-            'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
-        ];
+            $monthly = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
+                ->where('status', '!=', 'cancelled')
+                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total) as total')
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
+
+            return [
+                'summary'   => $invoices,
+                'monthly'   => $monthly,
+                'date_from' => $dateFrom,
+                'date_to'   => $dateTo,
+            ];
+        });
     }
 
     /**
@@ -280,19 +286,23 @@ class ReportService
      */
     public function salesByCustomer(string $dateFrom, string $dateTo): array
     {
-        $rows = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
-            ->where('status', '!=', 'cancelled')
-            ->with('customer')
-            ->selectRaw('customer_id, COUNT(*) as total_invoices, SUM(total) as total_amount, SUM(total - paid_amount) as balance')
-            ->groupBy('customer_id')
-            ->orderByDesc('total_amount')
-            ->get();
+        $key = "report_sales_by_customer_{$dateFrom}_{$dateTo}";
 
-        return [
-            'rows'      => $rows,
-            'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
-        ];
+        return Cache::remember($key, CacheService::TTL_REPORT, function () use ($dateFrom, $dateTo) {
+            $rows = Invoice::whereBetween('created_at', [$dateFrom, $dateTo])
+                ->where('status', '!=', 'cancelled')
+                ->with('customer')
+                ->selectRaw('customer_id, COUNT(*) as total_invoices, SUM(total) as total_amount, SUM(total - paid_amount) as balance')
+                ->groupBy('customer_id')
+                ->orderByDesc('total_amount')
+                ->get();
+
+            return [
+                'rows'      => $rows,
+                'date_from' => $dateFrom,
+                'date_to'   => $dateTo,
+            ];
+        });
     }
 
     /**
@@ -300,45 +310,55 @@ class ReportService
      */
     public function salesByProduct(string $dateFrom, string $dateTo): array
     {
-        $rows = InvoiceItem::whereHas('invoice', fn($q) => $q
-            ->whereDate('created_at', '>=', $dateFrom)->whereDate('created_at', '<=', $dateTo)
-            ->where('status', '!=', 'cancelled')
-        )->with('product')
-            ->selectRaw('product_id, SUM(quantity) as total_qty, SUM(total) as total_amount')
-            ->groupBy('product_id')
-            ->orderByDesc('total_amount')
-            ->get();
+        $key = "report_sales_by_product_{$dateFrom}_{$dateTo}";
 
-        return [
-            'rows'      => $rows,
-            'date_from' => $dateFrom,
-            'date_to'   => $dateTo,
-        ];
+        return Cache::remember($key, CacheService::TTL_REPORT, function () use ($dateFrom, $dateTo) {
+            $rows = InvoiceItem::whereHas('invoice', fn($q) => $q
+                ->whereDate('created_at', '>=', $dateFrom)
+                ->whereDate('created_at', '<=', $dateTo)
+                ->where('status', '!=', 'cancelled')
+            )->with('product')
+                ->selectRaw('product_id, SUM(quantity) as total_qty, SUM(total) as total_amount')
+                ->groupBy('product_id')
+                ->orderByDesc('total_amount')
+                ->get();
+
+            return [
+                'rows'      => $rows,
+                'date_from' => $dateFrom,
+                'date_to'   => $dateTo,
+            ];
+        });
     }
 
     /**
      * Overdue invoices (due_date < today and not fully paid)
+     * TTL قصير لأن الفواتير تتغير يومياً
      */
     public function overdueInvoices(): array
     {
-        $rows = Invoice::where('due_date', '<', now())
-            ->where('status', '!=', 'cancelled')
-            ->whereRaw('paid_amount < total')
-            ->with('customer')
-            ->orderBy('due_date')
-            ->get()
-            ->map(fn($inv) => [
-                'id'           => $inv->id,
-                'number'       => $inv->invoice_number,
-                'customer'     => $inv->customer->name,
-                'total'        => $inv->total,
-                'paid'         => $inv->paid_amount,
-                'due'          => $inv->total - $inv->paid_amount,
-                'due_date'     => $inv->due_date->format('Y-m-d'),
-                'overdue_days' => $inv->due_date->diffInDays(now()),
-            ]);
+        $key = 'report_overdue_invoices_' . today()->toDateString();
 
-        return ['rows' => $rows->toArray()];
+        return Cache::remember($key, CacheService::TTL_REPORT, function () {
+            $rows = Invoice::where('due_date', '<', now())
+                ->where('status', '!=', 'cancelled')
+                ->whereRaw('paid_amount < total')
+                ->with('customer')
+                ->orderBy('due_date')
+                ->get()
+                ->map(fn($inv) => [
+                    'id'           => $inv->id,
+                    'number'       => $inv->invoice_number,
+                    'customer'     => $inv->customer->name,
+                    'total'        => $inv->total,
+                    'paid'         => $inv->paid_amount,
+                    'due'          => $inv->total - $inv->paid_amount,
+                    'due_date'     => $inv->due_date->format('Y-m-d'),
+                    'overdue_days' => $inv->due_date->diffInDays(now()),
+                ]);
+
+            return ['rows' => $rows->toArray()];
+        });
     }
 
     // ================================================================
