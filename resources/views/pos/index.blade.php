@@ -431,20 +431,15 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                 </div>
             </template>
 
-            {{-- ─── Infinite Scroll Sentinel ─── --}}
-            <div id="pos-products-sentinel"
-                 style="grid-column:1/-1;height:1px;"></div>
-
-            {{-- ─── Loader ─── --}}
-            <template x-if="productsLoadingMore">
-                <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;padding:20px;color:#14b8a6;font-size:13px;">
-                    <svg style="width:20px;height:20px;animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    جاري تحميل المزيد...
-                </div>
-            </template>
+            {{-- ─── Infinite Scroll Loader ─── --}}
+            <div x-show="productsLoadingMore"
+                 style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;padding:20px;color:#14b8a6;font-size:13px;">
+                <svg style="width:20px;height:20px;animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                جاري تحميل المزيد...
+            </div>
 
         </div>
     </div>
@@ -915,6 +910,124 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 </div>{{-- end pos-wrapper --}}
 
 <script src="{{ asset('js/pos.js') }}"></script>
+
+<script>
+/**
+ * Infinite Scroll Patch — POS Products
+ * يُعدّل posApp بعد تحميل Alpine لإضافة lazy loading للمنتجات
+ */
+document.addEventListener('alpine:init', () => {
+
+    // نحفظ الـ data factory الأصلية
+    const _originalPosApp = window.__posAppOriginal || null;
+
+    // نُعدّل posApp بعد تسجيله
+    document.addEventListener('alpine:initialized', () => {
+        const posEl = document.querySelector('[x-data="posApp()"]');
+        if (!posEl) return;
+
+        const component = Alpine.$data(posEl);
+        if (!component || component.__infiniteScrollPatched) return;
+        component.__infiniteScrollPatched = true;
+
+        // ── الحالة الجديدة ──
+        component.hasMoreProducts  = false;
+        component.productsNextPage = 1;
+        component.productsLoadingMore = false;
+        component._scrollHandler  = null;
+
+        // ── استبدال loadProducts ──
+        const _origLoad = component.loadProducts.bind(component);
+        component.loadProducts = async function () {
+            this.productsLoading  = true;
+            this.products         = [];
+            this.hasMoreProducts  = false;
+            this.productsNextPage = 1;
+            this._removeScrollListener();
+
+            try {
+                const params = new URLSearchParams({ page: 1 });
+                if (this.searchQuery) params.set('q', this.searchQuery);
+                if (this.selectedCat && this.selectedCat !== '') params.set('category_id', this.selectedCat);
+
+                const res  = await fetch(`/pos/products/search?${params}`, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+
+                this.products         = data.products ?? [];
+                this.hasMoreProducts  = data.hasMore  ?? false;
+                this.productsNextPage = data.nextPage ?? null;
+
+                // بعد الrender، ابدأ مراقبة الـ scroll
+                await this.$nextTick();
+                this._initScrollListener();
+
+            } catch (e) {
+                this.toast('خطأ في تحميل المنتجات', 'error');
+            } finally {
+                this.productsLoading = false;
+            }
+        };
+
+        // ── تحميل صفحة إضافية ──
+        component._loadMore = async function () {
+            if (this.productsLoadingMore || !this.hasMoreProducts || !this.productsNextPage) return;
+            this.productsLoadingMore = true;
+
+            try {
+                const params = new URLSearchParams({ page: this.productsNextPage });
+                if (this.searchQuery) params.set('q', this.searchQuery);
+                if (this.selectedCat && this.selectedCat !== '') params.set('category_id', this.selectedCat);
+
+                const res  = await fetch(`/pos/products/search?${params}`, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+
+                this.products         = [...this.products, ...(data.products ?? [])];
+                this.hasMoreProducts  = data.hasMore  ?? false;
+                this.productsNextPage = data.nextPage ?? null;
+
+                if (!this.hasMoreProducts) this._removeScrollListener();
+
+            } catch (e) {
+                // فشل صامت
+            } finally {
+                this.productsLoadingMore = false;
+            }
+        };
+
+        // ── scroll listener على pos-grid ──
+        component._initScrollListener = function () {
+            if (!this.hasMoreProducts) return;
+            const grid = document.querySelector('.pos-grid');
+            if (!grid) return;
+
+            this._scrollHandler = () => {
+                if (this.productsLoadingMore || !this.hasMoreProducts) return;
+                const bottom = grid.scrollHeight - grid.scrollTop - grid.clientHeight;
+                if (bottom < 300) this._loadMore();
+            };
+
+            grid.addEventListener('scroll', this._scrollHandler, { passive: true });
+        };
+
+        component._removeScrollListener = function () {
+            const grid = document.querySelector('.pos-grid');
+            if (grid && this._scrollHandler) {
+                grid.removeEventListener('scroll', this._scrollHandler);
+                this._scrollHandler = null;
+            }
+        };
+
+        // ── أعد تحميل المنتجات بالـ loadProducts الجديدة ──
+        component.loadProducts();
+    });
+});
+</script>
 
 </body>
 </html>
