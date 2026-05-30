@@ -1,11 +1,9 @@
 #!/bin/sh
 
-# Exit immediately if a command exits with a non-zero status
 set -e
 
-# Fail fast if DB_HOST is not set — avoids hanging in the wait loop below
 if [ -z "$DB_HOST" ]; then
-  echo "ERROR: DB_HOST is not set. Add a MySQL service to your Railway project and link the database variables to this service." >&2
+  echo "ERROR: DB_HOST is not set." >&2
   exit 1
 fi
 
@@ -14,7 +12,7 @@ TIMEOUT=60
 ELAPSED=0
 until mysqladmin ping -h "$DB_HOST" -P "${DB_PORT:-3306}" --silent 2>/dev/null; do
   if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
-    echo "ERROR: MySQL did not become reachable at $DB_HOST after ${TIMEOUT}s. Aborting." >&2
+    echo "ERROR: MySQL did not become reachable after ${TIMEOUT}s." >&2
     exit 1
   fi
   echo "  MySQL not ready yet — retrying in 2s (${ELAPSED}s elapsed)..."
