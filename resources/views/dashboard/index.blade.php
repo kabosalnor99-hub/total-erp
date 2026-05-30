@@ -3,6 +3,18 @@
 @section('title', 'لوحة التحكم')
 @section('page-title', 'لوحة التحكم')
 
+@php
+    $purchaseLast6 = \App\Models\PurchaseOrder::selectRaw('MONTH(created_at) as month, YEAR(created_at) as year, SUM(total) as total')
+        ->where('created_at', '>=', now()->subMonths(6)->startOfMonth())
+        ->groupBy('year', 'month')
+        ->orderBy('year')->orderBy('month')
+        ->get()
+        ->map(function($r) {
+            return ['label' => $r->month.'/'.$r->year, 'total' => (float)$r->total];
+        })
+        ->values();
+@endphp
+
 @push('styles')
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
@@ -705,12 +717,7 @@ const topProducts  = @json($topProducts);
 (function(){
     const ctx = document.getElementById('barChart');
     if(!ctx) return;
-    const purchData = @json(
-        \App\Models\PurchaseOrder::selectRaw('MONTH(created_at) as month, YEAR(created_at) as year, SUM(total) as total')
-            ->where('created_at','>=',now()->subMonths(6)->startOfMonth())
-            ->groupBy('year','month')->orderBy('year')->orderBy('month')
-            ->get()->map(fn($r)=>['label'=>$r->month.'/'.$r->year,'total'=>(float)$r->total])
-    );
+    const purchData = @json($purchaseLast6);
     const sl6 = salesData.slice(-6);
     const pl6 = purchData.slice(-6);
     const labels = sl6.map(d=>d.label);
