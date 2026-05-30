@@ -19,9 +19,13 @@ document.addEventListener('alpine:init', () => {
         // المنتجات
         products:        [],
         productsLoading: false,
+        productsLoadingMore: false,
+        hasMoreProducts: false,
+        productsNextPage: 1,
         searchQuery:     '',
         selectedCat:     '',
         searchTimeout:   null,
+        _scrollObserver: null,
 
         // السلة
         cart:            [],
@@ -68,24 +72,94 @@ document.addEventListener('alpine:init', () => {
             this.initBarcodeListener();
         },
 
-        // ─── تحميل المنتجات ──────────────────────────────────────
+        // ─── تحميل المنتجات (الصفحة الأولى) ────────────────────────
         async loadProducts() {
-            this.productsLoading = true;
+            this.productsLoading  = true;
+            this.products         = [];
+            this.productsNextPage = 1;
+            this.hasMoreProducts  = false;
+
+            // فك ربط الـ observer القديم
+            if (this._scrollObserver) {
+                this._scrollObserver.disconnect();
+                this._scrollObserver = null;
+            }
+
             try {
-                const params = new URLSearchParams();
-                if (this.searchQuery)  params.set('q', this.searchQuery);
-                if (this.selectedCat && this.selectedCat !== '')  params.set('category_id', this.selectedCat);
+                const params = new URLSearchParams({ page: 1 });
+                if (this.searchQuery) params.set('q', this.searchQuery);
+                if (this.selectedCat && this.selectedCat !== '') params.set('category_id', this.selectedCat);
 
                 const res  = await fetch(`/pos/products/search?${params}`, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
                 const data = await res.json();
-                this.products = data.products ?? [];
+
+                this.products         = data.products ?? [];
+                this.hasMoreProducts  = data.hasMore  ?? false;
+                this.productsNextPage = data.nextPage ?? null;
+
+                // بعد ما يرسم Alpine المنتجات، ابدأ مراقبة الـ sentinel
+                await this.$nextTick();
+                this._initScrollObserver();
+
             } catch (e) {
                 this.toast('خطأ في تحميل المنتجات', 'error');
             } finally {
                 this.productsLoading = false;
             }
+        },
+
+        // ─── تحميل صفحة إضافية (Infinite Scroll) ───────────────────
+        async _loadMoreProducts() {
+            if (this.productsLoadingMore || !this.hasMoreProducts || !this.productsNextPage) return;
+
+            this.productsLoadingMore = true;
+            try {
+                const params = new URLSearchParams({ page: this.productsNextPage });
+                if (this.searchQuery) params.set('q', this.searchQuery);
+                if (this.selectedCat && this.selectedCat !== '') params.set('category_id', this.selectedCat);
+
+                const res  = await fetch(`/pos/products/search?${params}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+
+                this.products         = [...this.products, ...(data.products ?? [])];
+                this.hasMoreProducts  = data.hasMore  ?? false;
+                this.productsNextPage = data.nextPage ?? null;
+
+                if (!this.hasMoreProducts && this._scrollObserver) {
+                    this._scrollObserver.disconnect();
+                    this._scrollObserver = null;
+                }
+            } catch (e) {
+                // فشل صامت — المستخدم يمكنه التمرير مجدداً
+            } finally {
+                this.productsLoadingMore = false;
+            }
+        },
+
+        // ─── إنشاء IntersectionObserver على sentinel ────────────────
+        _initScrollObserver() {
+            if (!this.hasMoreProducts) return;
+
+            const sentinel = document.getElementById('pos-products-sentinel');
+            if (!sentinel) return;
+
+            const grid = document.querySelector('.pos-grid');
+
+            this._scrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) this._loadMoreProducts();
+                });
+            }, {
+                root:       grid,        // الـ scroll container هو pos-grid نفسه
+                rootMargin: '0px 0px 150px 0px',
+                threshold:  0,
+            });
+
+            this._scrollObserver.observe(sentinel);
         },
 
         onSearchInput() {
