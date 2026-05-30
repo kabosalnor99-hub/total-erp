@@ -1,5 +1,5 @@
 {{-- المسار الكامل: resources/views/products/_product_row.blade.php --}}
-{{-- Partial يُستخدم من ProductController::index() عند طلبات AJAX (Infinite Scroll) --}}
+{{-- مستخدم من ProductController::index() عند طلبات AJAX (Infinite Scroll) --}}
 
 <tr id="row-{{ $product->id }}">
 
