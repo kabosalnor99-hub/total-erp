@@ -26,6 +26,7 @@ document.addEventListener('alpine:init', () => {
         selectedCat:     '',
         searchTimeout:   null,
         _scrollObserver: null,
+        _scrollHandler:  null,
 
         // السلة
         cart:            [],
@@ -79,11 +80,8 @@ document.addEventListener('alpine:init', () => {
             this.productsNextPage = 1;
             this.hasMoreProducts  = false;
 
-            // فك ربط الـ observer القديم
-            if (this._scrollObserver) {
-                this._scrollObserver.disconnect();
-                this._scrollObserver = null;
-            }
+            // فك ربط الـ listener القديم
+            this._removeScrollObserver();
 
             try {
                 const params = new URLSearchParams({ page: 1 });
@@ -129,9 +127,8 @@ document.addEventListener('alpine:init', () => {
                 this.hasMoreProducts  = data.hasMore  ?? false;
                 this.productsNextPage = data.nextPage ?? null;
 
-                if (!this.hasMoreProducts && this._scrollObserver) {
-                    this._scrollObserver.disconnect();
-                    this._scrollObserver = null;
+                if (!this.hasMoreProducts) {
+                    this._removeScrollObserver();
                 }
             } catch (e) {
                 // فشل صامت — المستخدم يمكنه التمرير مجدداً
@@ -140,26 +137,37 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        // ─── إنشاء IntersectionObserver على sentinel ────────────────
+        // ─── إنشاء scroll listener على pos-grid ────────────────────
         _initScrollObserver() {
             if (!this.hasMoreProducts) return;
 
-            const sentinel = document.getElementById('pos-products-sentinel');
-            if (!sentinel) return;
-
             const grid = document.querySelector('.pos-grid');
+            if (!grid) return;
 
-            this._scrollObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) this._loadMoreProducts();
-                });
-            }, {
-                root:       grid,        // الـ scroll container هو pos-grid نفسه
-                rootMargin: '0px 0px 150px 0px',
-                threshold:  0,
-            });
+            // احفظ reference للـ handler حتى نقدر نزيله لاحقاً
+            this._scrollHandler = () => {
+                if (!this.hasMoreProducts || this.productsLoadingMore) return;
+                // إذا وصل المستخدم لآخر 300px ابدأ التحميل
+                const distanceFromBottom = grid.scrollHeight - grid.scrollTop - grid.clientHeight;
+                if (distanceFromBottom < 300) {
+                    this._loadMoreProducts();
+                }
+            };
 
-            this._scrollObserver.observe(sentinel);
+            grid.addEventListener('scroll', this._scrollHandler, { passive: true });
+        },
+
+        // ─── إزالة الـ scroll listener ──────────────────────────────
+        _removeScrollObserver() {
+            const grid = document.querySelector('.pos-grid');
+            if (grid && this._scrollHandler) {
+                grid.removeEventListener('scroll', this._scrollHandler);
+                this._scrollHandler = null;
+            }
+            if (this._scrollObserver) {
+                this._scrollObserver.disconnect();
+                this._scrollObserver = null;
+            }
         },
 
         onSearchInput() {
