@@ -111,21 +111,85 @@
                     <tbody>
                         <template x-for="(item, index) in items" :key="index">
                             <tr class="border-b">
+
+                                {{-- ── خلية البحث عن المنتج ── --}}
                                 <td class="px-3 py-2">
-                                    <select :name="`items[${index}][product_id]`" x-model="item.product_id"
-                                            @change="onProductChange(index)"
-                                            required
-                                            class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-teal-500 bg-white">
-                                        <option value="">اختر المنتج</option>
-                                        @foreach($products as $product)
-                                        <option value="{{ $product->id }}"
-                                                data-price="{{ $product->purchase_price }}"
-                                                data-name="{{ $product->name_ar }}">
-                                            {{ $product->name_ar }} ({{ $product->sku }})
-                                        </option>
-                                        @endforeach
-                                    </select>
+
+                                    {{-- الحقل المخفي الذي يُرسل مع الفورم --}}
+                                    <input type="hidden" :name="`items[${index}][product_id]`" :value="item.product_id">
+
+                                    <div class="relative" x-data="productSearch(index)" @click.outside="close()">
+
+                                        {{-- حقل البحث --}}
+                                        <div class="relative">
+                                            <input
+                                                type="text"
+                                                x-model="query"
+                                                @input.debounce.200ms="search()"
+                                                @focus="search()"
+                                                @keydown.arrow-down.prevent="moveDown()"
+                                                @keydown.arrow-up.prevent="moveUp()"
+                                                @keydown.enter.prevent="selectHighlighted()"
+                                                @keydown.escape="close()"
+                                                :placeholder="item.product_id ? item.product_name : 'ابحث بالاسم أو الكود...'"
+                                                :class="item.product_id ? 'text-gray-800' : 'text-gray-400'"
+                                                class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-teal-500 bg-white pr-8"
+                                                autocomplete="off"
+                                            >
+                                            {{-- أيقونة البحث --}}
+                                            <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"/>
+                                            </svg>
+                                            {{-- زر مسح الاختيار --}}
+                                            <button
+                                                type="button"
+                                                x-show="item.product_id"
+                                                @click="clear()"
+                                                class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-red-400 transition"
+                                            >
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        {{-- قائمة النتائج --}}
+                                        <div
+                                            x-show="open && results.length > 0"
+                                            x-transition:enter="transition ease-out duration-100"
+                                            x-transition:enter-start="opacity-0 -translate-y-1"
+                                            x-transition:enter-end="opacity-100 translate-y-0"
+                                            class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto"
+                                            style="min-width: 260px"
+                                        >
+                                            <template x-for="(result, i) in results" :key="result.id">
+                                                <div
+                                                    @click="select(result)"
+                                                    @mouseenter="highlighted = i"
+                                                    :class="highlighted === i ? 'bg-teal-50' : 'hover:bg-gray-50'"
+                                                    class="flex items-center justify-between px-3 py-2 cursor-pointer transition"
+                                                >
+                                                    <div>
+                                                        <p class="text-sm font-medium text-gray-800" x-text="result.name_ar"></p>
+                                                        <p class="text-xs text-gray-400" x-text="result.sku"></p>
+                                                    </div>
+                                                    <span class="text-xs font-semibold text-teal-600 whitespace-nowrap ms-3" x-text="result.purchase_price_usd + ' $'"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        {{-- لا نتائج --}}
+                                        <div
+                                            x-show="open && results.length === 0 && query.length > 1"
+                                            class="absolute z-50 mt-1 w-full bg-white border border-gray-100 rounded-xl shadow-lg px-4 py-3 text-sm text-gray-400"
+                                        >
+                                            لا توجد نتائج
+                                        </div>
+
+                                    </div>
                                 </td>
+                                {{-- ── نهاية خلية البحث ── --}}
+
                                 <td class="px-3 py-2">
                                     <input type="number" :name="`items[${index}][quantity]`" x-model="item.quantity"
                                            @input="calcItem(index)" min="0.01" step="0.01" required
@@ -200,13 +264,92 @@
 </div>
 
 <script>
+// ── بيانات المنتجات من الـ Controller ───────────────────────────────────
+const ALL_PRODUCTS = {!! $productsJson !!};
+
+// ── مكوّن البحث الحي — يُنشأ لكل صف ─────────────────────────────────────
+function productSearch(rowIndex) {
+    return {
+        query:       '',
+        results:     [],
+        open:        false,
+        highlighted: 0,
+
+        // مرجع للـ item في الـ purchaseOrder parent
+        get item() {
+            return this.$root.__x.$data.items[rowIndex];
+        },
+
+        search() {
+            const q = this.query.trim().toLowerCase();
+            if (q.length < 1) {
+                this.results = [];
+                this.open    = false;
+                return;
+            }
+            this.results = ALL_PRODUCTS.filter(p =>
+                p.name_ar.toLowerCase().includes(q) ||
+                p.sku.toLowerCase().includes(q)
+            ).slice(0, 10);
+            this.highlighted = 0;
+            this.open        = this.results.length > 0 || q.length > 1;
+        },
+
+        select(product) {
+            const item        = this.item;
+            item.product_id   = product.id;
+            item.product_name = product.name_ar;
+            item.unit_price   = product.purchase_price_usd;
+            this.query        = product.name_ar;
+            this.open         = false;
+            this.highlighted  = 0;
+
+            // إعادة حساب الإجمالي
+            item.total = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0) - (parseFloat(item.discount) || 0);
+        },
+
+        clear() {
+            const item        = this.item;
+            item.product_id   = '';
+            item.product_name = '';
+            item.unit_price   = 0;
+            item.total        = 0;
+            this.query        = '';
+            this.results      = [];
+            this.open         = false;
+        },
+
+        close() {
+            this.open = false;
+        },
+
+        moveDown() {
+            if (this.highlighted < this.results.length - 1) this.highlighted++;
+        },
+        moveUp() {
+            if (this.highlighted > 0) this.highlighted--;
+        },
+        selectHighlighted() {
+            if (this.results[this.highlighted]) this.select(this.results[this.highlighted]);
+        },
+    };
+}
+
+// ── مكوّن الصفحة الرئيسي ─────────────────────────────────────────────────
 function purchaseOrder() {
-    const products = {!! $productsJson !!};
     const preItems = {!! $fromRequestJson !!};
 
+    // إذا مفعّل من طلب شراء، أضف product_name لكل صنف
+    const initialItems = preItems
+        ? preItems.map(i => {
+            const p = ALL_PRODUCTS.find(p => p.id == i.product_id);
+            return { ...i, product_name: p ? p.name_ar : '' };
+          })
+        : [{ product_id: '', product_name: '', quantity: 1, unit_price: 0, discount: 0, total: 0 }];
+
     return {
-        items: preItems ?? [{ product_id: '', quantity: 1, unit_price: 0, discount: 0, total: 0 }],
-        taxRate: {{ old('tax_rate', 0) }},
+        items:         initialItems,
+        taxRate:       {{ old('tax_rate', 0) }},
         orderDiscount: {{ old('discount', 0) }},
 
         get subtotal() {
@@ -220,7 +363,7 @@ function purchaseOrder() {
         },
 
         addItem() {
-            this.items.push({ product_id: '', quantity: 1, unit_price: 0, discount: 0, total: 0 });
+            this.items.push({ product_id: '', product_name: '', quantity: 1, unit_price: 0, discount: 0, total: 0 });
         },
         removeItem(index) {
             if (this.items.length > 1) this.items.splice(index, 1);
@@ -228,14 +371,6 @@ function purchaseOrder() {
         calcItem(index) {
             const i = this.items[index];
             i.total = (parseFloat(i.quantity) || 0) * (parseFloat(i.unit_price) || 0) - (parseFloat(i.discount) || 0);
-        },
-        onProductChange(index) {
-            const pid = this.items[index].product_id;
-            const product = products.find(p => p.id == pid);
-            if (product) {
-                this.items[index].unit_price = product.purchase_price;
-                this.calcItem(index);
-            }
         },
     };
 }
