@@ -76,7 +76,7 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .pos-grid{flex:1;overflow-y:auto;padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));grid-auto-rows:200px;gap:14px;align-content:start}
 .pos-grid::-webkit-scrollbar{width:4px}
 .pos-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-@keyframes posSpinAnim{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 /* Product Card */
 .product-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-md);cursor:pointer;transition:all .18s cubic-bezier(0.4,0,0.2,1);overflow:hidden;position:relative;user-select:none;box-shadow:0 2px 8px rgba(0,0,0,.25);height:200px;display:flex;flex-direction:column}
@@ -431,16 +431,15 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                 </div>
             </template>
 
-            {{-- ─── Infinite Scroll Loader ─── --}}
-            <template x-if="productsLoadingMore">
-                <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;padding:24px;color:#14b8a6;font-size:13px;">
-                    <svg style="width:22px;height:22px;animation:posSpinAnim 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    جاري تحميل المزيد...
-                </div>
-            </template>
+            {{-- Infinite Scroll: loader --}}
+            <div x-show="productsLoadingMore"
+                 style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;padding:24px;color:#14b8a6;font-size:13px;">
+                <svg style="width:22px;height:22px;animation:pSpin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                جاري تحميل المزيد...
+            </div>
 
         </div>
     </div>
@@ -909,134 +908,6 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     <div id="pos-toast" class="pos-toast"></div>
 
 </div>{{-- end pos-wrapper --}}
-
-{{-- ─── Infinite Scroll Interceptor — يجب أن يكون قبل pos.js ─── --}}
-<script>
-(function () {
-    // ننتظر Alpine يكون موجوداً، ثم نعترض Alpine.data
-    function patchAlpine(Alpine) {
-        const _origData = Alpine.data.bind(Alpine);
-
-        Alpine.data = function (name, factory) {
-            if (name !== 'posApp') return _origData(name, factory);
-
-            // نُسجّل posApp مع infinite scroll مضمّن
-            _origData(name, function () {
-                const original = factory();
-
-                // ── Override loadProducts ──────────────────────────────
-                const _origLoad = original.loadProducts;
-
-                original.hasMoreProducts   = false;
-                original.productsNextPage  = 1;
-                original.productsLoadingMore = false;
-                original._scrollHandler    = null;
-
-                original.loadProducts = async function () {
-                    this.productsLoading    = true;
-                    this.products           = [];
-                    this.hasMoreProducts    = false;
-                    this.productsNextPage   = 1;
-                    this._removeScrollListener();
-
-                    try {
-                        const params = new URLSearchParams({ page: 1 });
-                        if (this.searchQuery) params.set('q', this.searchQuery);
-                        if (this.selectedCat && this.selectedCat !== '')
-                            params.set('category_id', this.selectedCat);
-
-                        const res  = await fetch('/pos/products/search?' + params, {
-                            credentials: 'same-origin',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        });
-                        const data = await res.json();
-
-                        this.products          = data.products  ?? [];
-                        this.hasMoreProducts   = data.hasMore   ?? false;
-                        this.productsNextPage  = data.nextPage  ?? null;
-
-                        await this.$nextTick();
-                        this._initScrollListener();
-
-                    } catch (e) {
-                        this.toast('خطأ في تحميل المنتجات', 'error');
-                    } finally {
-                        this.productsLoading = false;
-                    }
-                };
-
-                // ── Load More ─────────────────────────────────────────
-                original._loadMore = async function () {
-                    if (this.productsLoadingMore || !this.hasMoreProducts || !this.productsNextPage) return;
-                    this.productsLoadingMore = true;
-
-                    try {
-                        const params = new URLSearchParams({ page: this.productsNextPage });
-                        if (this.searchQuery) params.set('q', this.searchQuery);
-                        if (this.selectedCat && this.selectedCat !== '')
-                            params.set('category_id', this.selectedCat);
-
-                        const res  = await fetch('/pos/products/search?' + params, {
-                            credentials: 'same-origin',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        });
-                        const data = await res.json();
-
-                        this.products          = this.products.concat(data.products ?? []);
-                        this.hasMoreProducts   = data.hasMore  ?? false;
-                        this.productsNextPage  = data.nextPage ?? null;
-
-                        if (!this.hasMoreProducts) this._removeScrollListener();
-
-                    } catch (e) {
-                        // صامت
-                    } finally {
-                        this.productsLoadingMore = false;
-                    }
-                };
-
-                // ── Scroll Listener ───────────────────────────────────
-                original._initScrollListener = function () {
-                    if (!this.hasMoreProducts) return;
-                    this._removeScrollListener();
-
-                    const grid = document.querySelector('.pos-grid');
-                    if (!grid) return;
-
-                    this._scrollHandler = () => {
-                        if (this.productsLoadingMore || !this.hasMoreProducts) return;
-                        const bottom = grid.scrollHeight - grid.scrollTop - grid.clientHeight;
-                        if (bottom < 300) this._loadMore();
-                    };
-
-                    grid.addEventListener('scroll', this._scrollHandler, { passive: true });
-                };
-
-                original._removeScrollListener = function () {
-                    const grid = document.querySelector('.pos-grid');
-                    if (grid && this._scrollHandler) {
-                        grid.removeEventListener('scroll', this._scrollHandler);
-                    }
-                    this._scrollHandler = null;
-                };
-
-                return original;
-            });
-        };
-    }
-
-    // Alpine يُسجَّل في window قبل alpine:init
-    document.addEventListener('alpine:init', function () {
-        if (window.Alpine) patchAlpine(window.Alpine);
-    }, { once: true, capture: true }); // capture:true يضمن التنفيذ أولاً
-})();
-</script>
 
 <script src="{{ asset('js/pos.js') }}"></script>
 
