@@ -643,12 +643,10 @@
                         </td>
                     </tr>
                     @endforelse
+                    <tr id="infinite-scroll-sentinel" style="height:1px;border:none;background:transparent;"><td colspan="8" style="padding:0;border:none;"></td></tr>
                 </tbody>
             </table>
         </div>
-
-        {{-- ─── Infinite Scroll ──────────────────────────────────────── --}}
-        <div id="infinite-scroll-sentinel"></div>
 
         <div id="infinite-scroll-loader">
             <svg class="spin" style="width:20px;height:20px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -739,7 +737,7 @@ function confirmDelete(form) {
             var temp = document.createElement('tbody');
             temp.innerHTML = data.html;
             while (temp.firstChild) {
-                tbody.insertBefore(temp.firstChild, sentinel);
+                sentinel.parentNode.insertBefore(temp.firstChild, sentinel);
             }
 
             // حدّث العداد
