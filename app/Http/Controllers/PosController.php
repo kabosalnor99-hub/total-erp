@@ -39,6 +39,8 @@ class PosController extends Controller
     {
         $q          = $request->get('q', '');
         $categoryId = $request->get('category_id');
+        $page       = max(1, (int) $request->get('page', 1));
+        $perPage    = 24; // عدد البطاقات في كل صفحة (3-4 صفوف)
 
         $query = Product::query()->where('is_active', true);
 
@@ -57,31 +59,34 @@ class PosController extends Controller
 
         $currentRate = ExchangeRate::currentRate();
 
-        $products = $query->with('category')
+        $paginated = $query->with('category')
             ->orderByRaw('quantity > 0 DESC')
             ->orderBy('name_ar')
-            ->limit(60)
-            ->get()
-            ->map(fn($p) => [
-                'id'           => $p->id,
-                'name'         => $p->name_ar,
-                'sku'          => $p->sku ?? '',
-                'barcode'      => $p->barcode ?? '',
-                'price_usd'    => (float) $p->price_usd,           // السعر بالدولار
-                'sale_price'   => $p->sale_price_sdg,              // السعر بالجنيه (للكاشير)
-                'quantity'     => (int) $p->quantity,
-                'image_url'    => $p->image_url,
-                'category'     => $p->category?->name_ar ?? '',
-                'stock_status' => $p->quantity <= 0 ? 'out_of_stock' : ($p->quantity <= ($p->reorder_point ?: 5) ? 'low' : 'ok'),
-                'description'  => $p->description ?? '',
-                'cost_price'   => (float) $p->purchase_price_usd,
-                'unit'         => $p->unit ?? '',
-                'exchange_rate'=> $currentRate,
-            ]);
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        $products = $paginated->getCollection()->map(fn($p) => [
+            'id'           => $p->id,
+            'name'         => $p->name_ar,
+            'sku'          => $p->sku ?? '',
+            'barcode'      => $p->barcode ?? '',
+            'price_usd'    => (float) $p->price_usd,
+            'sale_price'   => $p->sale_price_sdg,
+            'quantity'     => (int) $p->quantity,
+            'image_url'    => $p->image_url,
+            'category'     => $p->category?->name_ar ?? '',
+            'stock_status' => $p->quantity <= 0 ? 'out_of_stock' : ($p->quantity <= ($p->reorder_point ?: 5) ? 'low' : 'ok'),
+            'description'  => $p->description ?? '',
+            'cost_price'   => (float) $p->purchase_price_usd,
+            'unit'         => $p->unit ?? '',
+            'exchange_rate'=> $currentRate,
+        ]);
 
         return response()->json([
             'products'      => $products,
             'count'         => $products->count(),
+            'hasMore'       => $paginated->hasMorePages(),
+            'nextPage'      => $paginated->hasMorePages() ? $page + 1 : null,
+            'total'         => $paginated->total(),
             'exchange_rate' => $currentRate,
         ]);
     }
