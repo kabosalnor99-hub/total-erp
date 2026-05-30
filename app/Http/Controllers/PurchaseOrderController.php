@@ -40,10 +40,12 @@ class PurchaseOrderController extends Controller
         $products         = Product::active()->orderBy('name_ar')->get();
         $purchaseRequests = PurchaseRequest::where('status', 'approved')->latest()->get();
 
-        // تجهيز بيانات المنتجات كـ JSON جاهز للـ View
+        // تجهيز بيانات المنتجات كـ JSON جاهز للبحث الحي في الـ View
         $productsJson = $products->map(fn($p) => [
-            'id'             => $p->id,
-            'purchase_price' => $p->purchase_price,
+            'id'                => $p->id,
+            'name_ar'           => $p->name_ar,
+            'sku'               => $p->sku,
+            'purchase_price_usd'=> (float) $p->purchase_price_usd,
         ])->values()->toJson();
 
         // تحميل بنود طلب الشراء إذا مرر
@@ -138,14 +140,7 @@ class PurchaseOrderController extends Controller
         $purchaseOrder->load(['supplier', 'items.product', 'user']);
 
         $pdf = Pdf::loadView('pdf.purchase_order', compact('purchaseOrder'))
-            ->setPaper('a4', 'portrait')
-            ->setOptions([
-                'isRemoteEnabled'         => true,
-                'isHtml5ParserEnabled'    => true,
-                'isFontSubsettingEnabled' => true,
-                'defaultMediaType'        => 'print',
-                'defaultFont'             => 'cairo',
-            ]);
+            ->setPaper('a4', 'portrait');
 
         return $pdf->download("purchase-order-{$purchaseOrder->order_number}.pdf");
     }
