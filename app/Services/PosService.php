@@ -129,6 +129,9 @@ class PosService
                     $creditAmount = $total - $cashAmount;
                     $changeAmount = max(0, $cashReceived - $cashAmount);
                     break;
+                case 'bank_transfer':
+                    $cashAmount = $total; // المبلغ مستلم كاملاً عبر التحويل
+                    break;
             }
 
             // ── 3. إنشاء معاملة POS ──────────────────────────────────
@@ -150,6 +153,8 @@ class PosService
                 'change_amount'    => $changeAmount,
                 'status'           => 'completed',
                 'notes'            => $payData['notes'] ?? null,
+                'bank_ref_number'  => $payData['bank_ref_number'] ?? null,
+                'bank_name'        => $payData['bank_name'] ?? null,
             ]);
 
             // ── 4. إضافة بنود المعاملة وخصم المخزون ──────────────────
@@ -185,17 +190,23 @@ class PosService
 
             // ── 5. إنشاء فاتورة في وحدة المبيعات ────────────────────
             $invoiceStatus = match ($paymentType) {
-                'cash'   => 'paid',
-                'credit' => 'confirmed',
-                'split'  => $creditAmount > 0 ? 'partial' : 'paid',
-                default  => 'paid',
+                'cash'          => 'paid',
+                'credit'        => 'confirmed',
+                'split'         => $creditAmount > 0 ? 'partial' : 'paid',
+                'bank_transfer' => 'paid',
+                default         => 'paid',
             };
 
             $invoice = Invoice::create([
                 'invoice_number'   => Invoice::generateNumber(),
                 'customer_id'      => $customerId,
                 'user_id'          => auth()->id(),
-                'type'             => $paymentType === 'credit' ? 'credit' : ($paymentType === 'split' ? 'partial' : 'cash'),
+                'type'             => match($paymentType) {
+                    'credit'        => 'credit',
+                    'split'         => 'partial',
+                    'bank_transfer' => 'bank_transfer',
+                    default         => 'cash',
+                },
                 'status'           => $invoiceStatus,
                 'subtotal'         => $subtotal,
                 'discount_amount'  => $totalDiscount,
@@ -225,17 +236,22 @@ class PosService
                 ]);
             }
 
-            // تسجيل الدفعة النقدية في وحدة المدفوعات
+            // تسجيل الدفعة في وحدة المدفوعات
             if ($cashAmount > 0) {
+                $paymentMethod = $paymentType === 'bank_transfer' ? 'bank_transfer' : 'cash';
+                $paymentNotes  = $paymentType === 'bank_transfer'
+                    ? "تحويل بنكي — مرجع: {$payData['bank_ref_number']} — إيصال: {$transaction->receipt_number}"
+                    : "دفع POS — إيصال: {$transaction->receipt_number}";
+
                 Payment::create([
                     'payment_number' => Payment::generateNumber(),
                     'invoice_id'     => $invoice->id,
                     'customer_id'    => $customerId,
                     'user_id'        => auth()->id(),
                     'amount'         => $cashAmount,
-                    'method'         => 'cash',
+                    'method'         => $paymentMethod,
                     'payment_date'   => now(),
-                    'notes'          => "دفع POS — إيصال: {$transaction->receipt_number}",
+                    'notes'          => $paymentNotes,
                 ]);
             }
 
