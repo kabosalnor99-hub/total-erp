@@ -96,7 +96,7 @@
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" style="overflow: visible;">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 text-gray-500 text-xs border-b">
                         <tr>
@@ -113,7 +113,7 @@
                             <tr class="border-b">
 
                                 {{-- ── خلية البحث عن المنتج ── --}}
-                                <td class="px-3 py-2">
+                                <td class="px-3 py-2" style="overflow: visible; position: relative;">
 
                                     {{-- الحقل المخفي الذي يُرسل مع الفورم --}}
                                     <input type="hidden" :name="`items[${index}][product_id]`" :value="item.product_id">
@@ -126,7 +126,7 @@
                                                 type="text"
                                                 x-model="query"
                                                 @input.debounce.200ms="search()"
-                                                @focus="search()"
+                                                @focus="onFocus()"
                                                 @keydown.arrow-down.prevent="moveDown()"
                                                 @keydown.arrow-up.prevent="moveUp()"
                                                 @keydown.enter.prevent="selectHighlighted()"
@@ -159,8 +159,8 @@
                                             x-transition:enter="transition ease-out duration-100"
                                             x-transition:enter-start="opacity-0 -translate-y-1"
                                             x-transition:enter-end="opacity-100 translate-y-0"
-                                            class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto"
-                                            style="min-width: 260px"
+                                            class="bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto"
+                                            :style="dropdownStyle"
                                         >
                                             <template x-for="(result, i) in results" :key="result.id">
                                                 <div
@@ -181,7 +181,8 @@
                                         {{-- لا نتائج --}}
                                         <div
                                             x-show="open && results.length === 0 && query.length > 1"
-                                            class="absolute z-50 mt-1 w-full bg-white border border-gray-100 rounded-xl shadow-lg px-4 py-3 text-sm text-gray-400"
+                                            class="bg-white border border-gray-100 rounded-xl shadow-lg px-4 py-3 text-sm text-gray-400"
+                                            :style="dropdownStyle"
                                         >
                                             لا توجد نتائج
                                         </div>
@@ -274,10 +275,25 @@ function productSearch(rowIndex) {
         results:     [],
         open:        false,
         highlighted: 0,
+        dropdownStyle: '',
 
         // مرجع للـ item في الـ purchaseOrder parent
         get item() {
             return this.$root.__x.$data.items[rowIndex];
+        },
+
+        // حساب موضع الـ dropdown بـ fixed positioning لتجاوز overflow
+        updateDropdownPosition() {
+            const input = this.$el.querySelector('input[type="text"]');
+            if (!input) return;
+            const rect = input.getBoundingClientRect();
+            this.dropdownStyle = [
+                'position: fixed',
+                `top: ${rect.bottom + 4}px`,
+                `right: ${window.innerWidth - rect.right}px`,
+                `width: ${rect.width}px`,
+                'z-index: 9999',
+            ].join('; ');
         },
 
         search() {
@@ -293,6 +309,12 @@ function productSearch(rowIndex) {
             ).slice(0, 10);
             this.highlighted = 0;
             this.open        = this.results.length > 0 || q.length > 1;
+            if (this.open) this.$nextTick(() => this.updateDropdownPosition());
+        },
+
+        onFocus() {
+            this.search();
+            this.$nextTick(() => this.updateDropdownPosition());
         },
 
         select(product) {
