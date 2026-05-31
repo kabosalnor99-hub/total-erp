@@ -87,6 +87,11 @@ RUN mkdir -p /var/lib/nginx/tmp/fastcgi \
     && chown -R www-data:www-data /var/lib/nginx \
     && chmod -R 755 /var/lib/nginx
 
+# Create mPDF temp directory
+RUN mkdir -p /var/www/html/storage/app/mpdf_tmp \
+    && chown -R www-data:www-data /var/www/html/storage/app/mpdf_tmp \
+    && chmod -R 775 /var/www/html/storage/app/mpdf_tmp
+
 # Run composer post-install scripts
 RUN composer dump-autoload --optimize
 
