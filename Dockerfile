@@ -60,8 +60,8 @@ WORKDIR /var/www/html
 # Copy composer files first (for layer caching)
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies — update to pick up new packages not in lock file
-RUN composer update --no-dev --no-interaction --optimize-autoloader --no-scripts
+# Install PHP dependencies (no dev)
+RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
 
 # Copy application source
 COPY . .
@@ -87,58 +87,8 @@ RUN mkdir -p /var/lib/nginx/tmp/fastcgi \
     && chown -R www-data:www-data /var/lib/nginx \
     && chmod -R 755 /var/lib/nginx
 
-# Create mPDF temp directory
-RUN mkdir -p /var/www/html/storage/app/mpdf_tmp \
-    && chown -R www-data:www-data /var/www/html/storage/app/mpdf_tmp \
-    && chmod -R 775 /var/www/html/storage/app/mpdf_tmp
-
 # Run composer post-install scripts
 RUN composer dump-autoload --optimize
-
-# ── تثبيت خط Noto Naskh Arabic لـ DomPDF ──────────────────────────────────
-# 1. أنشئ مجلد الخطوط
-RUN mkdir -p /var/www/html/storage/fonts
-
-# 2. حمّل ملفات TTF
-RUN curl -fsSL \
-    "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf" \
-    -o /var/www/html/storage/fonts/NotoNaskhArabic-Regular.ttf \
- && curl -fsSL \
-    "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Bold.ttf" \
-    -o /var/www/html/storage/fonts/NotoNaskhArabic-Bold.ttf
-
-# 3. سجّل الخط في DomPDF عبر سكريبت PHP مباشر
-RUN php -r "
-    define('DOMPDF_AUTOLOAD', false);
-    require_once '/var/www/html/vendor/autoload.php';
-
-    \$fontDir   = '/var/www/html/storage/fonts';
-    \$cacheFile = \$fontDir . '/dompdf_font_family_cache.php';
-
-    // اقرأ الـ cache الحالي إن وُجد
-    \$cache = [];
-    if (file_exists(\$cacheFile)) {
-        \$cache = include \$cacheFile;
-        if (!is_array(\$cache)) \$cache = [];
-    }
-
-    // سجّل الخط
-    \$cache['noto naskh arabic'] = [
-        'normal'      => \$fontDir . '/NotoNaskhArabic-Regular.ttf',
-        'bold'        => \$fontDir . '/NotoNaskhArabic-Bold.ttf',
-        'italic'      => \$fontDir . '/NotoNaskhArabic-Regular.ttf',
-        'bold_italic' => \$fontDir . '/NotoNaskhArabic-Bold.ttf',
-    ];
-
-    // اكتب الـ cache
-    file_put_contents(\$cacheFile, '<?php return ' . var_export(\$cache, true) . ';');
-    echo 'Font registered: noto naskh arabic' . PHP_EOL;
-"
-
-# 4. صلاحيات
-RUN chown -R www-data:www-data /var/www/html/storage/fonts \
- && chmod -R 755 /var/www/html/storage/fonts
-# ───────────────────────────────────────────────────────────────────────────
 
 EXPOSE 8080
 
