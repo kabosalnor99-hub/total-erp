@@ -134,7 +134,13 @@ class InvoiceController extends Controller
 
         $pdf = Pdf::loadView('pdf.invoice', compact('invoice', 'settings'))
             ->setPaper('a4')
-            ->setOption(['defaultFont' => 'DejaVu Sans']);
+            ->setOptions([
+                'defaultFont'             => 'noto naskh arabic',
+                'isHtml5ParserEnabled'    => true,
+                'isRemoteEnabled'         => true,
+                'isFontSubsettingEnabled' => true,
+                'dpi'                     => 110,
+            ]);
 
         return $pdf->download("invoice-{$invoice->invoice_number}.pdf");
     }
