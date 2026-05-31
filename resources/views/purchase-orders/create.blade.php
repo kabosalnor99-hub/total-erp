@@ -262,6 +262,116 @@
         </div>
 
     </form>
+
+    {{-- ══ Multi-Select Modal ══ --}}
+    <div
+        x-show="showMultiModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);"
+        @keydown.escape.window="showMultiModal = false"
+    >
+        <div
+            x-show="showMultiModal"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            @click.stop
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col"
+            style="max-height: 85vh;"
+        >
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">تحديد منتجات متعددة</h3>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        تم تحديد <span class="font-semibold text-teal-600" x-text="multiSelectedCount"></span> منتج
+                    </p>
+                </div>
+                <button type="button" @click="showMultiModal = false" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Search --}}
+            <div class="px-6 py-3 border-b">
+                <div class="relative">
+                    <input
+                        type="text"
+                        x-model="multiSearch"
+                        placeholder="ابحث بالاسم أو الكود..."
+                        class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm pr-10 focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        autocomplete="off"
+                    >
+                    <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"/>
+                    </svg>
+                </div>
+            </div>
+
+            {{-- Products List --}}
+            <div class="overflow-y-auto flex-1 px-3 py-2">
+                <template x-for="product in multiResults" :key="product.id">
+                    <div
+                        @click="toggleMulti(product.id)"
+                        :class="multiSelected[product.id] ? 'bg-teal-50 border-teal-300' : 'border-transparent hover:bg-gray-50'"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer border transition mb-1"
+                    >
+                        {{-- Checkbox --}}
+                        <div
+                            :class="multiSelected[product.id] ? 'bg-teal-600 border-teal-600' : 'border-gray-300 bg-white'"
+                            class="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition"
+                        >
+                            <svg x-show="multiSelected[product.id]" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        {{-- Info --}}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-800 truncate" x-text="product.name_ar"></p>
+                            <p class="text-xs text-gray-400" x-text="product.sku"></p>
+                        </div>
+                        {{-- Price --}}
+                        <span class="text-sm font-semibold text-teal-700 whitespace-nowrap" x-text="parseFloat(product.purchase_price_usd || 0).toFixed(2) + ' $'"></span>
+                    </div>
+                </template>
+                <p x-show="multiResults.length === 0" class="text-center text-gray-400 text-sm py-8">لا توجد نتائج</p>
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 py-4 border-t flex items-center justify-between gap-3">
+                <button
+                    type="button"
+                    @click="multiSelected = {}"
+                    class="text-sm text-gray-500 hover:text-gray-700 transition"
+                    x-show="multiSelectedCount > 0"
+                >
+                    إلغاء التحديد
+                </button>
+                <div class="flex gap-3 mr-auto">
+                    <button type="button" @click="showMultiModal = false"
+                            class="border border-gray-200 text-gray-600 hover:bg-gray-50 px-5 py-2 rounded-lg text-sm font-medium transition">
+                        إلغاء
+                    </button>
+                    <button
+                        type="button"
+                        @click="confirmMultiSelect()"
+                        :disabled="multiSelectedCount === 0"
+                        :class="multiSelectedCount > 0 ? 'bg-teal-600 hover:bg-teal-700 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
+                        class="px-5 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2"
+                    >
+                        <span>إضافة</span>
+                        <span x-show="multiSelectedCount > 0" class="bg-white/20 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold" x-text="multiSelectedCount"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -271,18 +381,36 @@ const ALL_PRODUCTS = {!! $productsJson !!};
 // ── مكوّن البحث الحي — يُنشأ لكل صف ─────────────────────────────────────
 function productSearch(rowIndex) {
     return {
-        query:       '',
-        results:     [],
-        open:        false,
-        highlighted: 0,
+        query:         '',
+        results:       [],
+        open:          false,
+        highlighted:   0,
         dropdownStyle: '',
 
-        // مرجع للـ item في الـ purchaseOrder parent
-        get item() {
-            return this.$root.__x.$data.items[rowIndex];
+        // الوصول الصحيح للـ parent في Alpine v3
+        getParent() {
+            let el = this.$el;
+            while (el) {
+                if (el.__x && el.__x.$data && el.__x.$data.items) return el.__x.$data;
+                if (el._x_dataStack) {
+                    for (const d of el._x_dataStack) {
+                        if (d.items) return d;
+                    }
+                }
+                el = el.parentElement;
+            }
+            // fallback: بحث في الـ root
+            const root = document.querySelector('[x-data="purchaseOrder()"]') ||
+                         document.querySelector('[x-data]');
+            return root && root._x_dataStack ?
+                root._x_dataStack.find(d => d.items) : null;
         },
 
-        // حساب موضع الـ dropdown بـ fixed positioning لتجاوز overflow
+        get item() {
+            const parent = this.getParent();
+            return parent ? parent.items[rowIndex] : null;
+        },
+
         updateDropdownPosition() {
             const input = this.$el.querySelector('input[type="text"]');
             if (!input) return;
@@ -291,8 +419,14 @@ function productSearch(rowIndex) {
                 'position: fixed',
                 `top: ${rect.bottom + 4}px`,
                 `right: ${window.innerWidth - rect.right}px`,
-                `width: ${rect.width}px`,
+                `width: ${Math.max(rect.width, 280)}px`,
                 'z-index: 9999',
+                'max-height: 260px',
+                'overflow-y: auto',
+                'background: white',
+                'border: 1px solid #e5e7eb',
+                'border-radius: 12px',
+                'box-shadow: 0 10px 40px rgba(0,0,0,0.12)',
             ].join('; ');
         },
 
@@ -304,34 +438,42 @@ function productSearch(rowIndex) {
                 return;
             }
             this.results = ALL_PRODUCTS.filter(p =>
-                p.name_ar.toLowerCase().includes(q) ||
-                p.sku.toLowerCase().includes(q)
-            ).slice(0, 10);
+                (p.name_ar || '').toLowerCase().includes(q) ||
+                (p.sku     || '').toLowerCase().includes(q)
+            ).slice(0, 15);
             this.highlighted = 0;
-            this.open        = this.results.length > 0 || q.length > 1;
-            if (this.open) this.$nextTick(() => this.updateDropdownPosition());
-        },
-
-        onFocus() {
-            this.search();
+            this.open        = true;
             this.$nextTick(() => this.updateDropdownPosition());
         },
 
+        onFocus() {
+            if (this.query.length > 0) {
+                this.search();
+            } else {
+                // عرض أول 15 منتج عند التركيز
+                this.results = ALL_PRODUCTS.slice(0, 15);
+                this.open    = true;
+                this.$nextTick(() => this.updateDropdownPosition());
+            }
+        },
+
         select(product) {
-            const item        = this.item;
+            const item = this.item;
+            if (!item) return;
             item.product_id   = product.id;
             item.product_name = product.name_ar;
             item.unit_price   = product.purchase_price_usd;
             this.query        = product.name_ar;
             this.open         = false;
             this.highlighted  = 0;
-
-            // إعادة حساب الإجمالي
-            item.total = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0) - (parseFloat(item.discount) || 0);
+            item.total = (parseFloat(item.quantity) || 0) *
+                         (parseFloat(item.unit_price) || 0) -
+                         (parseFloat(item.discount)   || 0);
         },
 
         clear() {
-            const item        = this.item;
+            const item = this.item;
+            if (!item) return;
             item.product_id   = '';
             item.product_name = '';
             item.unit_price   = 0;
@@ -341,16 +483,9 @@ function productSearch(rowIndex) {
             this.open         = false;
         },
 
-        close() {
-            this.open = false;
-        },
-
-        moveDown() {
-            if (this.highlighted < this.results.length - 1) this.highlighted++;
-        },
-        moveUp() {
-            if (this.highlighted > 0) this.highlighted--;
-        },
+        close()  { this.open = false; },
+        moveDown() { if (this.highlighted < this.results.length - 1) this.highlighted++; },
+        moveUp()   { if (this.highlighted > 0) this.highlighted--; },
         selectHighlighted() {
             if (this.results[this.highlighted]) this.select(this.results[this.highlighted]);
         },
@@ -361,7 +496,6 @@ function productSearch(rowIndex) {
 function purchaseOrder() {
     const preItems = {!! $fromRequestJson !!};
 
-    // إذا مفعّل من طلب شراء، أضف product_name لكل صنف
     const initialItems = preItems
         ? preItems.map(i => {
             const p = ALL_PRODUCTS.find(p => p.id == i.product_id);
@@ -373,6 +507,67 @@ function purchaseOrder() {
         items:         initialItems,
         taxRate:       {{ old('tax_rate', 0) }},
         orderDiscount: {{ old('discount', 0) }},
+
+        // ── Multi-select modal ──────────────────────────────
+        showMultiModal:  false,
+        multiSearch:     '',
+        multiSelected:   {},   // { id: true/false }
+
+        get multiResults() {
+            const q = this.multiSearch.trim().toLowerCase();
+            if (!q) return ALL_PRODUCTS.slice(0, 50);
+            return ALL_PRODUCTS.filter(p =>
+                (p.name_ar || '').toLowerCase().includes(q) ||
+                (p.sku     || '').toLowerCase().includes(q)
+            ).slice(0, 50);
+        },
+
+        get multiSelectedCount() {
+            return Object.values(this.multiSelected).filter(Boolean).length;
+        },
+
+        toggleMulti(id) {
+            this.multiSelected[id] = !this.multiSelected[id];
+        },
+
+        openMultiModal() {
+            this.multiSelected = {};
+            // pre-check المنتجات الموجودة مسبقاً
+            this.items.forEach(i => { if (i.product_id) this.multiSelected[i.product_id] = true; });
+            this.multiSearch   = '';
+            this.showMultiModal = true;
+        },
+
+        confirmMultiSelect() {
+            const selectedIds = Object.keys(this.multiSelected).filter(id => this.multiSelected[id]);
+            if (selectedIds.length === 0) { this.showMultiModal = false; return; }
+
+            // احتفظ بالصفوف الموجودة اللي اتاختارت
+            const kept = this.items.filter(i => i.product_id && this.multiSelected[i.product_id]);
+
+            // أضف المنتجات الجديدة
+            const existingIds = new Set(kept.map(i => String(i.product_id)));
+            selectedIds.forEach(id => {
+                if (!existingIds.has(String(id))) {
+                    const p = ALL_PRODUCTS.find(p => String(p.id) === String(id));
+                    if (p) kept.push({
+                        product_id:   p.id,
+                        product_name: p.name_ar,
+                        unit_price:   p.purchase_price_usd,
+                        quantity:     1,
+                        discount:     0,
+                        total:        parseFloat(p.purchase_price_usd) || 0,
+                    });
+                }
+            });
+
+            // لو ما في منتجات مختارة، أضف صف فارغ
+            this.items = kept.length > 0 ? kept :
+                [{ product_id: '', product_name: '', quantity: 1, unit_price: 0, discount: 0, total: 0 }];
+
+            this.showMultiModal = false;
+        },
+        // ───────────────────────────────────────────────────
 
         get subtotal() {
             return this.items.reduce((s, i) => s + parseFloat(i.total || 0), 0);
