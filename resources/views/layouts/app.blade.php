@@ -69,13 +69,16 @@
         x-cloak
     >
         {{-- Logo --}}
-        <div class="flex items-center gap-3 px-4 py-5 border-b border-white/20">
-            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                <span class="text-primary font-bold text-lg">T</span>
+        <div class="border-b border-white/20 flex-shrink-0">
+            {{-- Expanded: full logo --}}
+            <div x-show="sidebarOpen" x-transition class="px-3 py-3">
+                <img src="{{ asset('logo.svg') }}" alt="شعار النظام"
+                     class="w-full h-auto max-h-20 object-contain">
             </div>
-            <div x-show="sidebarOpen" x-transition class="leading-tight">
-                <p class="font-bold text-sm">توتال الكلاكلة</p>
-                <p class="text-xs text-white/70">{{ __('common.erp_system') }}</p>
+            {{-- Collapsed: small icon --}}
+            <div x-show="!sidebarOpen" class="flex items-center justify-center py-4">
+                <img src="{{ asset('logo.svg') }}" alt="شعار النظام"
+                     class="w-10 h-10 object-contain">
             </div>
         </div>
 
