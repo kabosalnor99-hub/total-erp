@@ -58,7 +58,14 @@
 
             {{-- كلمة المرور --}}
             <div x-data="{ show: false }">
-                <label class="block text-sm font-medium text-gray-700 mb-1.5">كلمة المرور <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                    كلمة المرور
+                    @if(auth()->user()->hasRole('admin'))
+                        <span class="text-gray-400 text-xs font-normal">(اختيارية)</span>
+                    @else
+                        <span class="text-red-500">*</span>
+                    @endif
+                </label>
                 <div class="relative">
                     <input :type="show ? 'text' : 'password'" name="password"
                         class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary @error('password') border-red-400 @enderror">
@@ -66,12 +73,22 @@
                         <i :class="show ? 'fa-eye-slash' : 'fa-eye'" class="fa text-xs"></i>
                     </button>
                 </div>
+                @if(auth()->user()->hasRole('admin'))
+                    <p class="text-gray-400 text-xs mt-1">إذا تركتها فارغة، لن يتمكن المستخدم من تسجيل الدخول حتى يتم تعيين كلمة مرور له لاحقاً.</p>
+                @endif
                 @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
             {{-- تأكيد كلمة المرور --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1.5">تأكيد كلمة المرور <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                    تأكيد كلمة المرور
+                    @if(auth()->user()->hasRole('admin'))
+                        <span class="text-gray-400 text-xs font-normal">(اختيارية)</span>
+                    @else
+                        <span class="text-red-500">*</span>
+                    @endif
+                </label>
                 <input type="password" name="password_confirmation"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
