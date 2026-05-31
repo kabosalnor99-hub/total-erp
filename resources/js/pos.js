@@ -47,6 +47,8 @@ document.addEventListener('alpine:init', () => {
         paymentType:    'cash',
         cashReceived:   '',
         cashPartial:    '',
+        bankRefNumber:  '',
+        bankName:       '',
         customerSearch: '',
         customerResults:[],
         customerLoading:false,
@@ -477,6 +479,8 @@ document.addEventListener('alpine:init', () => {
             }
             this.cashReceived       = this.grandTotal;
             this.cashPartial        = '';
+            this.bankRefNumber      = '';
+            this.bankName           = '';
             this.paymentType        = 'cash';
             this.showPaymentModal   = true;
         },
@@ -492,6 +496,12 @@ document.addEventListener('alpine:init', () => {
                     this.toast('المبلغ المستلم أقل من الإجمالي', 'error');
                     return;
                 }
+            }
+
+            // تحقق تحويل بنكي
+            if (this.paymentType === 'bank_transfer' && !this.bankRefNumber.trim()) {
+                this.toast('رقم مرجع التحويل مطلوب', 'error');
+                return;
             }
 
             // تحقق آجل بدون عميل
@@ -515,6 +525,8 @@ document.addEventListener('alpine:init', () => {
                     payment_type:     this.paymentType,
                     cash_received:    parseFloat(this.cashReceived) || 0,
                     cash_amount:      parseFloat(this.cashPartial)  || 0,
+                    bank_ref_number:  this.bankRefNumber,
+                    bank_name:        this.bankName,
                     discount_percent: parseFloat(this.discountPercent) || 0,
                     tax_percent:      parseFloat(this.taxPercent) || 0,
                     notes:            this.notes,
