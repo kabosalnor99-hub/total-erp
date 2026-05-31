@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -98,13 +99,10 @@ class Product extends Model
 
     public function getImageUrlAttribute(): string
     {
-        if ($this->image) {
-            $imagePath = public_path($this->image);
-            if (file_exists($imagePath)) {
-                return asset($this->image);
-            }
+        if ($this->image && Storage::disk('public')->exists($this->image)) {
+            return Storage::disk('public')->url($this->image);
         }
-        return "https://via.placeholder.com/200x200/f3f4f6/6b7280?text=" . urlencode($this->name_ar);
+        return asset('images/no-product.png');
     }
 
     public function getStockStatusAttribute(): string
