@@ -1,6 +1,6 @@
 {{-- المسار الكامل: resources/views/pdf/purchase_order.blade.php --}}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>أمر الشراء {{ $purchaseOrder->order_number }}</title>
@@ -16,214 +16,111 @@
             background: #fff;
         }
 
-        .page {
-            width: 100%;
-            padding: 30px;
-        }
+        .page { width: 100%; padding: 30px; }
 
-        /* ─── clearfix ─── */
-        .clearfix::after { content: ''; display: table; clear: both; }
-
-        /* ─── Header: شركة يمين، معلومات المستند يسار ─── */
+        /* ─── Header ─── */
         .header {
             width: 100%;
             border-bottom: 3px solid #00838F;
             padding-bottom: 20px;
             margin-bottom: 24px;
         }
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .header-table { width: 100%; border-collapse: collapse; }
         .header-table td { vertical-align: top; }
-        .header-right { width: 55%; }
-        .header-left  { width: 45%; text-align: left; }
+        /* في RTL: الخلية الأولى (يمين) = معلومات الشركة، الثانية (يسار) = معلومات المستند */
+        .col-company  { width: 55%; text-align: right; }
+        .col-docinfo  { width: 45%; text-align: left; direction: ltr; }
 
         .company-info h1 {
-            font-size: 22px;
-            font-weight: bold;
-            color: #00838F;
-            margin-bottom: 4px;
+            font-size: 22px; font-weight: bold;
+            color: #00838F; margin-bottom: 4px;
         }
-        .company-info p {
-            font-size: 10px;
-            color: #6B8C94;
-            line-height: 1.6;
-        }
+        .company-info p { font-size: 10px; color: #6B8C94; line-height: 1.6; }
 
-        .doc-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #005F6B;
-            margin-bottom: 8px;
-        }
-        .doc-info-table td {
-            font-size: 10px;
-            padding: 2px 6px;
-            color: #6B8C94;
-        }
-        .doc-info-table td:last-child {
-            font-weight: bold;
-            color: #1A2E35;
-        }
+        .doc-title { font-size: 18px; font-weight: bold; color: #005F6B; margin-bottom: 8px; text-align: right; }
+        .doc-info-table { width: 100%; border-collapse: collapse; direction: rtl; }
+        .doc-info-table td { font-size: 10px; padding: 2px 4px; color: #6B8C94; text-align: right; }
+        .doc-info-table td.val { font-weight: bold; color: #1A2E35; text-align: left; direction: ltr; }
 
-        /* ─── Parties: صندوقان جنباً إلى جنب ─── */
+        /* ─── Parties ─── */
         .parties-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 10px 0;
-            margin-bottom: 24px;
+            width: 100%; border-collapse: separate;
+            border-spacing: 10px 0; margin-bottom: 24px;
         }
         .party-box {
-            width: 50%;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 14px;
-            background: #F4F7F8;
-            vertical-align: top;
+            width: 50%; border: 1px solid #e5e7eb;
+            border-radius: 6px; padding: 14px;
+            background: #F4F7F8; vertical-align: top;
+            text-align: right;
         }
         .party-box h3 {
-            font-size: 10px;
-            font-weight: bold;
-            color: #00838F;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #d1fae5;
-            padding-bottom: 4px;
+            font-size: 10px; font-weight: bold; color: #00838F;
+            letter-spacing: 0.05em; margin-bottom: 8px;
+            border-bottom: 1px solid #d1fae5; padding-bottom: 4px;
         }
-        .party-box p {
-            font-size: 11px;
-            color: #374151;
-            line-height: 1.7;
-        }
-        .party-box .name {
-            font-size: 13px;
-            font-weight: bold;
-            color: #1A2E35;
-            margin-bottom: 2px;
-        }
-
-        /* ─── Status Badge ─── */
-        .status-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-        .status-draft    { background: #f3f4f6; color: #4b5563; }
-        .status-sent     { background: #dbeafe; color: #1d4ed8; }
-        .status-partial  { background: #fef3c7; color: #92400e; }
-        .status-received { background: #d1fae5; color: #065f46; }
-        .status-cancelled{ background: #fee2e2; color: #991b1b; }
+        .party-box p   { font-size: 11px; color: #374151; line-height: 1.7; }
+        .party-box .name { font-size: 13px; font-weight: bold; color: #1A2E35; margin-bottom: 2px; }
 
         /* ─── Items Table ─── */
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 24px;
-        }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
         .items-table thead tr { background: #00838F; color: white; }
         .items-table thead th {
-            padding: 10px 12px;
+            padding: 10px 12px; font-size: 10px; font-weight: bold;
             text-align: right;
-            font-size: 10px;
-            font-weight: bold;
         }
-        .items-table thead th:last-child { text-align: left; }
+        .items-table thead th.num { text-align: center; }
+        .items-table thead th.money { text-align: left; direction: ltr; }
         .items-table tbody tr:nth-child(even) { background: #f8fafb; }
         .items-table tbody td {
-            padding: 10px 12px;
-            font-size: 11px;
-            border-bottom: 1px solid #f0f4f5;
-            vertical-align: top;
+            padding: 10px 12px; font-size: 11px;
+            border-bottom: 1px solid #f0f4f5; vertical-align: top;
+            text-align: right;
         }
-        .items-table tbody td:last-child { text-align: left; }
-
+        .items-table tbody td.num   { text-align: center; }
+        .items-table tbody td.money { text-align: left; direction: ltr; font-weight: bold; }
         .product-sku {
-            font-size: 9px;
-            color: #9ca3af;
-            font-family: monospace;
-            display: block;
-            margin-top: 2px;
+            font-size: 9px; color: #9ca3af;
+            font-family: monospace; display: block; margin-top: 2px;
+            direction: ltr; text-align: left;
         }
 
-        /* ─── Totals: محاذاة يسار باستخدام جدول ─── */
-        .totals-wrapper {
-            width: 100%;
-            margin-bottom: 24px;
-        }
-        .totals-outer {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .totals-outer td.spacer { width: 60%; }
-        .totals-outer td.totals-cell { width: 40%; vertical-align: top; }
+        /* ─── Totals ─── */
+        .totals-outer { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        .totals-outer td.spacer       { width: 55%; }
+        .totals-outer td.totals-cell  { width: 45%; vertical-align: top; }
 
-        .totals-box {
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            overflow: hidden;
-            width: 100%;
-        }
+        .totals-box { border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
         .totals-box table { width: 100%; border-collapse: collapse; }
         .totals-box table tr td {
-            padding: 8px 14px;
-            font-size: 11px;
+            padding: 8px 14px; font-size: 11px;
             border-bottom: 1px solid #f0f4f5;
         }
-        .totals-box table tr td:last-child {
-            text-align: left;
-            font-weight: bold;
-        }
+        .totals-box table tr td.lbl  { text-align: right; }
+        .totals-box table tr td.amt  { text-align: left; direction: ltr; font-weight: bold; }
         .totals-box table tr.total-row { background: #005F6B; color: white; }
-        .totals-box table tr.total-row td {
-            font-size: 13px;
-            font-weight: bold;
-            border: none;
-        }
+        .totals-box table tr.total-row td { font-size: 13px; font-weight: bold; border: none; }
 
         /* ─── Notes ─── */
         .notes-box {
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 14px;
-            margin-bottom: 24px;
-            background: #fffbeb;
+            border: 1px solid #e5e7eb; border-radius: 6px;
+            padding: 14px; margin-bottom: 24px; background: #fffbeb;
         }
-        .notes-box h4 {
-            font-size: 10px;
-            font-weight: bold;
-            color: #92400e;
-            margin-bottom: 6px;
-        }
-        .notes-box p { font-size: 11px; color: #374151; line-height: 1.6; }
+        .notes-box h4 { font-size: 10px; font-weight: bold; color: #92400e; margin-bottom: 6px; }
+        .notes-box p  { font-size: 11px; color: #374151; line-height: 1.6; }
 
-        /* ─── Signatures: ثلاثة أعمدة متساوية ─── */
-        .sig-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 16px 0;
-            margin-top: 40px;
-        }
-        .sig-cell {
-            width: 33%;
-            text-align: center;
-            border-top: 1px dashed #9ca3af;
-            padding-top: 8px;
-            vertical-align: top;
+        /* ─── Signatures ─── */
+        .sig-table { width: 100%; border-collapse: separate; border-spacing: 16px 0; margin-top: 40px; }
+        .sig-cell  {
+            width: 33%; text-align: center;
+            border-top: 1px dashed #9ca3af; padding-top: 8px; vertical-align: top;
         }
         .sig-cell p { font-size: 10px; color: #6B8C94; }
 
         /* ─── Footer ─── */
         .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 12px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 9px;
-            color: #9ca3af;
+            text-align: center; margin-top: 30px;
+            padding-top: 12px; border-top: 1px solid #e5e7eb;
+            font-size: 9px; color: #9ca3af;
         }
     </style>
 </head>
@@ -236,7 +133,8 @@
     <div class="header">
         <table class="header-table">
             <tr>
-                <td class="header-right">
+                {{-- يمين: معلومات الشركة --}}
+                <td class="col-company">
                     <div class="company-info">
                         <h1>توتال الكلاكلة</h1>
                         <p>
@@ -249,26 +147,27 @@
                         </p>
                     </div>
                 </td>
-                <td class="header-left">
+                {{-- يسار: تفاصيل المستند --}}
+                <td class="col-docinfo">
                     <div class="doc-title">أمر شراء</div>
                     <table class="doc-info-table">
                         <tr>
                             <td>رقم الأمر:</td>
-                            <td>{{ $purchaseOrder->order_number }}</td>
+                            <td class="val">{{ $purchaseOrder->order_number }}</td>
                         </tr>
                         <tr>
                             <td>التاريخ:</td>
-                            <td>{{ $purchaseOrder->created_at->format('Y/m/d') }}</td>
+                            <td class="val">{{ $purchaseOrder->created_at->format('Y/m/d') }}</td>
                         </tr>
                         @if($purchaseOrder->expected_date)
                         <tr>
-                            <td>تاريخ التسليم المتوقع:</td>
-                            <td>{{ $purchaseOrder->expected_date->format('Y/m/d') }}</td>
+                            <td>تاريخ التسليم:</td>
+                            <td class="val">{{ $purchaseOrder->expected_date->format('Y/m/d') }}</td>
                         </tr>
                         @endif
                         <tr>
                             <td>الحالة:</td>
-                            <td>
+                            <td class="val">
                                 @php
                                     $labels = [
                                         'draft'     => 'مسودة',
@@ -287,7 +186,7 @@
         </table>
     </div>
 
-    {{-- ─── الأطراف ─── --}}
+    {{-- ─── الأطراف: المشتري يمين، المورد يسار ─── --}}
     <table class="parties-table">
         <tr>
             <td class="party-box">
@@ -325,12 +224,12 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th style="width:30px">#</th>
+                <th class="num" style="width:30px">#</th>
                 <th>المنتج</th>
-                <th style="width:80px">الكمية</th>
-                <th style="width:90px">سعر الوحدة</th>
-                <th style="width:70px">خصم %</th>
-                <th style="width:100px">الإجمالي</th>
+                <th class="num" style="width:80px">الكمية</th>
+                <th class="money" style="width:90px">سعر الوحدة</th>
+                <th class="num" style="width:70px">خصم %</th>
+                <th class="money" style="width:100px">الإجمالي</th>
             </tr>
         </thead>
         <tbody>
@@ -340,15 +239,15 @@
                 $lineTotal    = $item->quantity * $item->unit_price * (1 - $lineDiscount / 100);
             @endphp
             <tr>
-                <td>{{ $index + 1 }}</td>
+                <td class="num">{{ $index + 1 }}</td>
                 <td>
                     {{ $item->product->name_ar }}
                     <span class="product-sku">{{ $item->product->sku }}</span>
                 </td>
-                <td>{{ number_format($item->quantity, 2) }}</td>
-                <td>{{ number_format($item->unit_price, 2) }}</td>
-                <td>{{ $lineDiscount > 0 ? number_format($lineDiscount, 1).'%' : '—' }}</td>
-                <td>{{ number_format($lineTotal, 2) }}</td>
+                <td class="num">{{ number_format($item->quantity, 2) }}</td>
+                <td class="money">{{ number_format($item->unit_price, 2) }}</td>
+                <td class="num">{{ $lineDiscount > 0 ? number_format($lineDiscount, 1).'%' : '—' }}</td>
+                <td class="money">{{ number_format($lineTotal, 2) }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -362,24 +261,24 @@
                 <div class="totals-box">
                     <table>
                         <tr>
-                            <td>المجموع الفرعي</td>
-                            <td>{{ number_format($purchaseOrder->subtotal, 2) }}</td>
+                            <td class="lbl">المجموع الفرعي</td>
+                            <td class="amt">{{ number_format($purchaseOrder->subtotal, 2) }}</td>
                         </tr>
                         @if($purchaseOrder->discount > 0)
                         <tr>
-                            <td>الخصم</td>
-                            <td>({{ number_format($purchaseOrder->discount, 2) }})</td>
+                            <td class="lbl">الخصم</td>
+                            <td class="amt">({{ number_format($purchaseOrder->discount, 2) }})</td>
                         </tr>
                         @endif
                         @if($purchaseOrder->tax > 0)
                         <tr>
-                            <td>ضريبة القيمة المضافة</td>
-                            <td>{{ number_format($purchaseOrder->tax, 2) }}</td>
+                            <td class="lbl">ضريبة القيمة المضافة</td>
+                            <td class="amt">{{ number_format($purchaseOrder->tax, 2) }}</td>
                         </tr>
                         @endif
                         <tr class="total-row">
-                            <td>الإجمالي الكلي</td>
-                            <td>{{ number_format($purchaseOrder->total, 2) }}</td>
+                            <td class="lbl">الإجمالي الكلي</td>
+                            <td class="amt">{{ number_format($purchaseOrder->total, 2) }}</td>
                         </tr>
                     </table>
                 </div>
