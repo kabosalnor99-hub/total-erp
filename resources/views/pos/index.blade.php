@@ -166,11 +166,15 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .pos-modal{background:var(--bg-3);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:24px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.45)}
 .pos-modal h3{font-size:17px;font-weight:800;margin-bottom:18px;color:var(--text);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);padding-bottom:14px}
 .pos-modal-lg{max-width:560px}
-.payment-types{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.payment-types{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px}
 .pay-type-btn{padding:12px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--card);color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;text-align:center}
 .pay-type-btn .icon{display:block;font-size:22px;margin-bottom:5px}
 .pay-type-btn:hover{border-color:var(--teal);color:var(--teal-light);background:var(--teal-soft)}
 .pay-type-btn.active{border-color:var(--teal);background:rgba(13,148,136,.15);color:var(--teal-light);box-shadow:0 0 0 3px var(--teal-glow)}
+        .pay-type-btn.bank-active{border-color:#1d4ed8;background:rgba(29,78,216,.13);color:#93c5fd;box-shadow:0 0 0 3px rgba(29,78,216,.25)}
+        .bank-transfer-fields{background:rgba(29,78,216,.07);border:1px solid rgba(29,78,216,.25);border-radius:8px;padding:14px;margin-top:8px}
+        .bank-transfer-fields .bank-icon{font-size:28px;text-align:center;margin-bottom:8px}
+        .bank-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(29,78,216,.15);border:1px solid rgba(29,78,216,.3);border-radius:20px;padding:3px 10px;font-size:11px;color:#93c5fd;margin-bottom:10px}
 .pos-label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:5px;margin-top:12px;font-weight:600}
 .pos-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:all .2s}
 .pos-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-glow)}
@@ -613,6 +617,9 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                 <button class="pay-type-btn" :class="paymentType==='split'?'active':''" @click="paymentType='split'">
                     <span class="icon">🔀</span> مختلط
                 </button>
+                <button class="pay-type-btn" :class="paymentType==='bank_transfer'?'active bank-active':''" @click="paymentType='bank_transfer'">
+                    <span class="icon">🏦</span> تحويل بنكي
+                </button>
             </div>
 
             {{-- حقول نقدي --}}
@@ -665,6 +672,39 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                             <div class="amount num-ltr" x-text="fmt(changeAmount) + ' ج.س'"></div>
                         </div>
                     </template>
+                </div>
+            </template>
+
+
+            {{-- حقول تحويل بنكي --}}
+            <template x-if="paymentType==='bank_transfer'">
+                <div class="bank-transfer-fields">
+                    <div class="bank-icon">🏦</div>
+                    <div style="text-align:center;margin-bottom:12px">
+                        <span class="bank-badge">✓ تم استلام المبلغ بالكامل</span>
+                    </div>
+                    <div style="background:rgba(29,78,216,.1);border-radius:6px;padding:8px 12px;text-align:center;font-size:13px;color:#93c5fd;font-weight:700;margin-bottom:12px">
+                        إجمالي المبلغ: <span class="num-ltr" x-text="fmt(grandTotal) + ' ج.س'"></span>
+                    </div>
+                    <label class="pos-label">رقم مرجع التحويل <span style="color:#f87171">*</span></label>
+                    <input
+                        type="text"
+                        class="pos-input num-ltr"
+                        x-model="bankRefNumber"
+                        placeholder="مثال: TXN-20260531-001"
+                        style="letter-spacing:1px"
+                        autofocus
+                    >
+                    <label class="pos-label" style="margin-top:10px">اسم البنك (اختياري)</label>
+                    <input
+                        type="text"
+                        class="pos-input"
+                        x-model="bankName"
+                        placeholder="مثال: بنك الخرطوم"
+                    >
+                    <div style="margin-top:10px;font-size:11px;color:#7EADB8;display:flex;align-items:center;gap:5px">
+                        <span>⚠️</span> تأكد من استلام إشعار التحويل قبل تأكيد البيع
+                    </div>
                 </div>
             </template>
 
