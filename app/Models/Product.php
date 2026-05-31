@@ -99,9 +99,21 @@ class Product extends Model
 
     public function getImageUrlAttribute(): string
     {
-        if ($this->image && Storage::disk('public')->exists($this->image)) {
-            return Storage::disk('public')->url($this->image);
+        if ($this->image) {
+            // صور رُفعت عبر Laravel (storage/app/public/products/...)
+            // القيمة المحفوظة مثل: products/filename.jpg
+            if (Storage::disk('public')->exists($this->image)) {
+                return Storage::disk('public')->url($this->image);
+            }
+
+            // صور قديمة أو مستوردة من SQL (public/images/products/...)
+            // القيمة المحفوظة مثل: /images/products/filename.jpg أو images/products/filename.jpg
+            $publicPath = public_path(ltrim($this->image, '/'));
+            if (file_exists($publicPath)) {
+                return asset(ltrim($this->image, '/'));
+            }
         }
+
         return asset('images/no-product.png');
     }
 
