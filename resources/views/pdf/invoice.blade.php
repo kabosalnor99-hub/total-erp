@@ -1,205 +1,463 @@
-{{-- المسار الكامل: resources/views/pdf/invoice.blade.php --}}
 {{-- المسار: resources/views/pdf/invoice.blade.php --}}
+{{-- ✅ محسَّن بالكامل لـ DomPDF — يعتمد على HTML tables فقط --}}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <title>فاتورة — {{ $invoice->invoice_number }}</title>
     <style>
+        /* ── Reset ─────────────────────────────────────────────── */
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'DejaVu Sans', 'Arial', sans-serif;
-            font-size: 13px;
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
             color: #1a2e35;
             background: #fff;
             direction: rtl;
         }
-        .page { padding: 25px 30px; }
 
-        /* Header */
-        .header { display: table; width: 100%; border-bottom: 3px solid #00838F; padding-bottom: 16px; margin-bottom: 20px; }
-        .header-right { display: table-cell; width: 60%; vertical-align: middle; }
-        .header-left  { display: table-cell; width: 40%; vertical-align: middle; text-align: left; }
-        .logo-circle {
-            display: inline-block; width: 52px; height: 52px;
-            background: #00838F; border-radius: 50%;
-            text-align: center; line-height: 52px;
-            color: #fff; font-size: 22px; font-weight: 700;
-            vertical-align: middle;
+        .page {
+            padding: 22px 28px;
+            width: 100%;
         }
-        .company-text { display: inline-block; vertical-align: middle; margin-right: 10px; }
-        .company-text h1 { font-size: 18px; font-weight: 700; color: #00838F; }
-        .company-text p  { font-size: 11px; color: #6b8c94; margin-top: 2px; }
-        .invoice-title { font-size: 18px; font-weight: 700; color: #1a2e35; }
-        .invoice-number { font-size: 14px; color: #00838F; font-weight: 600; margin-top: 3px; }
-        .invoice-date   { font-size: 11px; color: #6b8c94; margin-top: 3px; }
 
-        /* Badge */
-        .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-top: 4px; }
+        /* ── Header ─────────────────────────────────────────────── */
+        .header-table {
+            width: 100%;
+            border-bottom: 3px solid #00838F;
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+        }
+
+        .logo-circle {
+            width: 50px;
+            height: 50px;
+            background: #00838F;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            vertical-align: middle;
+            padding-top: 11px;
+            display: inline-block;
+        }
+
+        .company-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #00838F;
+        }
+
+        .company-sub {
+            font-size: 10px;
+            color: #6b8c94;
+            margin-top: 2px;
+        }
+
+        .inv-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1a2e35;
+            text-align: left;
+        }
+
+        .inv-number {
+            font-size: 13px;
+            color: #00838F;
+            font-weight: 600;
+            margin-top: 3px;
+            text-align: left;
+        }
+
+        .inv-date {
+            font-size: 10px;
+            color: #6b8c94;
+            margin-top: 2px;
+            text-align: left;
+        }
+
+        /* ── Badge ──────────────────────────────────────────────── */
+        .badge {
+            padding: 2px 9px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
         .badge-paid      { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
         .badge-confirmed { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
         .badge-partial   { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
         .badge-draft     { background: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
         .badge-cancelled { background: #fce4ec; color: #c62828; border: 1px solid #ef9a9a; }
 
-        /* Info grid */
-        .info-table { width: 100%; margin-bottom: 18px; border-collapse: collapse; }
-        .info-cell  { width: 50%; vertical-align: top; padding: 0 5px 0 0; }
-        .info-box   { border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; }
-        .info-box h3 { font-size: 10px; font-weight: 700; color: #00838F; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.4px; }
-        .info-row   { display: table; width: 100%; margin-bottom: 4px; }
-        .info-label { display: table-cell; font-size: 11px; color: #6b8c94; width: 45%; }
-        .info-value { display: table-cell; font-size: 12px; color: #1a2e35; font-weight: 500; }
+        /* ── Info Boxes ─────────────────────────────────────────── */
+        .info-outer {
+            width: 100%;
+            margin-bottom: 16px;
+            border-collapse: separate;
+            border-spacing: 6px 0;
+        }
 
-        /* Products table */
-        .products-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        .products-table thead tr { background: #00838F; color: #fff; }
-        .products-table thead th { padding: 9px 10px; font-size: 12px; font-weight: 600; text-align: right; }
-        .products-table thead th.center { text-align: center; }
-        .products-table tbody tr { border-bottom: 1px solid #f0f0f0; }
-        .products-table tbody tr.even { background: #f9fafb; }
-        .products-table tbody td { padding: 9px 10px; font-size: 12px; }
-        .products-table tbody td.center { text-align: center; }
-        .products-table tbody td.ltr    { direction: ltr; text-align: right; }
+        .info-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 11px 12px;
+            width: 50%;
+            vertical-align: top;
+        }
 
-        /* Totals */
-        .totals-wrap  { text-align: left; margin-bottom: 18px; }
-        .totals-inner { display: inline-block; width: 280px; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
-        .t-row { display: table; width: 100%; padding: 8px 12px; border-bottom: 1px solid #f0f0f0; }
-        .t-row:last-child { border-bottom: none; }
-        .t-label { display: table-cell; font-size: 12px; color: #6b8c94; }
-        .t-value { display: table-cell; font-size: 12px; text-align: left; font-weight: 500; }
-        .t-row.grand { background: #00838F; }
-        .t-row.grand .t-label, .t-row.grand .t-value { color: #fff; font-weight: 700; font-size: 14px; }
-        .t-row.paid-row  { background: #e8f5e9; }
-        .t-row.paid-row .t-label, .t-row.paid-row .t-value { color: #2e7d32; font-weight: 600; }
-        .t-row.rem-row   { background: #fff3e0; }
-        .t-row.rem-row .t-label, .t-row.rem-row .t-value  { color: #e65100; font-weight: 600; }
-        .t-row.disc-row .t-label, .t-row.disc-row .t-value { color: #c62828; }
-        .t-row.tax-row  .t-label, .t-row.tax-row  .t-value { color: #1565c0; }
+        .info-box-title {
+            font-size: 9px;
+            font-weight: 700;
+            color: #00838F;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
 
-        /* Notes */
-        .notes-box { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px 12px; margin-bottom: 18px; }
-        .notes-box h4 { font-size: 11px; font-weight: 700; color: #6b8c94; margin-bottom: 5px; }
-        .notes-box p  { font-size: 12px; color: #1a2e35; }
+        .info-row-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 3px;
+        }
 
-        /* Payments */
-        .pay-title { font-size: 12px; font-weight: 700; color: #1a2e35; margin-bottom: 8px; }
-        .pay-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        .pay-table th { background: #005F6B; color: #fff; padding: 7px 10px; font-size: 11px; text-align: right; }
-        .pay-table td { padding: 7px 10px; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
-        .pay-table tr.even td { background: #f9fafb; }
+        .info-label {
+            font-size: 10px;
+            color: #6b8c94;
+            width: 42%;
+            padding: 1px 0;
+        }
 
-        /* Footer */
-        .footer { border-top: 2px solid #00838F; padding-top: 14px; text-align: center; }
-        .footer .thanks { font-size: 13px; font-weight: 700; color: #00838F; margin-bottom: 3px; }
-        .footer p { font-size: 11px; color: #6b8c94; margin-bottom: 2px; }
-        .footer .small { font-size: 10px; color: #bdbdbd; margin-top: 6px; }
+        .info-value {
+            font-size: 11px;
+            color: #1a2e35;
+            font-weight: 500;
+            padding: 1px 0;
+        }
+
+        /* ── Products Table ─────────────────────────────────────── */
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+        }
+
+        .products-table thead tr {
+            background: #00838F;
+            color: #fff;
+        }
+
+        .products-table thead th {
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .products-table thead th.center {
+            text-align: center;
+        }
+
+        .products-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .products-table tbody tr.even {
+            background: #f9fafb;
+        }
+
+        .products-table tbody td {
+            padding: 8px 10px;
+            font-size: 11px;
+            vertical-align: middle;
+        }
+
+        .products-table tbody td.center {
+            text-align: center;
+        }
+
+        .products-table tbody td.ltr {
+            direction: ltr;
+            text-align: right;
+        }
+
+        .product-sku {
+            font-size: 9px;
+            color: #9e9e9e;
+            margin-top: 2px;
+        }
+
+        /* ── Totals ─────────────────────────────────────────────── */
+        .totals-outer {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .totals-inner {
+            width: 290px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            border-collapse: collapse;
+            overflow: hidden;
+            float: left;
+        }
+
+        .totals-row td {
+            padding: 7px 12px;
+            font-size: 11px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .totals-row td.t-label {
+            color: #6b8c94;
+        }
+
+        .totals-row td.t-value {
+            text-align: left;
+            font-weight: 500;
+            direction: ltr;
+        }
+
+        .totals-row.grand td {
+            background: #00838F;
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            border-bottom: none;
+        }
+
+        .totals-row.paid-row td {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .totals-row.rem-row td {
+            background: #fff3e0;
+            color: #e65100;
+            font-weight: 600;
+        }
+
+        .totals-row.disc-row td {
+            color: #c62828;
+        }
+
+        .totals-row.tax-row td {
+            color: #1565c0;
+        }
+
+        .clearfix:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* ── Payments Table ─────────────────────────────────────── */
+        .pay-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1a2e35;
+            margin-bottom: 7px;
+        }
+
+        .pay-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+        }
+
+        .pay-table thead tr {
+            background: #005F6B;
+            color: #fff;
+        }
+
+        .pay-table thead th {
+            padding: 6px 10px;
+            font-size: 10px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .pay-table tbody td {
+            padding: 6px 10px;
+            font-size: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .pay-table tbody tr.even td {
+            background: #f9fafb;
+        }
+
+        /* ── Notes ──────────────────────────────────────────────── */
+        .notes-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 9px 12px;
+            margin-bottom: 16px;
+        }
+
+        .notes-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #6b8c94;
+            margin-bottom: 4px;
+        }
+
+        .notes-text {
+            font-size: 11px;
+            color: #1a2e35;
+        }
+
+        /* ── Footer ─────────────────────────────────────────────── */
+        .footer {
+            border-top: 2px solid #00838F;
+            padding-top: 12px;
+            text-align: center;
+        }
+
+        .footer-thanks {
+            font-size: 12px;
+            font-weight: 700;
+            color: #00838F;
+            margin-bottom: 3px;
+        }
+
+        .footer-contact {
+            font-size: 10px;
+            color: #6b8c94;
+            margin-bottom: 2px;
+        }
+
+        .footer-small {
+            font-size: 9px;
+            color: #bdbdbd;
+            margin-top: 5px;
+        }
+
+        /* ── Divider ────────────────────────────────────────────── */
+        .spacer { height: 6px; }
     </style>
 </head>
 <body>
 <div class="page">
 
-    {{-- ── Header ─────────────────────────────────────────────── --}}
-    <div class="header">
-        <div class="header-right">
-            <span class="logo-circle">T</span>
-            <span class="company-text">
-                <h1>توتال الكلاكلة</h1>
-                <p>تجارة وتوزيع أدوات كهربائية ومعدات</p>
-                <p>الخرطوم، السودان</p>
-            </span>
-        </div>
-        <div class="header-left">
-            <div class="invoice-title">فاتورة مبيعات</div>
-            <div class="invoice-number">{{ $invoice->invoice_number }}</div>
-            <div class="invoice-date">{{ $invoice->created_at->format('Y/m/d') }}</div>
-            @php
-                $b = ['paid'=>'paid','confirmed'=>'confirmed','partial'=>'partial','draft'=>'draft','cancelled'=>'cancelled'];
-            @endphp
-            <span class="badge badge-{{ $b[$invoice->status] ?? 'draft' }}">{{ $invoice->status_label }}</span>
-        </div>
-    </div>
-
-    {{-- ── Info ────────────────────────────────────────────────── --}}
-    <table class="info-table">
+    {{-- ══ HEADER ══════════════════════════════════════════════ --}}
+    <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td class="info-cell">
-                <div class="info-box">
-                    <h3>بيانات العميل</h3>
-                    @if($invoice->customer)
-                        <div class="info-row">
-                            <span class="info-label">الاسم</span>
-                            <span class="info-value" style="font-weight:700;">{{ $invoice->customer->name }}</span>
-                        </div>
-                        @if($invoice->customer->phone)
-                        <div class="info-row">
-                            <span class="info-label">الهاتف</span>
-                            <span class="info-value">{{ $invoice->customer->phone }}</span>
-                        </div>
-                        @endif
-                        @if($invoice->customer->address)
-                        <div class="info-row">
-                            <span class="info-label">العنوان</span>
-                            <span class="info-value">{{ $invoice->customer->address }}</span>
-                        </div>
-                        @endif
-                        @if($invoice->customer->tax_number)
-                        <div class="info-row">
-                            <span class="info-label">الرقم الضريبي</span>
-                            <span class="info-value">{{ $invoice->customer->tax_number }}</span>
-                        </div>
-                        @endif
-                    @else
-                        <div class="info-row"><span class="info-value">عميل نقدي</span></div>
-                    @endif
-                </div>
+            {{-- شعار + اسم الشركة --}}
+            <td style="width:60%; vertical-align:middle;">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="vertical-align:middle; padding-left:10px;">
+                            <div class="logo-circle">T</div>
+                        </td>
+                        <td style="vertical-align:middle;">
+                            <div class="company-name">توتال الكلاكلة</div>
+                            <div class="company-sub">تجارة وتوزيع أدوات كهربائية ومعدات</div>
+                            <div class="company-sub">الخرطوم، السودان</div>
+                        </td>
+                    </tr>
+                </table>
             </td>
-            <td class="info-cell" style="padding-right:0; padding-left:0;">
-                <div class="info-box">
-                    <h3>تفاصيل الفاتورة</h3>
-                    <div class="info-row">
-                        <span class="info-label">رقم الفاتورة</span>
-                        <span class="info-value" style="color:#00838F;">{{ $invoice->invoice_number }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">تاريخ الإصدار</span>
-                        <span class="info-value">{{ $invoice->created_at->format('Y/m/d') }}</span>
-                    </div>
-                    @if($invoice->due_date)
-                    <div class="info-row">
-                        <span class="info-label">تاريخ الاستحقاق</span>
-                        <span class="info-value" style="{{ $invoice->is_overdue ? 'color:#c62828;' : '' }}">
-                            {{ $invoice->due_date->format('Y/m/d') }}
-                        </span>
-                    </div>
-                    @endif
-                    <div class="info-row">
-                        <span class="info-label">نوع الدفع</span>
-                        <span class="info-value">{{ $invoice->type_label }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">المستخدم</span>
-                        <span class="info-value">{{ $invoice->user?->name }}</span>
-                    </div>
-                </div>
+            {{-- عنوان الفاتورة --}}
+            <td style="width:40%; vertical-align:middle; text-align:left;">
+                <div class="inv-title">فاتورة مبيعات</div>
+                <div class="inv-number">{{ $invoice->invoice_number }}</div>
+                <div class="inv-date">{{ $invoice->created_at->format('Y/m/d') }}</div>
+                @php
+                    $bmap = ['paid'=>'paid','confirmed'=>'confirmed','partial'=>'partial','draft'=>'draft','cancelled'=>'cancelled'];
+                @endphp
+                <span class="badge badge-{{ $bmap[$invoice->status] ?? 'draft' }}">{{ $invoice->status_label }}</span>
             </td>
         </tr>
     </table>
 
-    {{-- ── Products Table ──────────────────────────────────────── --}}
+    {{-- ══ INFO BOXES ═══════════════════════════════════════════ --}}
+    <table class="info-outer" cellpadding="0" cellspacing="0">
+        <tr>
+            {{-- بيانات العميل --}}
+            <td class="info-box">
+                <div class="info-box-title">بيانات العميل</div>
+                @if($invoice->customer)
+                    <table class="info-row-table" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="info-label">الاسم</td>
+                            <td class="info-value" style="font-weight:700;">{{ $invoice->customer->name }}</td>
+                        </tr>
+                        @if($invoice->customer->phone)
+                        <tr>
+                            <td class="info-label">الهاتف</td>
+                            <td class="info-value">{{ $invoice->customer->phone }}</td>
+                        </tr>
+                        @endif
+                        @if($invoice->customer->address)
+                        <tr>
+                            <td class="info-label">العنوان</td>
+                            <td class="info-value">{{ $invoice->customer->address }}</td>
+                        </tr>
+                        @endif
+                        @if($invoice->customer->tax_number)
+                        <tr>
+                            <td class="info-label">الرقم الضريبي</td>
+                            <td class="info-value">{{ $invoice->customer->tax_number }}</td>
+                        </tr>
+                        @endif
+                    </table>
+                @else
+                    <div class="info-value">عميل نقدي</div>
+                @endif
+            </td>
+
+            <td style="width:6px;"></td>
+
+            {{-- تفاصيل الفاتورة --}}
+            <td class="info-box">
+                <div class="info-box-title">تفاصيل الفاتورة</div>
+                <table class="info-row-table" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="info-label">رقم الفاتورة</td>
+                        <td class="info-value" style="color:#00838F;">{{ $invoice->invoice_number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">تاريخ الإصدار</td>
+                        <td class="info-value">{{ $invoice->created_at->format('Y/m/d') }}</td>
+                    </tr>
+                    @if($invoice->due_date)
+                    <tr>
+                        <td class="info-label">تاريخ الاستحقاق</td>
+                        <td class="info-value" style="{{ $invoice->is_overdue ? 'color:#c62828;' : '' }}">
+                            {{ $invoice->due_date->format('Y/m/d') }}
+                        </td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td class="info-label">نوع الدفع</td>
+                        <td class="info-value">{{ $invoice->type_label }}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">المستخدم</td>
+                        <td class="info-value">{{ $invoice->user?->name }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ══ PRODUCTS TABLE ═══════════════════════════════════════ --}}
     @php $hasDiscount = $invoice->items->where('discount', '>', 0)->count() > 0; @endphp
-    <table class="products-table">
+    <table class="products-table" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width:30px;" class="center">#</th>
+                <th style="width:28px;" class="center">#</th>
                 <th>المنتج</th>
-                <th style="width:70px;" class="center">الكمية</th>
-                <th style="width:100px;">سعر الوحدة</th>
+                <th style="width:65px;" class="center">الكمية</th>
+                <th style="width:105px;">سعر الوحدة</th>
                 @if($hasDiscount)
                 <th style="width:80px;">الخصم</th>
                 @endif
-                <th style="width:100px;">الإجمالي</th>
+                <th style="width:105px;">الإجمالي</th>
             </tr>
         </thead>
         <tbody>
@@ -209,13 +467,15 @@
                 <td>
                     <div style="font-weight:500;">{{ $item->product?->name_ar ?? $item->product?->name_en ?? '—' }}</div>
                     @if($item->product?->sku)
-                        <div style="font-size:10px; color:#9e9e9e;">{{ $item->product->sku }}</div>
+                        <div class="product-sku">{{ $item->product->sku }}</div>
                     @endif
                 </td>
                 <td class="center">{{ number_format($item->quantity) }}</td>
                 <td class="ltr">{{ number_format($item->price, 2) }}</td>
                 @if($hasDiscount)
-                <td class="ltr" style="color:#c62828;">{{ $item->discount > 0 ? number_format($item->discount, 2) : '—' }}</td>
+                <td class="ltr" style="color:#c62828;">
+                    {{ $item->discount > 0 ? number_format($item->discount, 2) : '—' }}
+                </td>
                 @endif
                 <td class="ltr" style="font-weight:600;">{{ number_format($item->total, 2) }} SDG</td>
             </tr>
@@ -223,51 +483,52 @@
         </tbody>
     </table>
 
-    {{-- ── Totals ──────────────────────────────────────────────── --}}
-    <div class="totals-wrap">
-        <div class="totals-inner">
-            <div class="t-row">
-                <span class="t-label">المجموع الفرعي</span>
-                <span class="t-value">{{ number_format($invoice->subtotal, 2) }} SDG</span>
-            </div>
+    {{-- ══ TOTALS ════════════════════════════════════════════════ --}}
+    <div class="clearfix">
+        <table class="totals-inner" cellpadding="0" cellspacing="0" style="float:left;">
+            <tr class="totals-row">
+                <td class="t-label">المجموع الفرعي</td>
+                <td class="t-value">{{ number_format($invoice->subtotal, 2) }} SDG</td>
+            </tr>
             @if($invoice->discount_amount > 0)
-            <div class="t-row disc-row">
-                <span class="t-label">الخصم @if($invoice->discount_percent > 0)({{ $invoice->discount_percent }}%)@endif</span>
-                <span class="t-value">- {{ number_format($invoice->discount_amount, 2) }} SDG</span>
-            </div>
+            <tr class="totals-row disc-row">
+                <td class="t-label">الخصم @if($invoice->discount_percent > 0)({{ $invoice->discount_percent }}%)@endif</td>
+                <td class="t-value">- {{ number_format($invoice->discount_amount, 2) }} SDG</td>
+            </tr>
             @endif
             @if($invoice->tax_amount > 0)
-            <div class="t-row tax-row">
-                <span class="t-label">الضريبة ({{ $invoice->tax_percent }}%)</span>
-                <span class="t-value">{{ number_format($invoice->tax_amount, 2) }} SDG</span>
-            </div>
+            <tr class="totals-row tax-row">
+                <td class="t-label">الضريبة ({{ $invoice->tax_percent }}%)</td>
+                <td class="t-value">{{ number_format($invoice->tax_amount, 2) }} SDG</td>
+            </tr>
             @endif
-            <div class="t-row grand">
-                <span class="t-label">الإجمالي النهائي</span>
-                <span class="t-value">{{ number_format($invoice->total, 2) }} SDG</span>
-            </div>
+            <tr class="totals-row grand">
+                <td class="t-label">الإجمالي النهائي</td>
+                <td class="t-value">{{ number_format($invoice->total, 2) }} SDG</td>
+            </tr>
             @if($invoice->paid_amount > 0)
-            <div class="t-row paid-row">
-                <span class="t-label">المدفوع</span>
-                <span class="t-value">{{ number_format($invoice->paid_amount, 2) }} SDG</span>
-            </div>
+            <tr class="totals-row paid-row">
+                <td class="t-label">المدفوع</td>
+                <td class="t-value">{{ number_format($invoice->paid_amount, 2) }} SDG</td>
+            </tr>
             @endif
             @if($invoice->remaining_amount > 0)
-            <div class="t-row rem-row">
-                <span class="t-label">المتبقي</span>
-                <span class="t-value">{{ number_format($invoice->remaining_amount, 2) }} SDG</span>
-            </div>
+            <tr class="totals-row rem-row">
+                <td class="t-label">المتبقي</td>
+                <td class="t-value">{{ number_format($invoice->remaining_amount, 2) }} SDG</td>
+            </tr>
             @endif
-        </div>
+        </table>
     </div>
+    <div class="spacer" style="height:20px; clear:both;"></div>
 
-    {{-- ── Payments ────────────────────────────────────────────── --}}
+    {{-- ══ PAYMENTS ══════════════════════════════════════════════ --}}
     @if($invoice->payments->count())
     <div class="pay-title">سجل الدفعات</div>
-    <table class="pay-table">
+    <table class="pay-table" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>#</th>
+                <th style="width:28px; text-align:center;">#</th>
                 <th>التاريخ</th>
                 <th>طريقة الدفع</th>
                 <th>ملاحظات</th>
@@ -278,30 +539,34 @@
             @foreach($invoice->payments as $i => $pay)
             @php $methods = ['cash'=>'نقدي','bank'=>'بنك','other'=>'أخرى']; @endphp
             <tr class="{{ $i % 2 === 1 ? 'even' : '' }}">
-                <td class="center">{{ $i + 1 }}</td>
+                <td style="text-align:center;">{{ $i + 1 }}</td>
                 <td>{{ $pay->payment_date ? \Carbon\Carbon::parse($pay->payment_date)->format('Y/m/d') : $pay->created_at->format('Y/m/d') }}</td>
                 <td>{{ $methods[$pay->method] ?? $pay->method }}</td>
                 <td>{{ $pay->notes ?? '—' }}</td>
-                <td style="font-weight:600; color:#2e7d32; direction:ltr; text-align:right;">{{ number_format($pay->amount, 2) }} SDG</td>
+                <td style="font-weight:600; color:#2e7d32; direction:ltr; text-align:right;">
+                    {{ number_format($pay->amount, 2) }} SDG
+                </td>
             </tr>
             @endforeach
         </tbody>
     </table>
     @endif
 
-    {{-- ── Notes ──────────────────────────────────────────────── --}}
+    {{-- ══ NOTES ═════════════════════════════════════════════════ --}}
     @if($invoice->notes)
     <div class="notes-box">
-        <h4>ملاحظات</h4>
-        <p>{{ $invoice->notes }}</p>
+        <div class="notes-title">ملاحظات</div>
+        <div class="notes-text">{{ $invoice->notes }}</div>
     </div>
     @endif
 
-    {{-- ── Footer ─────────────────────────────────────────────── --}}
+    {{-- ══ FOOTER ════════════════════════════════════════════════ --}}
     <div class="footer">
-        <div class="thanks">شكراً لتعاملكم مع توتال الكلاكلة</div>
-        <p>الخرطوم، السودان • هاتف: 0900000000</p>
-        <div class="small">تم إصدار هذه الفاتورة إلكترونياً بواسطة نظام ERP توتال الكلاكلة — {{ now()->format('Y/m/d H:i') }}</div>
+        <div class="footer-thanks">شكراً لتعاملكم مع توتال الكلاكلة</div>
+        <div class="footer-contact">الخرطوم، السودان • هاتف: 0900000000</div>
+        <div class="footer-small">
+            تم إصدار هذه الفاتورة إلكترونياً بواسطة نظام ERP توتال الكلاكلة — {{ now()->format('Y/m/d H:i') }}
+        </div>
     </div>
 
 </div>
