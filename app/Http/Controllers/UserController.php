@@ -63,11 +63,14 @@ class UserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // المدير العام يستطيع إنشاء مستخدم بدون كلمة مرور (اختيارية)
+        $isAdmin = auth()->user()->hasRole('admin');
+
         $data = $request->validate([
             'name'     => 'required|string|max:100',
             'email'    => 'nullable|email|unique:users,email',
             'phone'    => 'nullable|string|unique:users,phone',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => $isAdmin ? 'nullable|string|min:8|confirmed' : 'required|string|min:8|confirmed',
             'role_id'  => 'required|exists:roles,id',
             'avatar'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'status'   => 'required|in:active,inactive',
@@ -75,6 +78,7 @@ class UserController extends Controller
             'name.required'     => 'الاسم مطلوب',
             'email.unique'      => 'البريد الإلكتروني مستخدم مسبقاً',
             'phone.unique'      => 'رقم الهاتف مستخدم مسبقاً',
+            'password.required' => 'كلمة المرور مطلوبة',
             'password.min'      => 'كلمة المرور 8 أحرف على الأقل',
             'password.confirmed'=> 'كلمة المرور غير متطابقة',
             'role_id.required'  => 'يجب تحديد الدور',
@@ -82,6 +86,12 @@ class UserController extends Controller
 
         if ($request->hasFile('avatar')) {
             $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']);
         }
 
         $user = User::create($data);
