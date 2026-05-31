@@ -99,6 +99,8 @@ class UserController extends Controller
     {
         $roles = Role::cachedAll();
         $user->load('roles');
+
+        return view('users.edit', compact('user', 'roles'));
     }
 
     // ─── تحديث مستخدم ────────────────────────────────────────────────
