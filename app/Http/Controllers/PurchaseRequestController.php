@@ -1,120 +1,183 @@
 <?php
 
-// المسار الكامل: app/Http/Controllers/PurchaseRequestController.php
+// المسار الكامل: app/Http/Controllers/PurchaseOrderController.php
 
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequest;
-use App\Models\PurchaseRequestItem;
+use App\Models\Supplier;
+use App\Models\Warehouse;
+use App\Services\PurchaseService;
+use Mpdf\Mpdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
-class PurchaseRequestController extends Controller
+class PurchaseOrderController extends Controller
 {
+    public function __construct(protected PurchaseService $purchaseService) {}
+
     public function index(Request $request)
     {
-        $requests = PurchaseRequest::with(['user', 'approver'])
-            ->when($request->status, fn($q) => $q->where('status', $request->status))
-            ->when($request->search, fn($q) => $q->where('request_number', 'like', "%{$request->search}%"))
+        $orders = PurchaseOrder::with(['supplier', 'user'])
+            ->when($request->search,   fn($q) => $q->search($request->search))
+            ->when($request->status,   fn($q) => $q->where('status', $request->status))
+            ->when($request->supplier_id, fn($q) => $q->where('supplier_id', $request->supplier_id))
+            ->when($request->from_date, fn($q) => $q->whereDate('created_at', '>=', $request->from_date))
+            ->when($request->to_date,   fn($q) => $q->whereDate('created_at', '<=', $request->to_date))
             ->latest()
             ->paginate(20)
             ->withQueryString();
 
-        return view('purchase-requests.index', compact('requests'));
+        $suppliers = Supplier::active()->orderBy('name')->get();
+
+        return view('purchase-orders.index', compact('orders', 'suppliers'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $products = Product::active()->orderBy('name_ar')->get();
-        return view('purchase-requests.create', compact('products'));
+        $suppliers        = Supplier::active()->orderBy('name')->get();
+        $products         = Product::active()->orderBy('name_ar')->get();
+        $purchaseRequests = PurchaseRequest::where('status', 'approved')->latest()->get();
+
+        // تجهيز بيانات المنتجات كـ JSON جاهز للبحث الحي في الـ View
+        $productsJson = $products->map(fn($p) => [
+            'id'                => $p->id,
+            'name_ar'           => $p->name_ar,
+            'sku'               => $p->sku,
+            'purchase_price_usd'=> (float) $p->purchase_price_usd,
+        ])->values()->toJson();
+
+        // تحميل بنود طلب الشراء إذا مرر
+        $fromRequest     = null;
+        $fromRequestJson = 'null';
+
+        if ($request->from_request) {
+            $fromRequest = PurchaseRequest::with('items.product')
+                ->findOrFail($request->from_request);
+
+            $fromRequestJson = $fromRequest->items->map(fn($i) => [
+                'product_id' => $i->product_id,
+                'quantity'   => $i->quantity,
+                'unit_price' => $i->estimated_price ?? 0,
+                'discount'   => 0,
+                'total'      => $i->quantity * ($i->estimated_price ?? 0),
+            ])->values()->toJson();
+        }
+
+        return view('purchase-orders.create', compact(
+            'suppliers', 'products', 'purchaseRequests',
+            'fromRequest', 'productsJson', 'fromRequestJson'
+        ));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'needed_by'              => 'nullable|date|after:today',
-            'notes'                  => 'nullable|string',
-            'items'                  => 'required|array|min:1',
-            'items.*.product_id'     => 'required|exists:products,id',
-            'items.*.quantity'       => 'required|numeric|min:0.01',
-            'items.*.estimated_price'=> 'nullable|numeric|min:0',
-            'items.*.notes'          => 'nullable|string',
+            'supplier_id'           => 'required|exists:suppliers,id',
+            'purchase_request_id'   => 'nullable|exists:purchase_requests,id',
+            'expected_date'         => 'nullable|date',
+            'discount'              => 'nullable|numeric|min:0',
+            'tax_rate'              => 'nullable|numeric|min:0|max:100',
+            'notes'                 => 'nullable|string',
+            'items'                 => 'required|array|min:1',
+            'items.*.product_id'    => 'required|exists:products,id',
+            'items.*.quantity'      => 'required|numeric|min:0.01',
+            'items.*.unit_price'    => 'required|numeric|min:0',
+            'items.*.discount'      => 'nullable|numeric|min:0',
+            'items.*.notes'         => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($data) {
-            $pr = PurchaseRequest::create([
-                'request_number' => PurchaseRequest::generateNumber(),
-                'user_id'        => auth()->id(),
-                'status'         => 'pending',
-                'needed_by'      => $data['needed_by'] ?? null,
-                'notes'          => $data['notes'] ?? null,
-            ]);
+        $order = $this->purchaseService->createOrder($data, $data['items']);
 
-            foreach ($data['items'] as $item) {
-                PurchaseRequestItem::create([
-                    'purchase_request_id' => $pr->id,
-                    'product_id'          => $item['product_id'],
-                    'quantity'            => $item['quantity'],
-                    'estimated_price'     => $item['estimated_price'] ?? 0,
-                    'notes'               => $item['notes'] ?? null,
-                ]);
-            }
-        });
-
-        return redirect()->route('purchase-requests.index')
-            ->with('success', 'تم إرسال طلب الشراء بنجاح');
+        return redirect()->route('purchase-orders.show', $order)
+            ->with('success', 'تم إنشاء أمر الشراء بنجاح');
     }
 
-    public function show(PurchaseRequest $purchaseRequest)
+    public function show(PurchaseOrder $purchaseOrder)
     {
-        $purchaseRequest->load(['user', 'approver', 'items.product', 'purchaseOrder']);
-        return view('purchase-requests.show', compact('purchaseRequest'));
-    }
-
-    /** اعتماد طلب الشراء */
-    public function approve(PurchaseRequest $purchaseRequest)
-    {
-        if ($purchaseRequest->status !== 'pending') {
-            return back()->with('error', 'هذا الطلب لا يمكن اعتماده');
-        }
-
-        $purchaseRequest->update([
-            'status'      => 'approved',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
+        $purchaseOrder->load([
+            'supplier',
+            'user',
+            'items.product',
+            'goodsReceipts.items.product',
+            'payments',
+            'purchaseRequest',
         ]);
 
-        return back()->with('success', 'تم اعتماد طلب الشراء');
+        $warehouses = Warehouse::orderBy('name')->get();
+
+        return view('purchase-orders.show', compact('purchaseOrder', 'warehouses'));
     }
 
-    /** رفض طلب الشراء */
-    public function reject(Request $request, PurchaseRequest $purchaseRequest)
+    /** تغيير حالة الأمر إلى "أُرسل للمورد" */
+    public function markSent(PurchaseOrder $purchaseOrder)
     {
-        $request->validate(['rejection_reason' => 'required|string|max:500']);
-
-        if ($purchaseRequest->status !== 'pending') {
-            return back()->with('error', 'هذا الطلب لا يمكن رفضه');
+        if ($purchaseOrder->status !== 'draft') {
+            return back()->with('error', 'لا يمكن تغيير حالة هذا الأمر');
         }
 
-        $purchaseRequest->update([
-            'status'           => 'rejected',
-            'approved_by'      => auth()->id(),
-            'rejection_reason' => $request->rejection_reason,
+        $purchaseOrder->update(['status' => 'sent']);
+
+        return back()->with('success', 'تم تحديث حالة الأمر إلى "أُرسل للمورد"');
+    }
+
+    /** إلغاء أمر الشراء */
+    public function cancel(PurchaseOrder $purchaseOrder)
+    {
+        if (!in_array($purchaseOrder->status, ['draft', 'sent'])) {
+            return back()->with('error', 'لا يمكن إلغاء هذا الأمر');
+        }
+
+        $purchaseOrder->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'تم إلغاء أمر الشراء');
+    }
+
+    /** طباعة أمر الشراء PDF */
+    public function pdf(PurchaseOrder $purchaseOrder)
+    {
+        $purchaseOrder->load(['supplier', 'items.product', 'user']);
+
+        $html = view('pdf.purchase_order', compact('purchaseOrder'))->render();
+
+        $mpdf = new Mpdf([
+            'mode'        => 'utf-8',
+            'format'      => 'A4',
+            'orientation' => 'P',
+            'margin_top'  => 15,
+            'margin_right'=> 15,
+            'margin_bottom'=> 15,
+            'margin_left' => 15,
+            'setAutoTopMargin'    => false,
+            'setAutoBottomMargin'=> false,
+            'tempDir'     => storage_path('app/mpdf_tmp'),
         ]);
 
-        return back()->with('success', 'تم رفض طلب الشراء');
+        $mpdf->SetDirectionality('rtl');
+        $mpdf->autoScriptToLang    = true;
+        $mpdf->autoLangToFont      = true;
+        $mpdf->baseScript          = 1;
+        $mpdf->autoVietnamese      = true;
+        $mpdf->autoArabic          = true;
+        $mpdf->WriteHTML($html);
+
+        $filename = "purchase-order-{$purchaseOrder->order_number}.pdf";
+        return response($mpdf->Output($filename, 'S'), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => "attachment; filename="{$filename}"",
+        ]);
     }
 
-    public function destroy(PurchaseRequest $purchaseRequest)
+    public function destroy(PurchaseOrder $purchaseOrder)
     {
-        if ($purchaseRequest->status !== 'pending') {
-            return back()->with('error', 'لا يمكن حذف طلب غير معلق');
+        if ($purchaseOrder->status !== 'draft') {
+            return back()->with('error', 'لا يمكن حذف إلا أوامر الشراء المسودة');
         }
 
-        $purchaseRequest->delete();
+        $purchaseOrder->delete();
 
-        return redirect()->route('purchase-requests.index')
-            ->with('success', 'تم حذف طلب الشراء');
+        return redirect()->route('purchase-orders.index')
+            ->with('success', 'تم حذف أمر الشراء');
     }
 }
