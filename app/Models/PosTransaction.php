@@ -32,6 +32,8 @@ class PosTransaction extends Model
         'change_amount',
         'status',
         'notes',
+        'bank_ref_number',
+        'bank_name',
     ];
 
     protected $casts = [
@@ -97,6 +99,7 @@ class PosTransaction extends Model
     public function getPaymentTypeLabelAttribute(): string
     {
         return match ($this->payment_type) {
+            'bank_transfer' => 'تحويل بنكي',
             'cash'   => 'نقدي',
             'credit' => 'آجل',
             'split'  => 'مختلط',
