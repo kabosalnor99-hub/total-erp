@@ -3,6 +3,7 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
+preDeployCommand = "php artisan migrate --force"
 startCommand = "/start.sh"
 
 [env]
@@ -11,5 +12,5 @@ APP_DEBUG = "false"
 DB_CONNECTION = "mysql"
 SESSION_DRIVER = "database"
 QUEUE_CONNECTION = "sync"
-CACHE_STORE = "database"
+CACHE_STORE = "database" 
 PORT = "8080"
