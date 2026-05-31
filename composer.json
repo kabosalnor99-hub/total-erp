@@ -3,12 +3,10 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": [
-        "laravel",
-        "framework"
-    ],
+    "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
+        "php": "^8.2",
         "barryvdh/laravel-dompdf": "*",
         "blade-ui-kit/blade-heroicons": "^2.7",
         "intervention/image": "*",
@@ -16,8 +14,6 @@
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "*",
         "maatwebsite/excel": "*",
-        "mpdf/mpdf": "^8.2",
-        "php": "^8.2",
         "spatie/laravel-permission": "*"
     },
     "require-dev": {
