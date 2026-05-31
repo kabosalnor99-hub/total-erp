@@ -1,171 +1,217 @@
-{{-- المسار الكامل: resources/views/reports/income_statement.blade.php --}}
-@extends('layouts.app')
+{{-- المسار الكامل: resources/views/pdf/reports/income_statement.blade.php --}}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>قائمة الدخل</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 11px;
+            color: #1A2E35;
+            background: #fff;
+            direction: rtl;
+        }
+        .header {
+            background: #00838F;
+            color: #fff;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .header .company { font-size: 18px; font-weight: bold; }
+        .header .report-title { font-size: 14px; opacity: .9; margin-top: 4px; }
+        .header .period { text-align: left; font-size: 11px; opacity: .85; }
 
-@section('title', 'قائمة الدخل')
+        /* ── بطاقة النتيجة ── */
+        .result-card {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        .profit-card { background: #d1fae5; border: 2px solid #6ee7b7; }
+        .loss-card   { background: #fee2e2; border: 2px solid #fca5a5; }
+        .result-label { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+        .result-amount { font-size: 24px; font-weight: bold; }
+        .profit-card .result-label  { color: #065f46; }
+        .profit-card .result-amount { color: #065f46; }
+        .loss-card .result-label    { color: #991b1b; }
+        .loss-card .result-amount   { color: #991b1b; }
 
-@section('content')
-<div class="p-6">
+        /* ── قسم الإيرادات والمصروفات ── */
+        .section { margin-bottom: 18px; }
+        .section-header {
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+            color: #fff;
+        }
+        .revenue-header { background: #065f46; }
+        .expense-header { background: #991b1b; }
 
-    {{-- رأس الصفحة --}}
-    <div class="flex items-center justify-between mb-6">
+        table { width: 100%; border-collapse: collapse; }
+        tbody tr:nth-child(even) { background: #f9fafb; }
+        tbody td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 11px;
+        }
+        .code-cell { color: #00838F; font-size: 10px; font-weight: bold; }
+        .num { text-align: left; font-family: monospace; }
+
+        tfoot tr { font-weight: bold; }
+        .revenue-total td { background: #ecfdf5; color: #065f46; border-top: 2px solid #6ee7b7; padding: 9px 12px; }
+        .expense-total td { background: #fef2f2; color: #991b1b; border-top: 2px solid #fca5a5; padding: 9px 12px; }
+
+        /* ── ملخص ── */
+        .summary-table {
+            width: 60%;
+            margin: 0 auto 20px;
+            border-collapse: collapse;
+        }
+        .summary-table td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 12px;
+        }
+        .summary-table .total-row td {
+            background: #00838F;
+            color: #fff;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 20px;
+        }
+        .sig-box {
+            flex: 1;
+            border-top: 1px solid #ccc;
+            padding-top: 6px;
+            text-align: center;
+            font-size: 10px;
+            color: #6B8C94;
+        }
+        .footer {
+            margin-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 8px;
+            text-align: center;
+            font-size: 9px;
+            color: #9ca3af;
+        }
+        .footer strong { color: #00838F; }
+    </style>
+</head>
+<body>
+
+    {{-- الترويسة --}}
+    <div class="header">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">قائمة الدخل</h1>
-            <p class="text-sm text-gray-500 mt-1">Income Statement</p>
+            <div class="company">🔧 توتال الكلاكلة</div>
+            <div class="report-title">قائمة الدخل — Income Statement</div>
         </div>
-        <a href="{{ route('reports.income-statement', array_merge(request()->query(), ['format' => 'pdf'])) }}"
-           target="_blank"
-           class="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm">
-            <i class="fa fa-file-pdf"></i>
-            تصدير PDF
-        </a>
-    </div>
-
-    {{-- فلاتر --}}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
-        <form method="GET" action="{{ route('reports.income-statement') }}" class="flex items-end gap-4 flex-wrap">
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">من تاريخ</label>
-                <input type="date" name="from_date" value="{{ $from_date }}"
-                    class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-            </div>
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">إلى تاريخ</label>
-                <input type="date" name="to_date" value="{{ $to_date }}"
-                    class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-            </div>
-            <button type="submit"
-                class="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-dark transition text-sm">
-                <i class="fa fa-search me-1"></i> عرض
-            </button>
-        </form>
+        <div class="period">
+            <div>من: {{ \Carbon\Carbon::parse($fromDate)->format('Y/m/d') }}</div>
+            <div>إلى: {{ \Carbon\Carbon::parse($toDate)->format('Y/m/d') }}</div>
+            <div style="margin-top:4px; opacity:.7;">طُبع: {{ now()->format('Y/m/d H:i') }}</div>
+        </div>
     </div>
 
     {{-- بطاقة النتيجة --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="bg-green-50 border border-green-100 rounded-xl p-4 text-center">
-            <p class="text-xs text-green-600 mb-1">إجمالي الإيرادات</p>
-            <p class="text-2xl font-bold text-green-700">{{ number_format($total_revenues, 2) }}</p>
-            <p class="text-xs text-green-500 mt-1">ج.س</p>
+    <div class="result-card {{ $is_profit ? 'profit-card' : 'loss-card' }}">
+        <div class="result-label">
+            {{ $is_profit ? '✓ صافي الربح' : '✗ صافي الخسارة' }}
         </div>
-        <div class="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
-            <p class="text-xs text-red-600 mb-1">إجمالي المصروفات</p>
-            <p class="text-2xl font-bold text-red-700">{{ number_format($total_expenses, 2) }}</p>
-            <p class="text-xs text-red-500 mt-1">ج.س</p>
-        </div>
-        <div class="{{ $is_profit ? 'bg-primary/10 border-primary/20' : 'bg-red-100 border-red-200' }} border rounded-xl p-4 text-center">
-            <p class="text-xs {{ $is_profit ? 'text-primary' : 'text-red-600' }} mb-1">
-                {{ $is_profit ? 'صافي الربح' : 'صافي الخسارة' }}
-            </p>
-            <p class="text-2xl font-bold {{ $is_profit ? 'text-primary' : 'text-red-700' }}">
-                {{ number_format(abs($net_income), 2) }}
-            </p>
-            <p class="text-xs {{ $is_profit ? 'text-primary/70' : 'text-red-500' }} mt-1">ج.س</p>
+        <div class="result-amount">
+            {{ number_format(abs($net_profit), 2) }} ج.س
         </div>
     </div>
 
-    {{-- عمودان: الإيرادات / المصروفات --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    {{-- قسم الإيرادات --}}
+    <div class="section">
+        <div class="section-header revenue-header">📈 الإيرادات — Revenues</div>
+        <table>
+            <tbody>
+                @forelse($revenues as $row)
+                <tr>
+                    <td class="code-cell">{{ $row['code'] }}</td>
+                    <td>{{ $row['name'] }}</td>
+                    <td class="num" style="color:#065f46;">{{ number_format($row['amount'], 2) }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:12px;">لا توجد إيرادات في هذه الفترة</td></tr>
+                @endforelse
+            </tbody>
+            <tfoot>
+                <tr class="revenue-total">
+                    <td colspan="2">إجمالي الإيرادات</td>
+                    <td class="num">{{ number_format($total_revenue, 2) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
-        {{-- الإيرادات --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="bg-green-700 text-white px-4 py-3 flex items-center gap-2">
-                <i class="fa fa-arrow-up"></i>
-                <span class="font-semibold">الإيرادات — Revenues</span>
-            </div>
-            <table class="w-full text-sm">
-                <thead class="bg-green-50">
-                    <tr>
-                        <th class="text-right py-2 px-4 text-green-700">الكود</th>
-                        <th class="text-right py-2 px-4 text-green-700">الحساب</th>
-                        <th class="text-left py-2 px-4 text-green-700">المبلغ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($revenues as $row)
-                    <tr class="border-b border-gray-100 hover:bg-green-50/50">
-                        <td class="py-2 px-4 font-mono text-xs text-primary">{{ $row['account']->code }}</td>
-                        <td class="py-2 px-4">{{ $row['account']->name_ar }}</td>
-                        <td class="py-2 px-4 text-left font-mono text-green-700 font-medium">
-                            {{ number_format($row['balance'], 2) }}
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="3" class="py-6 text-center text-gray-400 text-xs">لا توجد إيرادات</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-                <tfoot>
-                    <tr class="bg-green-700 text-white font-bold">
-                        <td colspan="2" class="py-3 px-4">إجمالي الإيرادات</td>
-                        <td class="py-3 px-4 text-left font-mono">{{ number_format($total_revenues, 2) }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        {{-- المصروفات --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="bg-red-700 text-white px-4 py-3 flex items-center gap-2">
-                <i class="fa fa-arrow-down"></i>
-                <span class="font-semibold">المصروفات — Expenses</span>
-            </div>
-            <table class="w-full text-sm">
-                <thead class="bg-red-50">
-                    <tr>
-                        <th class="text-right py-2 px-4 text-red-700">الكود</th>
-                        <th class="text-right py-2 px-4 text-red-700">الحساب</th>
-                        <th class="text-left py-2 px-4 text-red-700">المبلغ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($expenses as $row)
-                    <tr class="border-b border-gray-100 hover:bg-red-50/50">
-                        <td class="py-2 px-4 font-mono text-xs text-primary">{{ $row['account']->code }}</td>
-                        <td class="py-2 px-4">{{ $row['account']->name_ar }}</td>
-                        <td class="py-2 px-4 text-left font-mono text-red-700 font-medium">
-                            {{ number_format($row['balance'], 2) }}
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="3" class="py-6 text-center text-gray-400 text-xs">لا توجد مصروفات</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-                <tfoot>
-                    <tr class="bg-red-700 text-white font-bold">
-                        <td colspan="2" class="py-3 px-4">إجمالي المصروفات</td>
-                        <td class="py-3 px-4 text-left font-mono">{{ number_format($total_expenses, 2) }}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
+    {{-- قسم المصروفات --}}
+    <div class="section">
+        <div class="section-header expense-header">📉 المصروفات — Expenses</div>
+        <table>
+            <tbody>
+                @forelse($expenses as $row)
+                <tr>
+                    <td class="code-cell">{{ $row['code'] }}</td>
+                    <td>{{ $row['name'] }}</td>
+                    <td class="num" style="color:#991b1b;">{{ number_format($row['amount'], 2) }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:12px;">لا توجد مصروفات في هذه الفترة</td></tr>
+                @endforelse
+            </tbody>
+            <tfoot>
+                <tr class="expense-total">
+                    <td colspan="2">إجمالي المصروفات</td>
+                    <td class="num">{{ number_format($total_expense, 2) }}</td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
 
     {{-- ملخص النتيجة --}}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-md mx-auto">
-        <h3 class="font-bold text-gray-700 mb-4 text-center">ملخص النتيجة</h3>
-        <div class="space-y-3">
-            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                <span class="text-gray-600">إجمالي الإيرادات</span>
-                <span class="font-mono font-bold text-green-700">{{ number_format($total_revenues, 2) }}</span>
-            </div>
-            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                <span class="text-gray-600">إجمالي المصروفات</span>
-                <span class="font-mono font-bold text-red-700">({{ number_format($total_expenses, 2) }})</span>
-            </div>
-            <div class="flex justify-between items-center py-3 rounded-lg {{ $is_profit ? 'bg-primary/10' : 'bg-red-50' }} px-3">
-                <span class="font-bold {{ $is_profit ? 'text-primary' : 'text-red-700' }}">
-                    {{ $is_profit ? '✓ صافي الربح' : '✗ صافي الخسارة' }}
-                </span>
-                <span class="font-mono font-bold text-xl {{ $is_profit ? 'text-primary' : 'text-red-700' }}">
-                    {{ number_format(abs($net_income), 2) }}
-                </span>
-            </div>
-        </div>
+    <table class="summary-table">
+        <tbody>
+            <tr>
+                <td>إجمالي الإيرادات</td>
+                <td class="num" style="color:#065f46;">{{ number_format($total_revenue, 2) }}</td>
+            </tr>
+            <tr>
+                <td>إجمالي المصروفات</td>
+                <td class="num" style="color:#991b1b;">({{ number_format($total_expense, 2) }})</td>
+            </tr>
+            <tr class="total-row">
+                <td>{{ $is_profit ? 'صافي الربح' : 'صافي الخسارة' }}</td>
+                <td class="num">{{ number_format(abs($net_profit), 2) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- التوقيعات --}}
+    <div class="signatures">
+        <div class="sig-box">المحاسب<br><br>_______________</div>
+        <div class="sig-box">المدير المالي<br><br>_______________</div>
+        <div class="sig-box">المدير العام<br><br>_______________</div>
     </div>
 
-</div>
-@endsection
+    <div class="footer">
+        <strong>توتال الكلاكلة</strong> — نظام ERP | قائمة الدخل | {{ now()->format('Y/m/d H:i') }}
+    </div>
+
+</body>
+</html>
