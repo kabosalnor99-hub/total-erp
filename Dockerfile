@@ -60,8 +60,8 @@ WORKDIR /var/www/html
 # Copy composer files first (for layer caching)
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies (no dev)
-RUN composer install --no-dev --no-interaction --optimize-autoloader --no-scripts
+# Install PHP dependencies — update to pick up new packages not in lock file
+RUN composer update --no-dev --no-interaction --optimize-autoloader --no-scripts
 
 # Copy application source
 COPY . .
