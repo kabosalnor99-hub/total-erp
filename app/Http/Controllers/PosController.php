@@ -159,8 +159,10 @@ class PosController extends Controller
             'items.*.quantity'         => ['required', 'numeric', 'min:0.001'],
             'items.*.price'            => ['required', 'numeric', 'min:0'],
             'items.*.discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'payment.payment_type'     => ['required', 'in:cash,credit,split'],
+            'payment.payment_type'     => ['required', 'in:cash,credit,split,bank_transfer'],
             'payment.cash_received'    => ['nullable', 'numeric', 'min:0'],
+            'payment.bank_ref_number'  => ['nullable', 'string', 'max:100'],
+            'payment.bank_name'        => ['nullable', 'string', 'max:100'],
             'payment.discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'payment.tax_percent'      => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
