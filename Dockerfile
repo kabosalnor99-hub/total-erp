@@ -95,6 +95,29 @@ RUN mkdir -p /var/www/html/storage/app/mpdf_tmp \
 # Run composer post-install scripts
 RUN composer dump-autoload --optimize
 
+# ── تثبيت خط Noto Naskh Arabic لـ DomPDF ──────────────────────────────────
+# 1. أنشئ مجلد الخطوط
+RUN mkdir -p /var/www/html/storage/fonts
+
+# 2. حمّل ملفات TTF
+RUN curl -fsSL \
+    "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf" \
+    -o /var/www/html/storage/fonts/NotoNaskhArabic-Regular.ttf \
+ && curl -fsSL \
+    "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Bold.ttf" \
+    -o /var/www/html/storage/fonts/NotoNaskhArabic-Bold.ttf
+
+# 3. سجّل الخط في DomPDF (يصنع ملفات UFM المطلوبة)
+RUN php vendor/dompdf/dompdf/load_font.php "noto naskh arabic" normal 400 \
+      /var/www/html/storage/fonts/NotoNaskhArabic-Regular.ttf \
+ && php vendor/dompdf/dompdf/load_font.php "noto naskh arabic" bold 700 \
+      /var/www/html/storage/fonts/NotoNaskhArabic-Bold.ttf
+
+# 4. صلاحيات
+RUN chown -R www-data:www-data /var/www/html/storage/fonts \
+ && chmod -R 755 /var/www/html/storage/fonts
+# ───────────────────────────────────────────────────────────────────────────
+
 EXPOSE 8080
 
 CMD ["/start.sh"]
