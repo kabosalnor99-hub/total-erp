@@ -107,11 +107,33 @@ RUN curl -fsSL \
     "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Bold.ttf" \
     -o /var/www/html/storage/fonts/NotoNaskhArabic-Bold.ttf
 
-# 3. سجّل الخط في DomPDF (يصنع ملفات UFM المطلوبة)
-RUN php vendor/dompdf/dompdf/load_font.php "noto naskh arabic" normal 400 \
-      /var/www/html/storage/fonts/NotoNaskhArabic-Regular.ttf \
- && php vendor/dompdf/dompdf/load_font.php "noto naskh arabic" bold 700 \
-      /var/www/html/storage/fonts/NotoNaskhArabic-Bold.ttf
+# 3. سجّل الخط في DomPDF عبر سكريبت PHP مباشر
+RUN php -r "
+    define('DOMPDF_AUTOLOAD', false);
+    require_once '/var/www/html/vendor/autoload.php';
+
+    \$fontDir   = '/var/www/html/storage/fonts';
+    \$cacheFile = \$fontDir . '/dompdf_font_family_cache.php';
+
+    // اقرأ الـ cache الحالي إن وُجد
+    \$cache = [];
+    if (file_exists(\$cacheFile)) {
+        \$cache = include \$cacheFile;
+        if (!is_array(\$cache)) \$cache = [];
+    }
+
+    // سجّل الخط
+    \$cache['noto naskh arabic'] = [
+        'normal'      => \$fontDir . '/NotoNaskhArabic-Regular.ttf',
+        'bold'        => \$fontDir . '/NotoNaskhArabic-Bold.ttf',
+        'italic'      => \$fontDir . '/NotoNaskhArabic-Regular.ttf',
+        'bold_italic' => \$fontDir . '/NotoNaskhArabic-Bold.ttf',
+    ];
+
+    // اكتب الـ cache
+    file_put_contents(\$cacheFile, '<?php return ' . var_export(\$cache, true) . ';');
+    echo 'Font registered: noto naskh arabic' . PHP_EOL;
+"
 
 # 4. صلاحيات
 RUN chown -R www-data:www-data /var/www/html/storage/fonts \
