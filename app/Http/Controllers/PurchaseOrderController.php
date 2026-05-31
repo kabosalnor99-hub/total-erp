@@ -10,7 +10,7 @@ use App\Models\PurchaseRequest;
 use App\Models\Supplier;
 use App\Models\Warehouse;
 use App\Services\PurchaseService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Mpdf\Mpdf;
 use Illuminate\Http\Request;
 
 class PurchaseOrderController extends Controller
@@ -139,10 +139,34 @@ class PurchaseOrderController extends Controller
     {
         $purchaseOrder->load(['supplier', 'items.product', 'user']);
 
-        $pdf = Pdf::loadView('pdf.purchase_order', compact('purchaseOrder'))
-            ->setPaper('a4', 'portrait');
+        $html = view('pdf.purchase_order', compact('purchaseOrder'))->render();
 
-        return $pdf->download("purchase-order-{$purchaseOrder->order_number}.pdf");
+        $mpdf = new Mpdf([
+            'mode'        => 'utf-8',
+            'format'      => 'A4',
+            'orientation' => 'P',
+            'margin_top'  => 15,
+            'margin_right'=> 15,
+            'margin_bottom'=> 15,
+            'margin_left' => 15,
+            'setAutoTopMargin'    => false,
+            'setAutoBottomMargin'=> false,
+            'tempDir'     => storage_path('app/mpdf_tmp'),
+        ]);
+
+        $mpdf->SetDirectionality('rtl');
+        $mpdf->autoScriptToLang    = true;
+        $mpdf->autoLangToFont      = true;
+        $mpdf->baseScript          = 1;
+        $mpdf->autoVietnamese      = true;
+        $mpdf->autoArabic          = true;
+        $mpdf->WriteHTML($html);
+
+        $filename = "purchase-order-{$purchaseOrder->order_number}.pdf";
+        return response($mpdf->Output($filename, 'S'), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => "attachment; filename="{$filename}"",
+        ]);
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)
