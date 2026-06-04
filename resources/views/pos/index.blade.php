@@ -235,21 +235,43 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 /* Responsive Tablet & Mobile */
 @media(max-width:768px){
     :root{--cart-w:100%}
-    /* الصفحة كلها ثابتة - لا scroll خارجي */
     html,body{overflow:hidden;height:100%;height:100dvh}
-    /* الـ wrapper عمود رأسي بالطول الكامل */
     .pos-wrapper{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-    /* منطقة المنتجات: 56% من الشاشة مع scroll داخلي */
-    .pos-products{flex:0 0 56vh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+    /* المنتجات: تأخذ ما تبقى بعد السلة */
+    .pos-products{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
     .pos-grid{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-    /* السلة: 44% من الشاشة - دائماً ظاهرة */
-    .pos-cart{flex:0 0 44vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none;padding-bottom:env(safe-area-inset-bottom, 0px)}
-    /* بنود السلة تسكرول داخلياً */
-    .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
-    /* الملخص وزر الدفع دائماً في الأسفل */
-    .pos-cart-summary{flex-shrink:0;box-shadow:0 -4px 20px rgba(0,0,0,.3)}
+    /* السلة: حجمها يتحدد بمحتواها بحد أقصى 52vh */
+    .pos-cart{flex:0 0 auto;max-height:52vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none}
     .pos-cart-header{flex-shrink:0}
     .pos-customer-row{flex-shrink:0}
+    /* بنود السلة: scroll داخلي بحد أقصى */
+    .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;max-height:110px}
+    /* الملخص بدون padding زائد */
+    .pos-cart-summary{flex-shrink:0;padding:8px 14px;box-shadow:0 -4px 20px rgba(0,0,0,.3)}
+    /* إخفاء الأزرار الثانوية من الملخص لتوفير مساحة */
+    .pos-cart-summary .pos-action-btns{display:none}
+    /* إخفاء زر الدفع من الملخص — يظهر في الشريط الثابت بدلاً منه */
+    .pos-cart-summary .btn-checkout{display:none}
+    .pos-cart-summary .btn-draft-inline{display:none}
+    /* شريط الدفع الثابت */
+    .mobile-checkout-bar{
+        display:flex !important;
+        align-items:center;
+        gap:8px;
+        padding:10px 14px;
+        padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+        background:var(--bg-3);
+        border-top:2px solid var(--teal);
+        box-shadow:0 -4px 24px rgba(13,148,136,.3);
+        flex-shrink:0;
+        z-index:20;
+    }
+    .mobile-checkout-bar .btn-checkout{
+        flex:1;margin-top:0;padding:14px;font-size:15px;border-radius:12px;
+    }
+    .mobile-total{text-align:center;min-width:90px;flex-shrink:0}
+    .mobile-total-label{font-size:10px;color:var(--text-muted);display:block}
+    .mobile-total-amount{font-size:15px;font-weight:800;color:var(--teal-light);display:block}
 }
 
 /* Responsive Mobile */
@@ -278,12 +300,11 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     .cart-item{padding:7px 12px;gap:8px}
     .cart-item-name{font-size:11px}
     .cart-item-total{font-size:12px;min-width:44px}
-    .pos-cart-summary{padding:10px 12px}
-    .summary-row.total{font-size:17px}
-    .btn-checkout{font-size:14px;padding:11px}
-    /* نسب الشاشات الصغيرة جداً: منتجات 52% / سلة 48% */
-    .pos-products{flex-basis:52vh}
-    .pos-cart{flex-basis:48vh}
+    .pos-cart-summary{padding:6px 12px}
+    .summary-row.total{font-size:15px}
+    .mobile-checkout-bar{padding:8px 10px;padding-bottom:calc(8px + env(safe-area-inset-bottom, 0px))}
+    .mobile-checkout-bar .btn-checkout{font-size:14px;padding:12px}
+    .mobile-total-amount{font-size:13px}
     .pos-modal{padding:18px}
     .pos-modal h3{font-size:15px}
     .session-summary-grid{grid-template-columns:1fr 1fr}
@@ -606,6 +627,7 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                 <span class="num-ltr" x-text="fmt(grandTotal) + ' ج.س'"></span>
             </div>
 
+            {{-- زر الدفع: مرئي في الديسكتوب، مخفي في الموبايل (يظهر في الشريط الثابت) --}}
             <button
                 class="btn-checkout"
                 :disabled="cart.length === 0"
@@ -615,7 +637,7 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
             </button>
 
             <button
-                class="btn-pos-secondary"
+                class="btn-pos-secondary btn-draft-inline"
                 style="margin-top:8px"
                 :disabled="cart.length === 0"
                 @click="saveDraft()"
@@ -628,6 +650,30 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                 <a href="{{ route('pos.report') }}" class="btn-pos-secondary" style="text-decoration:none;display:flex;align-items:center;justify-content:center">📊 تقرير</a>
             </div>
         </div>
+
+        {{-- ═══ شريط الدفع الثابت — موبايل فقط ═══ --}}
+        <div class="mobile-checkout-bar" style="display:none">
+            <div class="mobile-total">
+                <span class="mobile-total-label">الإجمالي</span>
+                <span class="mobile-total-amount num-ltr" x-text="fmt(grandTotal) + ' ج.س'"></span>
+            </div>
+            <button
+                class="btn-checkout"
+                :disabled="cart.length === 0"
+                @click="openPaymentModal()"
+                style="margin-top:0"
+            >
+                💳 الدفع
+            </button>
+            <button
+                class="btn-pos-secondary"
+                style="padding:14px 10px;font-size:13px;flex-shrink:0"
+                :disabled="cart.length === 0"
+                @click="saveDraft()"
+                title="فاتورة مبدئية"
+            >📋</button>
+        </div>
+
     </aside>
 
     {{-- ═══════════════════ MODAL: الدفع ═══════════════════════════ --}}
