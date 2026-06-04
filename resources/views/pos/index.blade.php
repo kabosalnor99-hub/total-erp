@@ -56,6 +56,12 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .pos-header .header-actions .btn-pos-secondary{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.9);padding:5px 12px;font-size:11px;backdrop-filter:blur(4px)}
 .pos-header .header-actions .btn-pos-secondary:hover{background:rgba(255,255,255,.22);color:#fff;transform:translateY(-1px)}
 
+/* أزرار الهيدر */
+.hdr-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;font-size:11px;white-space:nowrap}
+.hdr-btn-danger{border-color:#E53935!important;color:#EF9A9A!important}
+.hdr-btn-icon{font-size:13px;flex-shrink:0}
+.hdr-btn-label{display:inline}
+
 /* Products Panel */
 .pos-products{background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
 
@@ -224,27 +230,6 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .pos-toast.error{background:linear-gradient(135deg,var(--danger) 0%,#b91c1c 100%)}
 .pos-toast.warning{background:linear-gradient(135deg,var(--warning) 0%,#d97706 100%)}
 
-/* ═══ مودال اختيار الطباعة ═══ */
-.print-choice-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(6px);padding:16px}
-.print-choice-box{background:var(--bg-3);border:1px solid var(--border-light);border-radius:20px;padding:28px 24px 24px;width:100%;max-width:400px;box-shadow:0 16px 60px rgba(0,0,0,.6);animation:pcIn .25s cubic-bezier(0.34,1.56,0.64,1)}
-@keyframes pcIn{from{transform:scale(.88) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
-.print-choice-success{text-align:center;margin-bottom:20px}
-.print-choice-success .check-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--success),#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px;box-shadow:0 4px 20px rgba(16,185,129,.4)}
-.print-choice-success h3{font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px}
-.print-choice-success .receipt-num{font-size:13px;color:var(--teal-light);font-weight:700;direction:ltr}
-.print-choice-success .total-amount{font-size:22px;font-weight:800;color:var(--teal-light);margin-top:6px;direction:ltr}
-.print-choice-divider{text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:16px;position:relative}
-.print-choice-divider::before,.print-choice-divider::after{content:'';position:absolute;top:50%;width:30%;height:1px;background:var(--border)}
-.print-choice-divider::before{right:0}.print-choice-divider::after{left:0}
-.print-choice-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.print-choice-btn{padding:16px 12px;border-radius:14px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:center;transition:all .18s;font-family:inherit}
-.print-choice-btn:hover{border-color:var(--teal);background:var(--teal-soft);transform:translateY(-2px);box-shadow:var(--shadow-teal)}
-.print-choice-btn .pcb-icon{font-size:28px;display:block;margin-bottom:8px}
-.print-choice-btn .pcb-title{font-size:13px;font-weight:800;color:var(--text);display:block;margin-bottom:3px}
-.print-choice-btn .pcb-sub{font-size:10px;color:var(--text-muted);display:block}
-.print-choice-skip{width:100%;padding:10px;background:none;border:1.5px solid var(--border);border-radius:10px;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
-.print-choice-skip:hover{border-color:var(--danger);color:#fca5a5}
-
 /* Spinner */
 .pos-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:20px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -256,33 +241,49 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 /* Responsive Tablet & Mobile */
 @media(max-width:768px){
     :root{--cart-w:100%}
-    /* الصفحة كلها ثابتة - لا scroll خارجي */
     html,body{overflow:hidden;height:100%;height:100dvh}
-    /* الـ wrapper عمود رأسي بالطول الكامل */
     .pos-wrapper{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-    /* منطقة المنتجات: 56% من الشاشة مع scroll داخلي */
-    .pos-products{flex:0 0 56vh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+    /* المنتجات: تأخذ ما تبقى بعد السلة */
+    .pos-products{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
     .pos-grid{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-    /* السلة: 44% من الشاشة - دائماً ظاهرة */
-    .pos-cart{flex:0 0 44vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none;padding-bottom:env(safe-area-inset-bottom, 0px)}
-    /* بنود السلة تسكرول داخلياً */
-    .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
-    /* الملخص وزر الدفع دائماً في الأسفل */
-    .pos-cart-summary{flex-shrink:0;box-shadow:0 -4px 20px rgba(0,0,0,.3)}
+    /* السلة */
+    .pos-cart{flex:0 0 auto;max-height:52vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none}
     .pos-cart-header{flex-shrink:0}
     .pos-customer-row{flex-shrink:0}
+    .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;max-height:110px}
+    .pos-cart-summary{flex-shrink:0;padding:8px 14px;box-shadow:0 -4px 20px rgba(0,0,0,.3)}
+    .pos-cart-summary .pos-action-btns{display:none}
+    .pos-cart-summary .btn-checkout{display:none}
+    .pos-cart-summary .btn-draft-inline{display:none}
+    /* شريط الدفع الثابت */
+    .mobile-checkout-bar{display:flex !important;align-items:center;gap:8px;padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px));background:var(--bg-3);border-top:2px solid var(--teal);box-shadow:0 -4px 24px rgba(13,148,136,.3);flex-shrink:0;z-index:20}
+    .mobile-checkout-bar .btn-checkout{flex:1;margin-top:0;padding:14px;font-size:15px;border-radius:12px}
+    .mobile-total{text-align:center;min-width:90px;flex-shrink:0}
+    .mobile-total-label{font-size:10px;color:var(--text-muted);display:block}
+    .mobile-total-amount{font-size:15px;font-weight:800;color:var(--teal-light);display:block}
+    /* الهيدر في تابلت: أخفِ session-user واضغط الأزرار */
+    .hdr-session-user{display:none}
+    .hdr-btn{padding:5px 10px;font-size:10px;gap:4px}
 }
 
 /* Responsive Mobile */
 @media(max-width:480px){
     :root{--header-h:52px}
-    .pos-header{padding:0 10px;gap:6px}
-    .pos-header .logo{font-size:13px}
+    /* الهيدر — أيقونات فقط */
+    .pos-header{padding:0 8px;gap:6px;flex-wrap:nowrap}
+    .pos-header .logo{font-size:12px;flex-shrink:0}
     .pos-header .logo span{display:none}
-    .pos-header .session-info{font-size:10px;padding:3px 8px;gap:4px}
-    .pos-header .session-badge{font-size:9px;padding:1px 6px}
-    .pos-header .header-actions{gap:4px}
-    .pos-header .header-actions .btn-pos-secondary{padding:4px 8px;font-size:10px}
+    /* أخفِ session-info الثانوية واحتفظ بالأهم */
+    .hdr-session-main{display:none}
+    .hdr-session-user{display:none}
+    .hdr-session-balance{font-size:10px;padding:3px 8px;gap:3px;flex-shrink:0}
+    .hdr-balance-label{display:none}
+    /* الأزرار: أيقونة فقط بدون نص */
+    .pos-header .header-actions{gap:4px;flex-shrink:0}
+    .hdr-btn{padding:6px 8px;min-width:32px;justify-content:center}
+    .hdr-btn-label{display:none}
+    .hdr-btn-icon{font-size:15px}
+    /* باقي العناصر */
     .pos-search-bar{padding:7px 10px}
     .pos-search-input{font-size:13px;padding:7px 10px}
     .pos-categories{padding:6px 10px;gap:5px}
@@ -299,12 +300,11 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     .cart-item{padding:7px 12px;gap:8px}
     .cart-item-name{font-size:11px}
     .cart-item-total{font-size:12px;min-width:44px}
-    .pos-cart-summary{padding:10px 12px}
-    .summary-row.total{font-size:17px}
-    .btn-checkout{font-size:14px;padding:11px}
-    /* نسب الشاشات الصغيرة جداً: منتجات 52% / سلة 48% */
-    .pos-products{flex-basis:52vh}
-    .pos-cart{flex-basis:48vh}
+    .pos-cart-summary{padding:6px 12px}
+    .summary-row.total{font-size:15px}
+    .mobile-checkout-bar{padding:8px 10px;padding-bottom:calc(8px + env(safe-area-inset-bottom, 0px))}
+    .mobile-checkout-bar .btn-checkout{font-size:14px;padding:12px}
+    .mobile-total-amount{font-size:13px}
     .pos-modal{padding:18px}
     .pos-modal h3{font-size:15px}
     .session-summary-grid{grid-template-columns:1fr 1fr}
@@ -367,38 +367,43 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
             🔧 <span>توتال الكلاكلة</span>
         </a>
 
-        <div class="session-info">
+        {{-- معلومات الجلسة — تُخفى في الموبايل الضيق --}}
+        <div class="session-info hdr-session-main">
             <span>جلسة #<span class="num-ltr">{{ $session->id }}</span></span>
             <span class="session-badge">مفتوحة</span>
             <span class="num-ltr">{{ $session->opened_at->format('H:i') }}</span>
         </div>
 
-        <div class="session-info" style="gap:4px">
-            <span>الصندوق:</span>
+        <div class="session-info hdr-session-balance" style="gap:4px">
+            <span class="hdr-balance-label">الصندوق:</span>
             <span class="num-ltr" style="color:#4FB3C0;font-weight:700" x-text="fmt(sessionBalance) + ' ج.س'"></span>
         </div>
 
-        <div class="session-info">
+        <div class="session-info hdr-session-user">
             <span>{{ auth()->user()->name }}</span>
         </div>
 
+        {{-- أزرار العمليات --}}
         <div class="header-actions">
-            {{-- صندوق --}}
-            <button class="btn-pos-secondary" style="padding:6px 12px;font-size:11px" @click="openCashModal('in')" title="إضافة نقدي">
-                💵 إضافة
+            {{-- إضافة نقدي --}}
+            <button class="btn-pos-secondary hdr-btn" @click="openCashModal('in')" title="إضافة نقدي">
+                <span class="hdr-btn-icon">💵</span>
+                <span class="hdr-btn-label">إضافة</span>
             </button>
-            <button class="btn-pos-secondary" style="padding:6px 12px;font-size:11px" @click="openCashModal('out')" title="سحب نقدي">
-                💸 سحب
+            {{-- سحب نقدي --}}
+            <button class="btn-pos-secondary hdr-btn" @click="openCashModal('out')" title="سحب نقدي">
+                <span class="hdr-btn-icon">💸</span>
+                <span class="hdr-btn-label">سحب</span>
             </button>
-
-            {{-- تقرير الجلسات --}}
-            <a href="{{ route('pos.sessions.index') }}" class="btn-pos-secondary" style="padding:6px 12px;font-size:11px;text-decoration:none;display:inline-block">
-                📋 الجلسات
+            {{-- الجلسات --}}
+            <a href="{{ route('pos.sessions.index') }}" class="btn-pos-secondary hdr-btn" style="text-decoration:none" title="الجلسات">
+                <span class="hdr-btn-icon">📋</span>
+                <span class="hdr-btn-label">الجلسات</span>
             </a>
-
             {{-- إغلاق الجلسة --}}
-            <button class="btn-pos-secondary" style="padding:6px 12px;font-size:11px;border-color:#E53935;color:#EF9A9A" @click="openCloseSession()">
-                🔴 إغلاق الجلسة
+            <button class="btn-pos-secondary hdr-btn hdr-btn-danger" @click="openCloseSession()" title="إغلاق الجلسة">
+                <span class="hdr-btn-icon">🔴</span>
+                <span class="hdr-btn-label">إغلاق</span>
             </button>
         </div>
     </header>
@@ -1011,40 +1016,6 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     {{-- Toast --}}
     <div id="pos-toast" class="pos-toast"></div>
 
-    {{-- ═══════════════════ مودال اختيار الطباعة ═══════════════════ --}}
-    <div id="print-choice-overlay" class="print-choice-overlay" style="display:none">
-        <div class="print-choice-box">
-
-            {{-- نجاح البيع --}}
-            <div class="print-choice-success">
-                <div class="check-icon">✓</div>
-                <h3>تم البيع بنجاح!</h3>
-                <div class="receipt-num" id="pc-receipt-num"></div>
-                <div class="total-amount" id="pc-total-amount"></div>
-            </div>
-
-            <div class="print-choice-divider">اختر طريقة الطباعة</div>
-
-            {{-- خيارات الطباعة --}}
-            <div class="print-choice-btns">
-                <button class="print-choice-btn" id="pc-btn-thermal" title="طباعة حرارية 72mm">
-                    <span class="pcb-icon">🧾</span>
-                    <span class="pcb-title">إيصال حراري</span>
-                    <span class="pcb-sub">72mm — طابعة كاشير</span>
-                </button>
-                <button class="print-choice-btn" id="pc-btn-a4" title="فاتورة A4">
-                    <span class="pcb-icon">📄</span>
-                    <span class="pcb-title">فاتورة A4</span>
-                    <span class="pcb-sub">ورق عادي — طابعة مكتبية</span>
-                </button>
-            </div>
-
-            <button class="print-choice-skip" id="pc-btn-skip">
-                تخطي الطباعة — العودة للكاشير
-            </button>
-        </div>
-    </div>
-
     {{-- ═══════════════════ مودال ماسح الباركود بالكاميرا ══════════════ --}}
     <div id="pos-barcode-modal" role="dialog" aria-modal="true">
         <div id="pos-barcode-backdrop"></div>
@@ -1096,100 +1067,6 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 </div>{{-- end pos-wrapper --}}
 
 <script src="{{ asset('js/pos.js') }}"></script>
-<script>
-// ══════════════════════════════════════════════════════════════════════
-// مودال اختيار الطباعة — يعمل بعد تحميل Alpine وpos.js
-// ══════════════════════════════════════════════════════════════════════
-(function () {
-
-    // روابط URL للطباعة (تُحدَّث بعد كل عملية بيع)
-    var _receiptUrl  = null;   // حراري
-    var _invoiceUrl  = null;   // A4 — يُبنى من رقم الفاتورة
-    var _receiptNum  = '';
-    var _totalAmount = '';
-
-    var overlay   = document.getElementById('print-choice-overlay');
-    var elNum     = document.getElementById('pc-receipt-num');
-    var elAmount  = document.getElementById('pc-total-amount');
-    var btnThermal = document.getElementById('pc-btn-thermal');
-    var btnA4      = document.getElementById('pc-btn-a4');
-    var btnSkip    = document.getElementById('pc-btn-skip');
-
-    /* ── فتح / إغلاق المودال ── */
-    function openPrintChoice(data) {
-        _receiptUrl  = data.receipt_url  || null;
-        _invoiceUrl  = data.invoice_print_url || (data.invoice_id ? '/invoices/' + data.invoice_id + '/print' : null);
-        _receiptNum  = data.receipt_number || '';
-        _totalAmount = data.total_formatted || (data.total ? Number(data.total).toLocaleString('ar-SD', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ج.س' : '');
-
-        if (elNum)    elNum.textContent    = _receiptNum ? 'رقم الإيصال: ' + _receiptNum : '';
-        if (elAmount) elAmount.textContent = _totalAmount;
-
-        overlay.style.display = 'flex';
-    }
-
-    function closePrintChoice() {
-        overlay.style.display = 'none';
-    }
-
-    /* ── أزرار الطباعة ── */
-    btnThermal && btnThermal.addEventListener('click', function () {
-        if (_receiptUrl) {
-            window.open(_receiptUrl, '_blank', 'width=420,height=650,menubar=yes,toolbar=yes');
-        }
-        closePrintChoice();
-    });
-
-    btnA4 && btnA4.addEventListener('click', function () {
-        if (_invoiceUrl) {
-            window.open(_invoiceUrl, '_blank', 'width=900,height=750,menubar=yes,toolbar=yes');
-        } else {
-            alert('رابط فاتورة A4 غير متاح لهذه العملية');
-        }
-        closePrintChoice();
-    });
-
-    btnSkip && btnSkip.addEventListener('click', closePrintChoice);
-
-    /* ── اعتراض completeSale في Alpine ── */
-    document.addEventListener('alpine:init', function () {
-        // ننتظر حتى يسجّل Alpine الـ component ثم نُغلّف completeSale
-    });
-
-    document.addEventListener('alpine:initialized', function () {
-        // ابحث عن عنصر pos-wrapper الذي يحمل x-data
-        var wrapper = document.querySelector('[x-data]');
-        if (!wrapper) return;
-
-        // انتظر Alpine يجهّز الـ data
-        var checkInterval = setInterval(function () {
-            if (!wrapper._x_dataStack) return;
-            clearInterval(checkInterval);
-
-            // استخرج الـ component data
-            var posData = null;
-            wrapper._x_dataStack.forEach(function (layer) {
-                if (layer && typeof layer.completeSale === 'function') posData = layer;
-            });
-            if (!posData) return;
-
-            // احفظ الدالة الأصلية وغلّفها
-            var originalCompleteSale = posData.completeSale.bind(posData);
-            posData.completeSale = async function () {
-                // استدعِ الدالة الأصلية
-                await originalCompleteSale();
-
-                // إذا نجحت العملية (lastTransaction موجود)
-                var last = posData.lastTransaction;
-                if (last && last.success) {
-                    openPrintChoice(last);
-                }
-            };
-        }, 80);
-    });
-
-})();
-</script>
 <script>
 // ══════════════════════════════════════════════════════════════════════
 // ماسح الباركود بالكاميرا — نقطة البيع
