@@ -182,12 +182,15 @@ class PosController extends Controller
             );
 
             return response()->json([
-                'success'        => true,
-                'message'        => 'تمت عملية البيع بنجاح',
-                'transaction_id' => $transaction->id,
-                'receipt_number' => $transaction->receipt_number,
-                'receipt_url'    => route('pos.receipt', $transaction),
-                'change_amount'  => $transaction->change_amount,
+                'success'            => true,
+                'message'            => 'تمت عملية البيع بنجاح',
+                'transaction_id'     => $transaction->id,
+                'receipt_number'     => $transaction->receipt_number,
+                'receipt_url'        => route('pos.receipt', $transaction),
+                'invoice_print_url'  => $transaction->invoice_id ? route('invoices.print', $transaction->invoice_id) : null,
+                'invoice_id'         => $transaction->invoice_id,
+                'total'              => $transaction->total,
+                'change_amount'      => $transaction->change_amount,
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
