@@ -341,6 +341,181 @@
         to   { background: transparent; }
     }
     .row-flash { animation: rowHighlight 1.5s ease-out; }
+
+    /* ── زر مسح الباركود ── */
+    .barcode-scan-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #0d9488, #0f766e);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 0 14px;
+        height: 42px;
+        font-size: .85rem;
+        font-weight: 700;
+        font-family: 'Tajawal', sans-serif;
+        cursor: pointer;
+        transition: all .2s;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(13,148,136,.3);
+        flex-shrink: 0;
+    }
+    .barcode-scan-btn:hover {
+        background: linear-gradient(135deg, #0f766e, #115e59);
+        box-shadow: 0 6px 20px rgba(13,148,136,.4);
+        transform: translateY(-1px);
+    }
+    .barcode-scan-btn:active { transform: translateY(0); }
+    .barcode-scan-btn .scan-icon { font-size: 1rem; }
+
+    /* ── مودال الكاميرا ── */
+    #barcode-modal {
+        position: fixed; inset: 0; z-index: 99999;
+        display: none; align-items: center; justify-content: center;
+    }
+    #barcode-modal.active { display: flex; }
+    #barcode-modal-backdrop {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,.75);
+        backdrop-filter: blur(6px);
+    }
+    #barcode-modal-box {
+        position: relative; z-index: 1;
+        background: #fff;
+        border-radius: 24px;
+        padding: 0;
+        width: min(460px, calc(100vw - 32px));
+        box-shadow: 0 30px 80px rgba(0,0,0,.4);
+        overflow: hidden;
+        animation: modalSlideIn .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes modalSlideIn {
+        from { opacity:0; transform: scale(.85) translateY(20px); }
+        to   { opacity:1; transform: scale(1)  translateY(0);     }
+    }
+    #barcode-modal-header {
+        background: linear-gradient(135deg, #0d9488, #0f766e);
+        padding: 1.25rem 1.5rem;
+        display: flex; align-items: center; justify-content: space-between;
+        color: #fff;
+    }
+    #barcode-modal-header h3 {
+        font-size: 1rem; font-weight: 700; margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+    #barcode-modal-close {
+        background: rgba(255,255,255,.2); border: none; color: #fff;
+        width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .9rem; transition: background .2s;
+    }
+    #barcode-modal-close:hover { background: rgba(255,255,255,.35); }
+
+    #barcode-modal-body { padding: 1.25rem; }
+
+    /* منطقة الفيديو */
+    #barcode-video-wrap {
+        position: relative;
+        background: #000;
+        border-radius: 16px;
+        overflow: hidden;
+        aspect-ratio: 4/3;
+        width: 100%;
+    }
+    #barcode-video {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    /* خط المسح المتحرك */
+    #scan-line {
+        position: absolute; left: 10%; right: 10%; height: 2px;
+        background: linear-gradient(90deg, transparent, #0d9488, #34d399, #0d9488, transparent);
+        box-shadow: 0 0 8px rgba(13,148,136,.8);
+        animation: scanMove 2s ease-in-out infinite;
+        border-radius: 2px;
+    }
+    @keyframes scanMove {
+        0%   { top: 15%; opacity: 1; }
+        50%  { top: 80%; opacity: 1; }
+        100% { top: 15%; opacity: 1; }
+    }
+    /* إطار التصويب */
+    #scan-frame {
+        position: absolute; inset: 10%;
+        border: 2px solid rgba(13,148,136,.6);
+        border-radius: 12px;
+        box-shadow: 0 0 0 2000px rgba(0,0,0,.35);
+    }
+    #scan-frame::before,
+    #scan-frame::after,
+    #scan-frame .corner-br,
+    #scan-frame .corner-bl {
+        content: '';
+        position: absolute;
+        width: 22px; height: 22px;
+        border-color: #0d9488; border-style: solid;
+    }
+    #scan-frame::before  { top:-2px; right:-2px; border-width:3px 3px 0 0; border-radius:0 6px 0 0; }
+    #scan-frame::after   { top:-2px; left:-2px;  border-width:3px 0 0 3px; border-radius:6px 0 0 0; }
+    #scan-frame .corner-br { bottom:-2px; right:-2px; border-width:0 3px 3px 0; border-radius:0 0 6px 0; }
+    #scan-frame .corner-bl { bottom:-2px; left:-2px;  border-width:0 0 3px 3px; border-radius:0 0 0 6px; }
+
+    /* حالة النجاح */
+    #barcode-video-wrap.success-flash {
+        animation: successFlash .5s ease;
+    }
+    @keyframes successFlash {
+        0%   { box-shadow: none; }
+        50%  { box-shadow: 0 0 0 6px rgba(13,148,136,.5); }
+        100% { box-shadow: none; }
+    }
+
+    /* حقل الباركود اليدوي */
+    #manual-barcode-input {
+        width: 100%;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: .65rem 1rem;
+        font-size: .9rem;
+        font-family: 'Tajawal', sans-serif;
+        outline: none;
+        transition: border-color .2s;
+        direction: ltr;
+        text-align: center;
+        letter-spacing: .05em;
+    }
+    #manual-barcode-input:focus { border-color: #0d9488; box-shadow: 0 0 0 4px rgba(13,148,136,.1); }
+
+    /* شريط الحالة */
+    #scan-status {
+        text-align: center;
+        font-size: .82rem;
+        padding: .5rem 0 .25rem;
+        color: #6b7280;
+        min-height: 24px;
+        transition: color .3s;
+    }
+    #scan-status.scanning { color: #0d9488; }
+    #scan-status.found    { color: #16a34a; font-weight: 700; }
+    #scan-status.error    { color: #dc2626; }
+
+    /* اختيار الكاميرا */
+    #camera-select {
+        width: 100%;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        padding: .5rem .75rem;
+        font-size: .82rem;
+        font-family: 'Tajawal', sans-serif;
+        background: #f9fafb;
+        color: #374151;
+        outline: none;
+    }
+    #camera-select:focus { border-color: #0d9488; }
 </style>
 @endpush
 
@@ -428,12 +603,19 @@
             {{-- البحث --}}
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-xs text-gray-400 mb-1.5 font-medium">بحث</label>
-                <div class="relative">
-                    <i class="fas fa-search absolute top-1/2 -translate-y-1/2 right-3 text-gray-400 text-xs pointer-events-none"></i>
-                    <input type="text" name="search" id="live-search" value="{{ request('search') }}"
-                           placeholder="اسم المنتج، الكود، الباركود..."
-                           class="filter-input pr-8"
-                           autocomplete="off">
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <i class="fas fa-search absolute top-1/2 -translate-y-1/2 right-3 text-gray-400 text-xs pointer-events-none"></i>
+                        <input type="text" name="search" id="live-search" value="{{ request('search') }}"
+                               placeholder="اسم المنتج، الكود، الباركود..."
+                               class="filter-input pr-8"
+                               autocomplete="off">
+                    </div>
+                    {{-- زر مسح الباركود بالكاميرا --}}
+                    <button type="button" id="open-barcode-scanner" class="barcode-scan-btn" title="مسح الباركود بالكاميرا">
+                        <i class="fas fa-camera scan-icon"></i>
+                        <span class="hidden sm:inline">باركود</span>
+                    </button>
                 </div>
             </div>
 
@@ -483,6 +665,81 @@
 
         </form>
     </div>
+
+    {{-- ─── مودال ماسح الباركود بالكاميرا ───────────────────────────────── --}}
+    <div id="barcode-modal" role="dialog" aria-modal="true" aria-label="ماسح الباركود">
+        <div id="barcode-modal-backdrop"></div>
+        <div id="barcode-modal-box">
+
+            {{-- رأس المودال --}}
+            <div id="barcode-modal-header">
+                <h3>
+                    <i class="fas fa-barcode"></i>
+                    مسح الباركود بالكاميرا
+                </h3>
+                <button id="barcode-modal-close" title="إغلاق" aria-label="إغلاق">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            {{-- جسم المودال --}}
+            <div id="barcode-modal-body">
+
+                {{-- اختيار الكاميرا --}}
+                <div class="mb-3" id="camera-select-wrap" style="display:none;">
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">
+                        <i class="fas fa-video ml-1 text-teal-600"></i>
+                        اختيار الكاميرا
+                    </label>
+                    <select id="camera-select"></select>
+                </div>
+
+                {{-- منطقة الفيديو --}}
+                <div id="barcode-video-wrap">
+                    <video id="barcode-video" playsinline muted></video>
+                    <canvas id="barcode-canvas" style="display:none;"></canvas>
+                    {{-- إطار التصويب --}}
+                    <div id="scan-frame">
+                        <div class="corner-br"></div>
+                        <div class="corner-bl"></div>
+                    </div>
+                    {{-- خط المسح --}}
+                    <div id="scan-line"></div>
+                    {{-- طبقة التحميل --}}
+                    <div id="camera-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);color:#fff;flex-direction:column;gap:12px;font-size:.9rem;">
+                        <i class="fas fa-circle-notch fa-spin" style="font-size:2rem;color:#0d9488;"></i>
+                        <span>جاري تشغيل الكاميرا...</span>
+                    </div>
+                </div>
+
+                {{-- حالة المسح --}}
+                <div id="scan-status" class="scanning">
+                    <i class="fas fa-circle-notch fa-spin" style="margin-left:5px;"></i>
+                    وجّه الكاميرا نحو الباركود
+                </div>
+
+                {{-- فاصل --}}
+                <div style="display:flex;align-items:center;gap:10px;margin:.75rem 0;">
+                    <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+                    <span style="font-size:.78rem;color:#9ca3af;white-space:nowrap;">أو أدخل يدوياً</span>
+                    <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+                </div>
+
+                {{-- إدخال يدوي --}}
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="manual-barcode-input"
+                           placeholder="اكتب الباركود هنا..."
+                           autocomplete="off" inputmode="text">
+                    <button type="button" id="manual-barcode-btn"
+                            style="background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff;border:none;border-radius:12px;padding:0 16px;font-size:.85rem;font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;white-space:nowrap;transition:opacity .2s;"
+                            onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+                        بحث
+                    </button>
+                </div>
+
+            </div>{{-- /body --}}
+        </div>{{-- /box --}}
+    </div>{{-- /modal --}}
 
     {{-- ─── بانل نتائج البحث الحي (خارج أي container) ─────────────────── --}}
     <div id="search-results-panel"></div>
@@ -1005,6 +1262,264 @@ function displaySearchResults(results) {
 // CSS للـ spin animation
 var style = document.createElement('style');
 style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
+
+// ──────────────────────────────────────────────────────────────────────────
+// ── ماسح الباركود بالكاميرا (ZXing-js)
+// ──────────────────────────────────────────────────────────────────────────
+(function() {
+
+    // تحميل مكتبة ZXing ديناميكياً
+    var ZXING_CDN = 'https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js';
+
+    var barcodeModal      = document.getElementById('barcode-modal');
+    var barcodeModalClose = document.getElementById('barcode-modal-close');
+    var barcodeBackdrop   = document.getElementById('barcode-modal-backdrop');
+    var openScannerBtn    = document.getElementById('open-barcode-scanner');
+    var scanStatus        = document.getElementById('scan-status');
+    var cameraLoading     = document.getElementById('camera-loading');
+    var videoEl           = document.getElementById('barcode-video');
+    var cameraSelectWrap  = document.getElementById('camera-select-wrap');
+    var cameraSelect      = document.getElementById('camera-select');
+    var manualInput       = document.getElementById('manual-barcode-input');
+    var manualBtn         = document.getElementById('manual-barcode-btn');
+    var liveSearchInput   = document.getElementById('live-search');
+    var videoWrap         = document.getElementById('barcode-video-wrap');
+
+    if (!barcodeModal || !openScannerBtn) return;
+
+    var codeReader   = null;
+    var zxingLoaded  = false;
+    var scanning     = false;
+    var currentStream = null;
+
+    // ── تحميل ZXing ──────────────────────────────────────────────────────
+    function loadZXing(callback) {
+        if (zxingLoaded) { callback(); return; }
+        var s = document.createElement('script');
+        s.src = ZXING_CDN;
+        s.onload = function() { zxingLoaded = true; callback(); };
+        s.onerror = function() {
+            setScanStatus('error', '<i class="fas fa-exclamation-triangle ml-1"></i> تعذّر تحميل مكتبة المسح. تحقق من الاتصال.');
+        };
+        document.head.appendChild(s);
+    }
+
+    // ── فتح المودال ──────────────────────────────────────────────────────
+    function openModal() {
+        barcodeModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setScanStatus('scanning', '<i class="fas fa-circle-notch fa-spin" style="margin-left:5px;"></i> جاري تشغيل الكاميرا...');
+        cameraLoading.style.display = 'flex';
+
+        loadZXing(function() {
+            startScanner();
+        });
+    }
+
+    // ── إغلاق المودال ────────────────────────────────────────────────────
+    function closeModal() {
+        stopScanner();
+        barcodeModal.classList.remove('active');
+        document.body.style.overflow = '';
+        manualInput.value = '';
+        setScanStatus('scanning', '<i class="fas fa-circle-notch fa-spin" style="margin-left:5px;"></i> وجّه الكاميرا نحو الباركود');
+    }
+
+    // ── تشغيل الماسح ─────────────────────────────────────────────────────
+    function startScanner() {
+        if (!window.ZXing) {
+            setScanStatus('error', '<i class="fas fa-exclamation-circle ml-1"></i> المكتبة غير متاحة.');
+            return;
+        }
+
+        try {
+            codeReader = new ZXing.BrowserMultiFormatReader();
+            codeReader.getVideoInputDevices().then(function(devices) {
+                cameraLoading.style.display = 'none';
+
+                if (!devices || devices.length === 0) {
+                    setScanStatus('error', '<i class="fas fa-video-slash ml-1"></i> لا توجد كاميرا متاحة على هذا الجهاز.');
+                    return;
+                }
+
+                // تعبئة قائمة الكاميرات
+                cameraSelect.innerHTML = '';
+                devices.forEach(function(device, idx) {
+                    var opt = document.createElement('option');
+                    opt.value = device.deviceId;
+                    opt.text  = device.label || ('كاميرا ' + (idx + 1));
+                    cameraSelect.appendChild(opt);
+                });
+
+                // إخفاء قائمة الاختيار إذا كانت كاميرا واحدة فقط
+                if (devices.length > 1) {
+                    cameraSelectWrap.style.display = 'block';
+                }
+
+                // تفضيل الكاميرا الخلفية على الهاتف
+                var preferredId = null;
+                devices.forEach(function(d) {
+                    var lbl = (d.label || '').toLowerCase();
+                    if (lbl.indexOf('back') !== -1 || lbl.indexOf('rear') !== -1 || lbl.indexOf('خلفي') !== -1) {
+                        preferredId = d.deviceId;
+                    }
+                });
+                var selectedId = preferredId || devices[devices.length - 1].deviceId;
+                cameraSelect.value = selectedId;
+
+                startDecode(selectedId);
+
+            }).catch(function(err) {
+                cameraLoading.style.display = 'none';
+                handleCameraError(err);
+            });
+
+        } catch(e) {
+            cameraLoading.style.display = 'none';
+            setScanStatus('error', '<i class="fas fa-exclamation-circle ml-1"></i> خطأ في تشغيل الماسح: ' + e.message);
+        }
+    }
+
+    // ── بدء الفك (decode) ─────────────────────────────────────────────────
+    function startDecode(deviceId) {
+        scanning = true;
+        setScanStatus('scanning', '<i class="fas fa-barcode ml-1"></i> جاري المسح... وجّه الكاميرا نحو الباركود');
+
+        codeReader.decodeFromVideoDevice(deviceId, videoEl, function(result, err) {
+            if (result && scanning) {
+                onBarcodeFound(result.getText());
+            }
+            // تجاهل أخطاء NotFoundException (لا باركود في الإطار الحالي)
+            if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.warn('ZXing err:', err);
+            }
+        });
+    }
+
+    // ── إيقاف الماسح ─────────────────────────────────────────────────────
+    function stopScanner() {
+        scanning = false;
+        if (codeReader) {
+            try { codeReader.reset(); } catch(e) {}
+            codeReader = null;
+        }
+        // إيقاف stream الكاميرا يدوياً
+        if (videoEl && videoEl.srcObject) {
+            videoEl.srcObject.getTracks().forEach(function(t) { t.stop(); });
+            videoEl.srcObject = null;
+        }
+        cameraSelectWrap.style.display = 'none';
+    }
+
+    // ── عند اكتشاف باركود ────────────────────────────────────────────────
+    function onBarcodeFound(code) {
+        scanning = false; // إيقاف مؤقت لمنع التكرار
+
+        // تأثير النجاح البصري
+        videoWrap.classList.add('success-flash');
+        setTimeout(function() { videoWrap.classList.remove('success-flash'); }, 500);
+
+        // صوت بسيط (نبضة)
+        try {
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .2);
+            osc.start(ctx.currentTime); osc.stop(ctx.currentTime + .2);
+        } catch(e) {}
+
+        setScanStatus('found', '<i class="fas fa-check-circle ml-1"></i> تم المسح: <strong>' + escapeHtml(code) + '</strong>');
+
+        // وضع الكود في خانة البحث وإغلاق المودال والبحث
+        if (liveSearchInput) liveSearchInput.value = code;
+        closeModal();
+
+        // البحث الحي فوراً
+        if (typeof performSearch === 'function') {
+            performSearch(code);
+        } else {
+            // fallback: إرسال الفورم
+            if (liveSearchInput) liveSearchInput.closest('form').submit();
+        }
+    }
+
+    // ── معالجة أخطاء الكاميرا ────────────────────────────────────────────
+    function handleCameraError(err) {
+        var msg = '';
+        if (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+            msg = '<i class="fas fa-lock ml-1"></i> تم رفض إذن الكاميرا. اسمح بالوصول من إعدادات المتصفح ثم أعد المحاولة.';
+        } else if (err && (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError')) {
+            msg = '<i class="fas fa-video-slash ml-1"></i> لا توجد كاميرا. يمكنك إدخال الباركود يدوياً أدناه.';
+        } else if (err && err.name === 'NotReadableError') {
+            msg = '<i class="fas fa-exclamation-triangle ml-1"></i> الكاميرا مستخدمة من تطبيق آخر. أغلقه وأعد المحاولة.';
+        } else {
+            msg = '<i class="fas fa-exclamation-circle ml-1"></i> خطأ في الكاميرا. يمكنك إدخال الباركود يدوياً.';
+        }
+        setScanStatus('error', msg);
+    }
+
+    // ── ضبط حالة الشريط ──────────────────────────────────────────────────
+    function setScanStatus(type, html) {
+        if (!scanStatus) return;
+        scanStatus.className = 'scan-status ' + (type || '');
+        scanStatus.innerHTML = html;
+    }
+
+    // ── تبديل الكاميرا ───────────────────────────────────────────────────
+    cameraSelect.addEventListener('change', function() {
+        if (codeReader) {
+            try { codeReader.reset(); } catch(e) {}
+        }
+        cameraLoading.style.display = 'flex';
+        setScanStatus('scanning', '<i class="fas fa-circle-notch fa-spin" style="margin-left:5px;"></i> جاري التبديل...');
+        setTimeout(function() {
+            cameraLoading.style.display = 'none';
+            startDecode(cameraSelect.value);
+        }, 400);
+    });
+
+    // ── الإدخال اليدوي ───────────────────────────────────────────────────
+    function doManualSearch() {
+        var code = manualInput.value.trim();
+        if (!code) return;
+        onBarcodeFound(code);
+    }
+
+    manualBtn.addEventListener('click', doManualSearch);
+    manualInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); doManualSearch(); }
+    });
+
+    // ── أحداث الفتح/الإغلاق ──────────────────────────────────────────────
+    openScannerBtn.addEventListener('click', openModal);
+    barcodeModalClose.addEventListener('click', closeModal);
+    barcodeBackdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && barcodeModal.classList.contains('active')) closeModal();
+    });
+
+    // دعم قارئات الباركود الخارجية (USB/Bluetooth) — تلتقط المدخلات السريعة
+    var hwBuffer = '', hwTimer = null;
+    document.addEventListener('keypress', function(e) {
+        if (barcodeModal.classList.contains('active')) return; // المودال مفتوح، تجاهل
+        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) return;
+        clearTimeout(hwTimer);
+        hwBuffer += e.key;
+        hwTimer = setTimeout(function() {
+            if (hwBuffer.length >= 4) {
+                // احتمال كبير أنه مدخل من قارئ باركود خارجي
+                if (liveSearchInput) liveSearchInput.value = hwBuffer;
+                if (typeof performSearch === 'function') performSearch(hwBuffer);
+            }
+            hwBuffer = '';
+        }, 80);
+    });
+
+})();
 document.head.appendChild(style);
 </script>
 @endpush
