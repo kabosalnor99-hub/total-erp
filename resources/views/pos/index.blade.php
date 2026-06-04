@@ -230,6 +230,27 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 .pos-toast.error{background:linear-gradient(135deg,var(--danger) 0%,#b91c1c 100%)}
 .pos-toast.warning{background:linear-gradient(135deg,var(--warning) 0%,#d97706 100%)}
 
+/* ═══ مودال اختيار الطباعة ═══ */
+.print-choice-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(6px);padding:16px}
+.print-choice-box{background:var(--bg-3);border:1px solid var(--border-light);border-radius:20px;padding:28px 24px 24px;width:100%;max-width:400px;box-shadow:0 16px 60px rgba(0,0,0,.6);animation:pcIn .25s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes pcIn{from{transform:scale(.88) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.print-choice-success{text-align:center;margin-bottom:20px}
+.print-choice-success .check-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--success),#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px;box-shadow:0 4px 20px rgba(16,185,129,.4)}
+.print-choice-success h3{font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px}
+.print-choice-success .receipt-num{font-size:13px;color:var(--teal-light);font-weight:700;direction:ltr}
+.print-choice-success .total-amount{font-size:22px;font-weight:800;color:var(--teal-light);margin-top:6px;direction:ltr}
+.print-choice-divider{text-align:center;font-size:11px;color:var(--text-muted);margin-bottom:16px;position:relative}
+.print-choice-divider::before,.print-choice-divider::after{content:'';position:absolute;top:50%;width:30%;height:1px;background:var(--border)}
+.print-choice-divider::before{right:0}.print-choice-divider::after{left:0}
+.print-choice-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.print-choice-btn{padding:16px 12px;border-radius:14px;border:2px solid var(--border);background:var(--card);cursor:pointer;text-align:center;transition:all .18s;font-family:inherit}
+.print-choice-btn:hover{border-color:var(--teal);background:var(--teal-soft);transform:translateY(-2px);box-shadow:var(--shadow-teal)}
+.print-choice-btn .pcb-icon{font-size:28px;display:block;margin-bottom:8px}
+.print-choice-btn .pcb-title{font-size:13px;font-weight:800;color:var(--text);display:block;margin-bottom:3px}
+.print-choice-btn .pcb-sub{font-size:10px;color:var(--text-muted);display:block}
+.print-choice-skip{width:100%;padding:10px;background:none;border:1.5px solid var(--border);border-radius:10px;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.print-choice-skip:hover{border-color:var(--danger);color:#fca5a5}
+
 /* Spinner */
 .pos-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:20px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -1016,6 +1037,32 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
     {{-- Toast --}}
     <div id="pos-toast" class="pos-toast"></div>
 
+    {{-- ═══════════════════ مودال اختيار الطباعة ═══════════════════ --}}
+    <div id="print-choice-overlay" class="print-choice-overlay" style="display:none">
+        <div class="print-choice-box">
+            <div class="print-choice-success">
+                <div class="check-icon">✓</div>
+                <h3>تم البيع بنجاح!</h3>
+                <div class="receipt-num" id="pc-receipt-num"></div>
+                <div class="total-amount" id="pc-total-amount"></div>
+            </div>
+            <div class="print-choice-divider">اختر طريقة الطباعة</div>
+            <div class="print-choice-btns">
+                <button class="print-choice-btn" id="pc-btn-thermal">
+                    <span class="pcb-icon">🧾</span>
+                    <span class="pcb-title">إيصال حراري</span>
+                    <span class="pcb-sub">72mm — طابعة كاشير</span>
+                </button>
+                <button class="print-choice-btn" id="pc-btn-a4">
+                    <span class="pcb-icon">📄</span>
+                    <span class="pcb-title">فاتورة A4</span>
+                    <span class="pcb-sub">ورق عادي — طابعة مكتبية</span>
+                </button>
+            </div>
+            <button class="print-choice-skip" id="pc-btn-skip">تخطي الطباعة — العودة للكاشير</button>
+        </div>
+    </div>
+
     {{-- ═══════════════════ مودال ماسح الباركود بالكاميرا ══════════════ --}}
     <div id="pos-barcode-modal" role="dialog" aria-modal="true">
         <div id="pos-barcode-backdrop"></div>
@@ -1067,6 +1114,61 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 </div>{{-- end pos-wrapper --}}
 
 <script src="{{ asset('js/pos.js') }}"></script>
+<script>
+/* ═══ مودال اختيار الطباعة بعد البيع ═══ */
+(function () {
+    var _receiptUrl = null, _invoiceUrl = null;
+    var overlay    = document.getElementById('print-choice-overlay');
+    var elNum      = document.getElementById('pc-receipt-num');
+    var elAmount   = document.getElementById('pc-total-amount');
+    var btnThermal = document.getElementById('pc-btn-thermal');
+    var btnA4      = document.getElementById('pc-btn-a4');
+    var btnSkip    = document.getElementById('pc-btn-skip');
+
+    function open(data) {
+        _receiptUrl = data.receipt_url || null;
+        _invoiceUrl = data.invoice_print_url || (data.invoice_id ? '/invoices/' + data.invoice_id + '/print' : null);
+        if (elNum)    elNum.textContent    = data.receipt_number ? 'رقم الإيصال: ' + data.receipt_number : '';
+        if (elAmount) elAmount.textContent = data.total
+            ? Number(data.total).toLocaleString('ar-SD', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ج.س'
+            : '';
+        overlay.style.display = 'flex';
+    }
+    function close() { overlay.style.display = 'none'; }
+
+    btnThermal && btnThermal.addEventListener('click', function () {
+        if (_receiptUrl) window.open(_receiptUrl, '_blank', 'width=420,height=680,menubar=yes,toolbar=yes');
+        close();
+    });
+    btnA4 && btnA4.addEventListener('click', function () {
+        if (_invoiceUrl) window.open(_invoiceUrl, '_blank', 'width=950,height=780,menubar=yes,toolbar=yes');
+        else alert('رابط فاتورة A4 غير متاح لهذه العملية');
+        close();
+    });
+    btnSkip && btnSkip.addEventListener('click', close);
+
+    /* اعتراض completeSale بعد تهيئة Alpine */
+    document.addEventListener('alpine:initialized', function () {
+        var wrapper = document.querySelector('[x-data]');
+        if (!wrapper) return;
+        var timer = setInterval(function () {
+            if (!wrapper._x_dataStack) return;
+            clearInterval(timer);
+            var posData = null;
+            wrapper._x_dataStack.forEach(function (layer) {
+                if (layer && typeof layer.completeSale === 'function') posData = layer;
+            });
+            if (!posData) return;
+            var orig = posData.completeSale.bind(posData);
+            posData.completeSale = async function () {
+                await orig();
+                var last = posData.lastTransaction;
+                if (last && last.success) open(last);
+            };
+        }, 80);
+    });
+})();
+</script>
 <script>
 // ══════════════════════════════════════════════════════════════════════
 // ماسح الباركود بالكاميرا — نقطة البيع
