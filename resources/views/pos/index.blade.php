@@ -259,6 +259,9 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 /* Print */
 @media print{*{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}body{background:#fff;color:#000;direction:rtl;font-family:'Cairo',monospace}.no-print{display:none !important}.receipt-wrap{width:80mm;margin:0 auto}}
 
+/* شريط الدفع للموبايل — مخفي بالافتراضي على الديسكتوب */
+.mobile-checkout-bar{display:none}
+
 /* Responsive Tablet & Mobile */
 @media(max-width:768px){
     :root{--cart-w:100%}
@@ -676,6 +679,28 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
             </div>
         </div>
     </aside>
+
+    {{-- ═══════════════════ شريط الدفع للموبايل (ثابت في الأسفل) ═══════════════════════ --}}
+    <div class="mobile-checkout-bar">
+        <div class="mobile-total">
+            <span class="mobile-total-label">الإجمالي</span>
+            <span class="mobile-total-amount num-ltr" x-text="fmt(grandTotal) + ' ج.س'"></span>
+        </div>
+        <button
+            class="btn-pos-secondary"
+            style="padding:12px 14px;font-size:13px;flex-shrink:0"
+            :disabled="cart.length === 0"
+            @click="saveDraft()"
+            title="فاتورة مبدئية"
+        >📋</button>
+        <button
+            class="btn-checkout"
+            :disabled="cart.length === 0"
+            @click="openPaymentModal()"
+        >
+            💳 الدفع
+        </button>
+    </div>
 
     {{-- ═══════════════════ MODAL: الدفع ═══════════════════════════ --}}
     <div class="pos-modal-overlay" x-show="showPaymentModal" x-cloak @click.self="showPaymentModal=false">
