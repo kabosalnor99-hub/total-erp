@@ -17,7 +17,7 @@
         }
 
         /* ═══════════════════════════════════
-           PAGE — A4 دائماً ملء الصفحة
+           PAGE — A4
         ═══════════════════════════════════ */
         .page {
             width: 210mm;
@@ -35,9 +35,9 @@
         .header-main {
             background: #1B4F72;
             display: grid;
-            grid-template-columns: 1fr 88px 1fr;
+            grid-template-columns: 1fr 94px 1fr;
             align-items: center;
-            padding: 8px 14px;
+            padding: 7px 14px;
             gap: 8px;
             flex-shrink: 0;
         }
@@ -49,16 +49,16 @@
             direction: ltr;
         }
         .header-en .en-line1 {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 900;
             letter-spacing: 0.3px;
-            line-height: 1.25;
+            line-height: 1.3;
         }
         .header-en .en-line2 {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 500;
             color: #a8d4e6;
-            margin-top: 1px;
+            line-height: 1.3;
         }
 
         /* وسط: الشعار الدائري */
@@ -68,8 +68,8 @@
             justify-content: center;
         }
         .logo-circle {
-            width: 84px;
-            height: 84px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             background: #fff;
             border: 3px solid #a8d4e6;
@@ -78,9 +78,8 @@
             align-items: center;
             justify-content: center;
             padding: 6px 4px 4px;
-            gap: 1px;
+            gap: 2px;
         }
-        /* TOTAL + SUDAN inline */
         .logo-brand-row {
             display: flex;
             align-items: baseline;
@@ -88,7 +87,7 @@
             line-height: 1;
         }
         .logo-total-text {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 900;
             font-style: italic;
             color: #1B4F72;
@@ -97,7 +96,7 @@
         }
         .logo-total-text .t-red { color: #c0392b; }
         .logo-sudan-text {
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 800;
             color: #1B4F72;
             letter-spacing: 0.5px;
@@ -106,7 +105,7 @@
             margin-bottom: 3px;
         }
         .logo-tagline {
-            font-size: 7px;
+            font-size: 7.5px;
             font-weight: 600;
             color: #1B4F72;
             letter-spacing: 0.3px;
@@ -121,18 +120,18 @@
             direction: rtl;
         }
         .header-ar .ar-line1 {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 900;
-            line-height: 1.25;
+            line-height: 1.3;
         }
         .header-ar .ar-line2 {
-            font-size: 10px;
+            font-size: 11px;
             color: #a8d4e6;
-            margin-top: 1px;
+            line-height: 1.3;
         }
 
         /* ═══════════════════════════════════
-           SUBHEADER — ضريبة / Invoice / عنوان
+           SUBHEADER
         ═══════════════════════════════════ */
         .subheader {
             background: #fff;
@@ -198,34 +197,28 @@
            META — التاريخ والسيد
         ═══════════════════════════════════ */
         .meta-section {
-            padding: 8px 14px 4px;
+            padding: 7px 14px 4px;
             direction: rtl;
             flex-shrink: 0;
         }
-
-        /* صف التاريخ المزدوج */
         .meta-date-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
-
-        /* نصف التاريخ عربي — RTL */
         .meta-date-ar {
             display: flex;
             align-items: center;
             gap: 6px;
             direction: rtl;
         }
-        /* نصف التاريخ إنجليزي — LTR */
         .meta-date-en {
             display: flex;
             align-items: center;
             gap: 6px;
             direction: ltr;
         }
-
         .meta-lbl {
             font-size: 12px;
             font-weight: 700;
@@ -238,14 +231,11 @@
             color: #000;
             white-space: nowrap;
         }
-        /* الخط التحتي — يمتد ليملأ المساحة */
         .meta-line {
             flex: 1;
             height: 0;
             border-bottom: 1px solid #aaa;
         }
-
-        /* صف السيد */
         .meta-mr-row {
             display: flex;
             align-items: center;
@@ -272,103 +262,108 @@
         }
 
         /* ═══════════════════════════════════
-           جدول المنتجات
+           حاوية الجدول + الإجمالي — إطار واحد
+           لا فجوة بين الجدول وشريط الإجمالي
         ═══════════════════════════════════ */
-        .table-wrap {
+        .table-section {
             flex: 1;
+            margin: 4px 14px 0;
+            border: 1.5px solid #1B4F72;
             display: flex;
             flex-direction: column;
-            margin: 4px 14px 0;
             overflow: hidden;
         }
 
+        /* الجدول */
         .products-table {
             width: 100%;
             border-collapse: collapse;
-            border: 1.5px solid #1B4F72;
             direction: rtl;
             table-layout: fixed;
+            flex-shrink: 0;
         }
 
-        /* الرأس */
+        /* رأس الجدول */
         .products-table thead tr {
             background: #1B4F72;
         }
         .products-table thead th {
             color: #fff;
             padding: 5px 4px;
-            border: 1px solid #2471a3;
+            border-right: 1px solid #2980b9;
+            border-left: 1px solid #2980b9;
             text-align: center;
             vertical-align: middle;
         }
-        .th-ar  { font-size: 11px; font-weight: 700; display: block; }
-        .th-en  { font-size: 9px;  font-weight: 400; font-style: italic; color: #c8e6f5; display: block; }
+        .products-table thead th:first-child { border-right: none; }
+        .products-table thead th:last-child  { border-left: none; }
+        .th-ar { font-size: 11px; font-weight: 700; display: block; }
+        .th-en { font-size: 9px;  font-weight: 400; font-style: italic; color: #c8e6f5; display: block; }
 
-        /* الصفوف */
+        /* صفوف البيانات */
         .products-table tbody td {
-            padding: 5px 5px;
+            padding: 3px 5px;
             font-size: 11px;
-            border-left: 1px solid #c8d6de;
-            border-bottom: 1px solid #dde6ea;
+            border-right: 1px solid #7fb3c8;
+            border-bottom: 1px solid #7fb3c8;
             text-align: center;
             color: #000;
             vertical-align: middle;
+            height: 21px;
         }
-        .td-desc {
-            text-align: right;
-            font-weight: 500;
-        }
-        .td-num {
-            direction: ltr;
-            font-weight: 600;
-        }
-        /* الصف الفارغ يأخذ ارتفاع ثابت */
-        .products-table tbody tr.empty-row td {
-            height: 22px;
-        }
-        /* آخر صف بيانات — border أثقل */
-        .products-table tbody tr:last-child td {
-            border-bottom: 1.5px solid #1B4F72;
+        .products-table tbody td:first-child { border-right: none; }
+        .td-desc { text-align: right; font-weight: 500; }
+        .td-num  { direction: ltr; font-weight: 600; }
+
+        /* ═══════════════════════════════════
+           SPACER — يملأ الفراغ بخطوط مطابقة
+           لارتفاع الصفوف (21px بيانات + 1px border)
+        ═══════════════════════════════════ */
+        .table-spacer {
+            flex: 1;
+            border-top: 1px solid #7fb3c8;
+            background: repeating-linear-gradient(
+                to bottom,
+                #fff      0px,
+                #fff      21px,
+                #7fb3c8   21px,
+                #7fb3c8   22px
+            );
         }
 
         /* ═══════════════════════════════════
-           شريط الإجمالي
+           شريط الإجمالي — داخل table-section
+           ملاصق تماماً لآخر صف
         ═══════════════════════════════════ */
         .totals-bar {
-            margin: 0 14px;
-            border: 1.5px solid #1B4F72;
-            border-top: none;
+            border-top: 1.5px solid #1B4F72;
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            grid-template-columns: 1fr 1.5px 1fr;
             direction: rtl;
             flex-shrink: 0;
         }
         .totals-right {
-            padding: 6px 12px;
-            font-size: 13px;
+            padding: 6px 14px;
+            font-size: 14px;
             font-weight: 900;
             color: #c0392b;
             text-align: right;
         }
-        .totals-center {
-            padding: 6px 18px;
-            font-size: 13px;
-            font-weight: 900;
-            color: #c0392b;
-            border-left: 1px solid #1B4F72;
-            border-right: 1px solid #1B4F72;
-            text-align: center;
+        .totals-divider {
+            background: #1B4F72;
         }
         .totals-left {
-            padding: 6px 12px;
-            font-size: 14px;
+            padding: 6px 14px;
+            font-size: 13px;
             font-weight: 900;
             color: #c0392b;
             text-align: left;
             direction: ltr;
         }
 
-        /* خصم / ضريبة / مدفوع / متبقي */
+        /* ═══════════════════════════════════
+           خصم / ضريبة / مدفوع / متبقي
+        ═══════════════════════════════════ */
         .extra-totals {
             margin: 0 14px;
             border: 1.5px solid #1B4F72;
@@ -506,15 +501,8 @@
                 -webkit-print-color-adjust: exact;
             }
             .no-print { display: none !important; }
-            .page {
-                width: 210mm;
-                height: 297mm;
-                margin: 0;
-            }
-            @page {
-                size: A4;
-                margin: 0;
-            }
+            .page { width: 210mm; height: 297mm; margin: 0; }
+            @page { size: A4; margin: 0; }
         }
     </style>
 </head>
@@ -536,7 +524,7 @@
         {{-- يسار: إنجليزي --}}
         <div class="header-en">
             <div class="en-line1">TOTAL TOOLS FOR</div>
-            <div class="en-line1">WORKSHOP EQUIPMENT</div>
+            <div class="en-line2">WORKSHOP EQUIPMENT</div>
         </div>
 
         {{-- وسط: الشعار الدائري --}}
@@ -586,17 +574,14 @@
     ══════════════════════════════════════ --}}
     <div class="meta-section">
 
-        {{-- التاريخ: عربي + إنجليزي --}}
         <div class="meta-date-row">
 
-            {{-- عربي RTL --}}
             <div class="meta-date-ar">
                 <span class="meta-lbl">التاريخ :</span>
                 <span class="meta-val">{{ $invoice->created_at->format('Y/m/d') }}</span>
                 <span class="meta-line"></span>
             </div>
 
-            {{-- إنجليزي LTR --}}
             <div class="meta-date-en">
                 <span class="meta-lbl" style="direction:ltr;">Date :</span>
                 <span class="meta-val" style="direction:ltr;">{{ $invoice->created_at->format('d/m/Y') }}</span>
@@ -605,7 +590,6 @@
 
         </div>
 
-        {{-- السيد --}}
         <div class="meta-mr-row">
             <span class="meta-mr-lbl-ar">السيد :</span>
             <span class="meta-mr-val">
@@ -623,47 +607,40 @@
     </div>
 
     {{-- ══════════════════════════════════════
-         جدول المنتجات — يمتد ليملأ المساحة
+         جدول المنتجات + الإجمالي في حاوية واحدة
+         (بدون أي فجوة — spacer يملأ الفراغ بخطوط)
     ══════════════════════════════════════ --}}
-    @php
-        $items     = $invoice->items;
-        $itemCount = $items->count();
-        $minRows   = 14;
-        $emptyRows = max(0, $minRows - $itemCount);
-    @endphp
+    <div class="table-section">
 
-    <div class="table-wrap">
         <table class="products-table">
             <thead>
                 <tr>
-                    <th style="width:44px;">
+                    <th style="width:42px;">
                         <span class="th-ar">Cod</span>
                         <span class="th-en">No</span>
                     </th>
                     <th>
                         <span class="th-ar">البيـــان</span>
                     </th>
-                    <th style="width:105px;">
+                    <th style="width:100px;">
                         <span class="th-en" style="color:#fff; font-size:11px;">Decription</span>
                     </th>
-                    <th style="width:48px;">
+                    <th style="width:46px;">
                         <span class="th-ar">العدد</span>
                         <span class="th-en">Qty</span>
                     </th>
-                    <th style="width:68px;">
+                    <th style="width:70px;">
                         <span class="th-ar">سعر الوحدة</span>
                         <span class="th-en">Unit Price</span>
                     </th>
-                    <th style="width:76px;">
+                    <th style="width:78px;">
                         <span class="th-ar">سعر اجمالي</span>
                         <span class="th-en">Total Price</span>
                     </th>
                 </tr>
             </thead>
             <tbody>
-
-                {{-- صفوف البيانات --}}
-                @foreach($items as $i => $item)
+                @foreach($invoice->items as $i => $item)
                 <tr>
                     <td>{{ $item->product?->sku ?? ($i + 1) }}</td>
                     <td class="td-desc">{{ $item->product?->name_ar ?? $item->product?->name_en ?? '—' }}</td>
@@ -673,26 +650,20 @@
                     <td class="td-num" style="font-weight:700;">{{ number_format($item->total, 2) }}</td>
                 </tr>
                 @endforeach
-
-                {{-- صفوف فارغة لملء الجدول --}}
-                @for($r = 0; $r < $emptyRows; $r++)
-                <tr class="empty-row">
-                    <td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                @endfor
-
             </tbody>
         </table>
-    </div>{{-- end table-wrap --}}
 
-    {{-- ══════════════════════════════════════
-         شريط الإجمالي
-    ══════════════════════════════════════ --}}
-    <div class="totals-bar">
-        <div class="totals-right">إجمالي</div>
-        <div class="totals-center">Total</div>
-        <div class="totals-left">{{ number_format($invoice->total, 2) }} SDG</div>
-    </div>
+        {{-- spacer يملأ الفراغ المتبقي بخطوط أفقية مطابقة لصفوف الجدول --}}
+        <div class="table-spacer"></div>
+
+        {{-- شريط الإجمالي ملاصق دائماً لآخر خط --}}
+        <div class="totals-bar">
+            <div class="totals-right">إجمالي</div>
+            <div class="totals-divider"></div>
+            <div class="totals-left">Total &nbsp;&nbsp; {{ number_format($invoice->total, 2) }} SDG</div>
+        </div>
+
+    </div>{{-- end table-section --}}
 
     {{-- خصم / ضريبة / مدفوع / متبقي --}}
     @if($invoice->discount_amount > 0 || $invoice->tax_amount > 0 || $invoice->paid_amount > 0 || $invoice->remaining_amount > 0)
