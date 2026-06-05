@@ -316,19 +316,57 @@
         .td-num  { direction: ltr; font-weight: 600; }
 
         /* ═══════════════════════════════════
-           SPACER — يملأ الفراغ بخطوط مطابقة
-           لارتفاع الصفوف (21px بيانات + 1px border)
+           SPACER — يملأ الفراغ بخطوط أفقية
+           وعمودية مطابقة لأعمدة الجدول
+           أعمدة الجدول من اليسار (RTL):
+             سعر اجمالي: 78px
+             سعر الوحدة: 148px
+             العدد:      194px
+             Description: 294px
+             البيان:     calc(100% - 42px)
+             Cod:        42px من اليمين
         ═══════════════════════════════════ */
         .table-spacer {
             flex: 1;
             border-top: 1px solid #7fb3c8;
-            background: repeating-linear-gradient(
-                to bottom,
-                #fff      0px,
-                #fff      21px,
-                #7fb3c8   21px,
-                #7fb3c8   22px
-            );
+            background-color: #fff;
+            background-image:
+                /* خطوط أفقية: 21px أبيض + 1px أزرق */
+                repeating-linear-gradient(
+                    to bottom,
+                    transparent 0,    transparent 21px,
+                    #7fb3c8     21px, #7fb3c8     22px
+                ),
+                /* خط عمودي — Cod (42px من اليمين) */
+                linear-gradient(
+                    to left,
+                    transparent 41px, #7fb3c8 41px,
+                    #7fb3c8 42px,     transparent 42px
+                ),
+                /* خط عمودي — بين البيان والـ Description (294px من اليسار) */
+                linear-gradient(
+                    to right,
+                    transparent 293px, #7fb3c8 293px,
+                    #7fb3c8 294px,     transparent 294px
+                ),
+                /* خط عمودي — بين Description والعدد (194px من اليسار) */
+                linear-gradient(
+                    to right,
+                    transparent 193px, #7fb3c8 193px,
+                    #7fb3c8 194px,     transparent 194px
+                ),
+                /* خط عمودي — بين العدد وسعر الوحدة (148px من اليسار) */
+                linear-gradient(
+                    to right,
+                    transparent 147px, #7fb3c8 147px,
+                    #7fb3c8 148px,     transparent 148px
+                ),
+                /* خط عمودي — بين سعر الوحدة وسعر الإجمالي (78px من اليسار) */
+                linear-gradient(
+                    to right,
+                    transparent 77px, #7fb3c8 77px,
+                    #7fb3c8 78px,     transparent 78px
+                );
         }
 
         /* ═══════════════════════════════════
