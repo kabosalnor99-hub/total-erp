@@ -1,4 +1,84 @@
 {{-- resources/views/invoices/print.blade.php --}}
+@php
+/* ══════════════════════════════════════════
+   دالة التفقيط — تحويل الأرقام لكلمات عربية
+   مثال: 2000  →  ألفان جنيه فقط لا غير
+   مثال: 1500  →  ألف وخمسمئة جنيه فقط لا غير
+══════════════════════════════════════════ */
+if (!function_exists('tafqeet')) {
+    function tafqeet($amount) {
+        $ones  = [
+            '', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة',
+            'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة',
+            'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر',
+            'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر',
+        ];
+        $tens  = ['','','عشرون','ثلاثون','أربعون','خمسون','ستون','سبعون','ثمانون','تسعون'];
+        $hunds = ['','مئة','مئتان','ثلاثمئة','أربعمئة','خمسمئة','ستمئة','سبعمئة','ثمانمئة','تسعمئة'];
+
+        /* قراءة مجموعة 0-999 */
+        $group = function($n) use ($ones, $tens, $hunds) {
+            if ($n === 0) return '';
+            $parts = [];
+            if ($n >= 100) { $parts[] = $hunds[(int)($n / 100)]; $n %= 100; }
+            if ($n > 0) {
+                if ($n < 20) {
+                    $parts[] = $ones[$n];
+                } else {
+                    $t = (int)($n / 10); $o = $n % 10;
+                    $parts[] = ($o > 0 ? $ones[$o] . ' و' : '') . $tens[$t];
+                }
+            }
+            return implode(' و', $parts);
+        };
+
+        $amount   = round((float)$amount, 2);
+        $intPart  = (int)floor($amount);
+        $cents    = (int)round(($amount - $intPart) * 100);
+
+        if ($intPart === 0 && $cents === 0) return 'صفر جنيه فقط لا غير';
+
+        $out = '';
+
+        /* مليارات */
+        if ($intPart >= 1000000000) {
+            $b = (int)($intPart / 1000000000); $intPart %= 1000000000;
+            if ($b == 1) $out .= 'مليار';
+            elseif ($b == 2) $out .= 'ملياران';
+            elseif ($b <= 10) $out .= $group($b) . ' مليارات';
+            else $out .= $group($b) . ' مليار';
+            if ($intPart > 0) $out .= ' و';
+        }
+        /* ملايين */
+        if ($intPart >= 1000000) {
+            $m = (int)($intPart / 1000000); $intPart %= 1000000;
+            if ($m == 1) $out .= 'مليون';
+            elseif ($m == 2) $out .= 'مليونان';
+            elseif ($m <= 10) $out .= $group($m) . ' ملايين';
+            else $out .= $group($m) . ' مليون';
+            if ($intPart > 0) $out .= ' و';
+        }
+        /* آلاف */
+        if ($intPart >= 1000) {
+            $th = (int)($intPart / 1000); $intPart %= 1000;
+            if ($th == 1) $out .= 'ألف';
+            elseif ($th == 2) $out .= 'ألفان';
+            elseif ($th <= 10) $out .= $group($th) . ' آلاف';
+            else $out .= $group($th) . ' ألف';
+            if ($intPart > 0) $out .= ' و';
+        }
+        /* ما تبقى */
+        if ($intPart > 0) $out .= $group($intPart);
+
+        $out .= ' جنيه';
+        if ($cents > 0) $out .= ' و' . $group($cents) . ' قرش';
+        $out .= ' فقط لا غير';
+
+        return $out;
+    }
+}
+$total_in_words = tafqeet($invoice->total);
+@endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -400,6 +480,35 @@
         }
 
         /* ═══════════════════════════════════
+           المبلغ بالحروف (التفقيط)
+        ═══════════════════════════════════ */
+        .amount-words-bar {
+            margin: 0 14px;
+            border: 1.5px solid #1B4F72;
+            border-top: none;
+            display: flex;
+            align-items: center;
+            direction: rtl;
+            flex-shrink: 0;
+        }
+        .amount-words-label {
+            background: #1B4F72;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 5px 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .amount-words-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a3a5c;
+            padding: 5px 12px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ═══════════════════════════════════
            خصم / ضريبة / مدفوع / متبقي
         ═══════════════════════════════════ */
         .extra-totals {
@@ -702,6 +811,12 @@
         </div>
 
     </div>{{-- end table-section --}}
+
+    {{-- المبلغ الإجمالي بالحروف (التفقيط) --}}
+    <div class="amount-words-bar">
+        <div class="amount-words-label">المبلغ بالحروف</div>
+        <div class="amount-words-text">{{ $total_in_words }}</div>
+    </div>
 
     {{-- خصم / ضريبة / مدفوع / متبقي --}}
     @if($invoice->discount_amount > 0 || $invoice->tax_amount > 0 || $invoice->paid_amount > 0 || $invoice->remaining_amount > 0)
