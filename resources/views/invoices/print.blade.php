@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             background: #fff;
             font-family: 'Tajawal', Arial, sans-serif;
@@ -15,313 +16,365 @@
             color: #000;
         }
 
-        /* ===== LAYOUT ===== */
+        /* ═══════════════════════════════════
+           PAGE — A4 دائماً ملء الصفحة
+        ═══════════════════════════════════ */
         .page {
             width: 210mm;
-            min-height: 297mm;
+            height: 297mm;
             margin: 0 auto;
             background: #fff;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
-        /* ===== TOP HEADER STRIP ===== */
+        /* ═══════════════════════════════════
+           HEADER الأزرق
+        ═══════════════════════════════════ */
         .header-main {
             background: #1B4F72;
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            grid-template-columns: 1fr 88px 1fr;
             align-items: center;
-            padding: 10px 16px;
-            gap: 10px;
-        }
-        .header-en {
-            color: #fff;
-            text-align: right;
-        }
-        .header-en .company-name-en {
-            font-size: 16px;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            line-height: 1.2;
-        }
-        .header-en .company-sub-en {
-            font-size: 10px;
-            font-weight: 400;
-            color: #a8d4e6;
-            margin-top: 2px;
+            padding: 8px 14px;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
-        /* Center logo */
-        .header-logo {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
+        /* يسار: إنجليزي */
+        .header-en {
+            color: #fff;
+            text-align: left;
+            direction: ltr;
         }
-        .logo-box {
-            background: #fff;
-            border-radius: 50%;
-            width: 72px;
-            height: 72px;
+        .header-en .en-line1 {
+            font-size: 15px;
+            font-weight: 900;
+            letter-spacing: 0.3px;
+            line-height: 1.25;
+        }
+        .header-en .en-line2 {
+            font-size: 11px;
+            font-weight: 500;
+            color: #a8d4e6;
+            margin-top: 1px;
+        }
+
+        /* وسط: الشعار الدائري */
+        .header-logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 6px;
         }
-        .logo-total {
-            font-size: 22px;
+        .logo-circle {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #a8d4e6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 4px 4px;
+            gap: 1px;
+        }
+        /* TOTAL + SUDAN inline */
+        .logo-brand-row {
+            display: flex;
+            align-items: baseline;
+            gap: 3px;
+            line-height: 1;
+        }
+        .logo-total-text {
+            font-size: 24px;
             font-weight: 900;
+            font-style: italic;
             color: #1B4F72;
             letter-spacing: -1px;
-            font-style: italic;
+            line-height: 1;
         }
-        .logo-total span {
-            color: #e74c3c;
-        }
-        .logo-sudan {
-            font-size: 8px;
-            font-weight: 700;
+        .logo-total-text .t-red { color: #c0392b; }
+        .logo-sudan-text {
+            font-size: 9px;
+            font-weight: 800;
             color: #1B4F72;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            align-self: flex-end;
+            margin-bottom: 3px;
         }
         .logo-tagline {
-            font-size: 8px;
-            color: #a8d4e6;
-            font-weight: 500;
-            margin-top: 2px;
+            font-size: 7px;
+            font-weight: 600;
+            color: #1B4F72;
+            letter-spacing: 0.3px;
+            text-align: center;
+            line-height: 1;
         }
 
-        /* Right: Arabic name */
+        /* يمين: عربي */
         .header-ar {
             color: #fff;
-            text-align: left;
+            text-align: right;
             direction: rtl;
         }
-        .header-ar .company-name-ar {
-            font-size: 20px;
+        .header-ar .ar-line1 {
+            font-size: 18px;
             font-weight: 900;
-            line-height: 1.2;
+            line-height: 1.25;
         }
-        .header-ar .company-sub-ar {
+        .header-ar .ar-line2 {
             font-size: 10px;
             color: #a8d4e6;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
-        /* ===== TAX / INVOICE STRIP ===== */
+        /* ═══════════════════════════════════
+           SUBHEADER — ضريبة / Invoice / عنوان
+        ═══════════════════════════════════ */
         .subheader {
             background: #fff;
             border-bottom: 2px solid #1B4F72;
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            padding: 4px 16px;
-            border-top: 1px solid #d0d0d0;
+            padding: 4px 14px;
+            flex-shrink: 0;
         }
         .tax-box {
-            direction: rtl;
-            text-align: right;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            direction: rtl;
+            justify-content: flex-start;
         }
         .tax-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            color: #e74c3c;
+            color: #c0392b;
+            white-space: nowrap;
         }
-        .tax-number-fields {
+        .tax-cells {
             display: flex;
-            gap: 3px;
+            gap: 2px;
             direction: ltr;
         }
         .tax-cell {
-            width: 18px;
-            height: 20px;
-            border: 1px solid #e74c3c;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-        }
-        .invoice-word {
-            font-size: 16px;
-            font-weight: 900;
-            color: #e74c3c;
-            text-align: center;
-            font-style: italic;
-        }
-        .address-strip {
-            text-align: left;
-            direction: rtl;
-            font-size: 10px;
-            font-weight: 700;
-            color: #e74c3c;
-        }
-
-        /* ===== RED DIVIDER ===== */
-        .red-bar {
-            background: #c0392b;
-            height: 6px;
-        }
-
-        /* ===== DATE / CUSTOMER SECTION ===== */
-        .meta-section {
-            padding: 10px 16px 6px;
-            direction: rtl;
-        }
-        .meta-row {
+            width: 16px;
+            height: 18px;
+            border: 1px solid #c0392b;
+            font-size: 8px;
             display: flex;
             align-items: center;
-            margin-bottom: 6px;
-            gap: 8px;
+            justify-content: center;
         }
-        .meta-label {
+        .invoice-word {
+            font-size: 17px;
+            font-weight: 900;
+            color: #c0392b;
+            font-style: italic;
+            text-align: center;
+        }
+        .address-strip {
+            font-size: 10px;
+            font-weight: 700;
+            color: #c0392b;
+            text-align: left;
+            direction: rtl;
+        }
+
+        /* ═══════════════════════════════════
+           الشريط الأحمر الفاصل
+        ═══════════════════════════════════ */
+        .red-bar {
+            background: #c0392b;
+            height: 5px;
+            flex-shrink: 0;
+        }
+
+        /* ═══════════════════════════════════
+           META — التاريخ والسيد
+        ═══════════════════════════════════ */
+        .meta-section {
+            padding: 8px 14px 4px;
+            direction: rtl;
+            flex-shrink: 0;
+        }
+
+        /* صف التاريخ المزدوج */
+        .meta-date-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        /* نصف التاريخ عربي — RTL */
+        .meta-date-ar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            direction: rtl;
+        }
+        /* نصف التاريخ إنجليزي — LTR */
+        .meta-date-en {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            direction: ltr;
+        }
+
+        .meta-lbl {
             font-size: 12px;
             font-weight: 700;
             color: #1B4F72;
-            min-width: 70px;
-            text-align: right;
+            white-space: nowrap;
         }
-        .meta-dots {
-            flex: 1;
-            border-bottom: 1px dotted #555;
-            margin: 0 6px;
-            position: relative;
-            bottom: 2px;
-        }
-        .meta-value {
+        .meta-val {
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             color: #000;
-            min-width: 120px;
+            white-space: nowrap;
         }
-        .meta-label-en {
+        /* الخط التحتي — يمتد ليملأ المساحة */
+        .meta-line {
+            flex: 1;
+            height: 0;
+            border-bottom: 1px solid #aaa;
+        }
+
+        /* صف السيد */
+        .meta-mr-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            direction: rtl;
+        }
+        .meta-mr-lbl-ar {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1B4F72;
+            white-space: nowrap;
+        }
+        .meta-mr-lbl-en {
             font-size: 11px;
             font-weight: 700;
             color: #1B4F72;
             direction: ltr;
+            white-space: nowrap;
         }
-        .meta-row-dual {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-        .meta-half {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .meta-mr-val {
+            font-size: 12px;
+            font-weight: 600;
+            color: #000;
         }
 
-        /* ===== PRODUCTS TABLE ===== */
+        /* ═══════════════════════════════════
+           جدول المنتجات
+        ═══════════════════════════════════ */
+        .table-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin: 4px 14px 0;
+            overflow: hidden;
+        }
+
         .products-table {
-            width: calc(100% - 32px);
-            margin: 6px 16px;
+            width: 100%;
             border-collapse: collapse;
             border: 1.5px solid #1B4F72;
             direction: rtl;
+            table-layout: fixed;
         }
+
+        /* الرأس */
         .products-table thead tr {
             background: #1B4F72;
         }
         .products-table thead th {
             color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 7px 6px;
-            border: 1px solid #2980b9;
+            padding: 5px 4px;
+            border: 1px solid #2471a3;
             text-align: center;
+            vertical-align: middle;
         }
-        .products-table thead th.th-ar { }
-        .products-table thead th.th-en {
-            font-style: italic;
-            font-weight: 400;
-            font-size: 10px;
-        }
-        .products-table thead th.dual {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1px;
-        }
-        /* Two-line header cells */
-        .products-table .th-dual-ar { font-size: 11px; font-weight: 700; }
-        .products-table .th-dual-en { font-size: 9px; font-weight: 400; font-style: italic; color: #c8e6f5; }
+        .th-ar  { font-size: 11px; font-weight: 700; display: block; }
+        .th-en  { font-size: 9px;  font-weight: 400; font-style: italic; color: #c8e6f5; display: block; }
 
-        .products-table tbody tr {
-            border-bottom: 1px solid #ccc;
-        }
-        .products-table tbody tr:last-child {
-            border-bottom: 1.5px solid #1B4F72;
-        }
+        /* الصفوف */
         .products-table tbody td {
-            padding: 6px 6px;
+            padding: 5px 5px;
             font-size: 11px;
-            border-left: 1px solid #d0d0d0;
+            border-left: 1px solid #c8d6de;
+            border-bottom: 1px solid #dde6ea;
             text-align: center;
             color: #000;
+            vertical-align: middle;
         }
-        .products-table tbody td.td-desc {
+        .td-desc {
             text-align: right;
             font-weight: 500;
         }
-        .products-table tbody td.td-num {
+        .td-num {
             direction: ltr;
             font-weight: 600;
         }
-        /* Stamp / logo column */
-        .td-stamp {
-            vertical-align: middle;
-        }
-
-        /* Row height for empty rows */
+        /* الصف الفارغ يأخذ ارتفاع ثابت */
         .products-table tbody tr.empty-row td {
-            height: 24px;
+            height: 22px;
+        }
+        /* آخر صف بيانات — border أثقل */
+        .products-table tbody tr:last-child td {
+            border-bottom: 1.5px solid #1B4F72;
         }
 
-        /* ===== TOTALS ROW ===== */
+        /* ═══════════════════════════════════
+           شريط الإجمالي
+        ═══════════════════════════════════ */
         .totals-bar {
-            width: calc(100% - 32px);
-            margin: 0 16px;
+            margin: 0 14px;
             border: 1.5px solid #1B4F72;
             border-top: none;
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             direction: rtl;
+            flex-shrink: 0;
         }
         .totals-right {
-            padding: 7px 12px;
+            padding: 6px 12px;
             font-size: 13px;
             font-weight: 900;
-            color: #e74c3c;
+            color: #c0392b;
             text-align: right;
         }
         .totals-center {
-            border-left: 1px solid #1B4F72;
-            border-right: 1px solid #1B4F72;
-            padding: 7px 20px;
+            padding: 6px 18px;
             font-size: 13px;
             font-weight: 900;
-            color: #e74c3c;
+            color: #c0392b;
+            border-left: 1px solid #1B4F72;
+            border-right: 1px solid #1B4F72;
             text-align: center;
         }
         .totals-left {
-            padding: 7px 12px;
+            padding: 6px 12px;
             font-size: 14px;
             font-weight: 900;
-            color: #e74c3c;
+            color: #c0392b;
             text-align: left;
             direction: ltr;
         }
-        /* Extra totals (discount/tax/paid/remaining) */
+
+        /* خصم / ضريبة / مدفوع / متبقي */
         .extra-totals {
-            width: calc(100% - 32px);
-            margin: 0 16px;
+            margin: 0 14px;
             border: 1.5px solid #1B4F72;
             border-top: none;
             direction: rtl;
+            flex-shrink: 0;
         }
         .extra-row {
             display: flex;
@@ -331,33 +384,37 @@
             border-bottom: 1px solid #e0e0e0;
         }
         .extra-row:last-child { border-bottom: none; }
-        .extra-row.paid-row { background: #eafaf1; color: #1a7a40; font-weight: 700; }
+        .extra-row.paid-row      { background: #eafaf1; color: #1a7a40; font-weight: 700; }
         .extra-row.remaining-row { background: #fef9e7; color: #b7770d; font-weight: 700; }
 
-        /* ===== NOTES ===== */
+        /* ═══════════════════════════════════
+           ملاحظات
+        ═══════════════════════════════════ */
         .notes-section {
-            width: calc(100% - 32px);
-            margin: 8px 16px 4px;
-            padding: 6px 10px;
+            margin: 6px 14px 0;
+            padding: 5px 10px;
             border: 1px solid #c0c0c0;
             border-radius: 4px;
             font-size: 10px;
             color: #333;
             direction: rtl;
+            flex-shrink: 0;
         }
         .notes-section strong { color: #1B4F72; }
 
-        /* ===== PAYMENTS TABLE ===== */
+        /* ═══════════════════════════════════
+           سجل الدفعات
+        ═══════════════════════════════════ */
         .payments-section {
-            width: calc(100% - 32px);
-            margin: 6px 16px 4px;
+            margin: 6px 14px 0;
             direction: rtl;
+            flex-shrink: 0;
         }
         .payments-section h4 {
             font-size: 11px;
             font-weight: 700;
             color: #1B4F72;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
         .payments-table {
             width: 100%;
@@ -368,7 +425,7 @@
             background: #1B4F72;
             color: #fff;
             padding: 4px 6px;
-            border: 1px solid #2980b9;
+            border: 1px solid #2471a3;
             text-align: center;
         }
         .payments-table td {
@@ -377,43 +434,46 @@
             text-align: center;
         }
 
-        /* ===== FOOTER STRIP ===== */
+        /* ═══════════════════════════════════
+           FOOTER الأحمر — ملاصق للمحتوى
+        ═══════════════════════════════════ */
         .footer-strip {
-            margin-top: auto;
             background: #c0392b;
             color: #fff;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 5px 14px;
+            padding: 5px 12px;
             font-size: 10px;
             direction: rtl;
-            gap: 6px;
-            flex-wrap: wrap;
+            gap: 4px;
+            flex-wrap: nowrap;
+            flex-shrink: 0;
+            margin-top: auto;
         }
-        .footer-strip .f-item {
+        .f-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             white-space: nowrap;
         }
-        .footer-strip .f-icon {
-            font-size: 11px;
-        }
-        .footer-strip .f-hotline {
+        .f-hotline {
             background: #1B4F72;
             color: #fff;
-            padding: 3px 10px;
-            border-radius: 4px;
+            padding: 2px 8px;
+            border-radius: 3px;
             font-weight: 900;
             font-size: 13px;
             letter-spacing: 1px;
         }
+        .f-icon { font-size: 10px; }
 
-        /* ===== NO-PRINT CONTROLS ===== */
+        /* ═══════════════════════════════════
+           NO-PRINT زر الطباعة
+        ═══════════════════════════════════ */
         .no-print {
             background: #f4f7f8;
-            padding: 12px 30px;
+            padding: 10px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -437,18 +497,30 @@
             font-weight: 600;
         }
 
-        /* ===== PRINT ===== */
+        /* ═══════════════════════════════════
+           PRINT — A4 بدون هوامش
+        ═══════════════════════════════════ */
         @media print {
-            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
             .no-print { display: none !important; }
-            .page { width: 210mm; min-height: 297mm; }
-            @page { size: A4; margin: 0; }
+            .page {
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
         }
     </style>
 </head>
 <body>
 
-{{-- زر الطباعة --}}
+{{-- زر الطباعة (لا يظهر عند الطباعة) --}}
 <div class="no-print">
     <a href="{{ route('invoices.show', $invoice) }}">← رجوع للفاتورة</a>
     <button onclick="window.print()">🖨️ طباعة</button>
@@ -456,49 +528,51 @@
 
 <div class="page">
 
-    {{-- ══════════════════════════════════
-         HEADER الرئيسي
-    ══════════════════════════════════ --}}
+    {{-- ══════════════════════════════════════
+         HEADER الأزرق
+    ══════════════════════════════════════ --}}
     <div class="header-main">
-        {{-- يمين: الاسم الإنجليزي --}}
+
+        {{-- يسار: إنجليزي --}}
         <div class="header-en">
-            <div class="company-name-en">TOTAL TOOLS FOR</div>
-            <div class="company-name-en">WORKSHOP EQUIPMENT</div>
+            <div class="en-line1">TOTAL TOOLS FOR</div>
+            <div class="en-line1">WORKSHOP EQUIPMENT</div>
         </div>
 
-        {{-- وسط: الشعار --}}
+        {{-- وسط: الشعار الدائري --}}
         <div class="header-logo">
-            <div class="logo-box">
-                <div>
-                    <div class="logo-total"><span>T</span>OTAL</div>
-                    <div class="logo-sudan">SUDAN</div>
+            <div class="logo-circle">
+                <div class="logo-brand-row">
+                    <span class="logo-total-text"><span class="t-red">T</span>OTAL</span>
+                    <span class="logo-sudan-text">SUDAN</span>
                 </div>
+                <div class="logo-tagline">One Stop's Station</div>
             </div>
-            <div class="logo-tagline">One Stop's Station</div>
         </div>
 
-        {{-- يسار: الاسم العربي --}}
+        {{-- يمين: عربي --}}
         <div class="header-ar">
-            <div class="company-name-ar">توتال لمعدات الورش</div>
-            <div class="company-sub-ar">الكنلة سوق اللفة</div>
+            <div class="ar-line1">توتال لمعدات الورش</div>
+            <div class="ar-line2">الكنلة سوق اللفة</div>
         </div>
+
     </div>
 
-    {{-- ══════════════════════════════════
-         شريط الضريبة / Invoice
-    ══════════════════════════════════ --}}
+    {{-- ══════════════════════════════════════
+         SUBHEADER — ضريبة / Invoice / عنوان
+    ══════════════════════════════════════ --}}
     <div class="subheader">
         {{-- يمين: الرقم الضريبي --}}
         <div class="tax-box">
             <span class="tax-label">الرقم الضريبي</span>
-            <div class="tax-number-fields">
-                @foreach(range(1,9) as $i)
+            <div class="tax-cells">
+                @foreach(range(1,9) as $n)
                     <div class="tax-cell"></div>
                 @endforeach
             </div>
         </div>
 
-        {{-- وسط: كلمة Invoice --}}
+        {{-- وسط --}}
         <div class="invoice-word">Invoice</div>
 
         {{-- يسار: العنوان --}}
@@ -507,133 +581,113 @@
 
     <div class="red-bar"></div>
 
-    {{-- ══════════════════════════════════
-         التاريخ والسيد
-    ══════════════════════════════════ --}}
+    {{-- ══════════════════════════════════════
+         META — التاريخ والسيد
+    ══════════════════════════════════════ --}}
     <div class="meta-section">
-        <div class="meta-row-dual">
-            {{-- التاريخ عربي --}}
-            <div class="meta-half" style="direction:rtl; justify-content:flex-end;">
-                <span class="meta-label">التاريخ :</span>
-                <span class="meta-dots"></span>
-                <span class="meta-value">{{ $invoice->created_at->format('Y/m/d') }}</span>
+
+        {{-- التاريخ: عربي + إنجليزي --}}
+        <div class="meta-date-row">
+
+            {{-- عربي RTL --}}
+            <div class="meta-date-ar">
+                <span class="meta-lbl">التاريخ :</span>
+                <span class="meta-val">{{ $invoice->created_at->format('Y/m/d') }}</span>
+                <span class="meta-line"></span>
             </div>
-            {{-- Date إنجليزي --}}
-            <div class="meta-half" style="direction:ltr; justify-content:flex-start;">
-                <span class="meta-label-en">Date :</span>
-                <span class="meta-dots"></span>
-                <span class="meta-value" style="direction:ltr;">{{ $invoice->created_at->format('d/m/Y') }}</span>
+
+            {{-- إنجليزي LTR --}}
+            <div class="meta-date-en">
+                <span class="meta-lbl" style="direction:ltr;">Date :</span>
+                <span class="meta-val" style="direction:ltr;">{{ $invoice->created_at->format('d/m/Y') }}</span>
+                <span class="meta-line"></span>
             </div>
+
         </div>
 
         {{-- السيد --}}
-        <div class="meta-row">
-            <span class="meta-label">السيد :</span>
-            <span class="meta-dots"></span>
-            <span class="meta-value">
+        <div class="meta-mr-row">
+            <span class="meta-mr-lbl-ar">السيد :</span>
+            <span class="meta-mr-val">
                 @if($invoice->customer)
-                    {{ $invoice->customer->name }}
-                    @if($invoice->customer->phone) — {{ $invoice->customer->phone }}@endif
+                    {{ $invoice->customer->name }}@if($invoice->customer->phone) — {{ $invoice->customer->phone }}@endif
                 @else
                     عميل نقدي
                 @endif
             </span>
-            <span style="width:40px; direction:ltr; font-size:11px; font-weight:700; color:#1B4F72;">M R :</span>
-            <span class="meta-dots"></span>
+            <span class="meta-line"></span>
+            <span class="meta-mr-lbl-en">M R :</span>
+            <span class="meta-line"></span>
         </div>
+
     </div>
 
-    {{-- ══════════════════════════════════
-         جدول المنتجات
-    ══════════════════════════════════ --}}
+    {{-- ══════════════════════════════════════
+         جدول المنتجات — يمتد ليملأ المساحة
+    ══════════════════════════════════════ --}}
     @php
-        $items      = $invoice->items;
-        $itemCount  = $items->count();
-        $minRows    = 15;
-        $emptyRows  = max(0, $minRows - $itemCount);
-        $hasStamp   = false; // سيظهر الختم في الصف الأخير من الفراغ
+        $items     = $invoice->items;
+        $itemCount = $items->count();
+        $minRows   = 14;
+        $emptyRows = max(0, $minRows - $itemCount);
     @endphp
 
-    <table class="products-table">
-        <thead>
-            <tr>
-                {{-- Cod No --}}
-                <th style="width:42px;">
-                    <div class="th-dual-ar">Cod</div>
-                    <div class="th-dual-en">No</div>
-                </th>
-                {{-- البيان --}}
-                <th>
-                    <div class="th-dual-ar">البيـــان</div>
-                </th>
-                {{-- Description --}}
-                <th style="width:110px;">
-                    <div class="th-dual-en" style="color:#fff; font-size:11px; font-style:italic;">Decription</div>
-                </th>
-                {{-- العدد --}}
-                <th style="width:50px;">
-                    <div class="th-dual-ar">العدد</div>
-                    <div class="th-dual-en">Qty</div>
-                </th>
-                {{-- سعر الوحدة --}}
-                <th style="width:70px;">
-                    <div class="th-dual-ar">سعر الوحدة</div>
-                    <div class="th-dual-en">Unit Price</div>
-                </th>
-                {{-- سعر إجمالي --}}
-                <th style="width:80px;">
-                    <div class="th-dual-ar">سعر اجمالي</div>
-                    <div class="th-dual-en">Total Price</div>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            {{-- صفوف البيانات --}}
-            @foreach($items as $i => $item)
-            <tr>
-                <td>{{ $item->product?->sku ?? ($i + 1) }}</td>
-                <td class="td-desc">{{ $item->product?->name_ar ?? $item->product?->name_en ?? '—' }}</td>
-                <td class="td-desc" style="direction:ltr; text-align:left; font-size:10px;">{{ $item->product?->name_en ?? '' }}</td>
-                <td class="td-num">{{ number_format($item->quantity) }}</td>
-                <td class="td-num">{{ number_format($item->price, 2) }}</td>
-                <td class="td-num" style="font-weight:700;">{{ number_format($item->total, 2) }}</td>
-            </tr>
-            @endforeach
+    <div class="table-wrap">
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th style="width:44px;">
+                        <span class="th-ar">Cod</span>
+                        <span class="th-en">No</span>
+                    </th>
+                    <th>
+                        <span class="th-ar">البيـــان</span>
+                    </th>
+                    <th style="width:105px;">
+                        <span class="th-en" style="color:#fff; font-size:11px;">Decription</span>
+                    </th>
+                    <th style="width:48px;">
+                        <span class="th-ar">العدد</span>
+                        <span class="th-en">Qty</span>
+                    </th>
+                    <th style="width:68px;">
+                        <span class="th-ar">سعر الوحدة</span>
+                        <span class="th-en">Unit Price</span>
+                    </th>
+                    <th style="width:76px;">
+                        <span class="th-ar">سعر اجمالي</span>
+                        <span class="th-en">Total Price</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
 
-            {{-- صفوف فارغة --}}
-            @for($r = 0; $r < $emptyRows; $r++)
-            <tr class="empty-row">
-                @if($r === intval($emptyRows / 2))
-                {{-- صف الختم في المنتصف --}}
-                <td></td>
-                <td></td>
-                <td class="td-stamp" rowspan="1" style="text-align:center; padding:4px;">
-                    <div style="
-                        border: 2px solid #e74c3c;
-                        border-radius: 6px;
-                        padding: 4px 10px;
-                        display: inline-block;
-                        background: linear-gradient(135deg, #e8f4fd 0%, #fef9f9 100%);
-                        position: relative;
-                    ">
-                        <div style="font-size:18px; font-weight:900; color:#c0392b; font-style:italic; letter-spacing:-1px;">توتال</div>
-                        <div style="font-size:8px; font-weight:700; color:#1B4F72; letter-spacing:1px;">ممنتج قطاعي</div>
-                    </div>
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                @else
-                <td></td><td></td><td></td><td></td><td></td><td></td>
-                @endif
-            </tr>
-            @endfor
-        </tbody>
-    </table>
+                {{-- صفوف البيانات --}}
+                @foreach($items as $i => $item)
+                <tr>
+                    <td>{{ $item->product?->sku ?? ($i + 1) }}</td>
+                    <td class="td-desc">{{ $item->product?->name_ar ?? $item->product?->name_en ?? '—' }}</td>
+                    <td class="td-desc" style="direction:ltr; text-align:left; font-size:10px;">{{ $item->product?->name_en ?? '' }}</td>
+                    <td class="td-num">{{ number_format($item->quantity) }}</td>
+                    <td class="td-num">{{ number_format($item->price, 2) }}</td>
+                    <td class="td-num" style="font-weight:700;">{{ number_format($item->total, 2) }}</td>
+                </tr>
+                @endforeach
 
-    {{-- ══════════════════════════════════
-         شريط الإجماليات
-    ══════════════════════════════════ --}}
+                {{-- صفوف فارغة لملء الجدول --}}
+                @for($r = 0; $r < $emptyRows; $r++)
+                <tr class="empty-row">
+                    <td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                @endfor
+
+            </tbody>
+        </table>
+    </div>{{-- end table-wrap --}}
+
+    {{-- ══════════════════════════════════════
+         شريط الإجمالي
+    ══════════════════════════════════════ --}}
     <div class="totals-bar">
         <div class="totals-right">إجمالي</div>
         <div class="totals-center">Total</div>
@@ -645,7 +699,7 @@
     <div class="extra-totals">
         @if($invoice->discount_amount > 0)
         <div class="extra-row">
-            <span>الخصم @if($invoice->discount_percent > 0)({{ $invoice->discount_percent }}%)@endif</span>
+            <span>الخصم@if($invoice->discount_percent > 0) ({{ $invoice->discount_percent }}%)@endif</span>
             <span style="color:#c62828; font-weight:700;">- {{ number_format($invoice->discount_amount, 2) }} SDG</span>
         </div>
         @endif
@@ -657,22 +711,20 @@
         @endif
         @if($invoice->paid_amount > 0)
         <div class="extra-row paid-row">
-            <span>المدفوع</span>
+            <span>المبلغ المسدَّد</span>
             <span>{{ number_format($invoice->paid_amount, 2) }} SDG</span>
         </div>
         @endif
         @if($invoice->remaining_amount > 0)
         <div class="extra-row remaining-row">
-            <span>المتبقي</span>
+            <span>الرصيد المتبقي</span>
             <span>{{ number_format($invoice->remaining_amount, 2) }} SDG</span>
         </div>
         @endif
     </div>
     @endif
 
-    {{-- ══════════════════════════════════
-         سجل الدفعات
-    ══════════════════════════════════ --}}
+    {{-- سجل الدفعات --}}
     @if($invoice->payments->count())
     <div class="payments-section">
         <h4>سجل الدفعات</h4>
@@ -709,9 +761,9 @@
     </div>
     @endif
 
-    {{-- ══════════════════════════════════
-         FOOTER الأحمر
-    ══════════════════════════════════ --}}
+    {{-- ══════════════════════════════════════
+         FOOTER الأحمر — ملاصق للمحتوى
+    ══════════════════════════════════════ --}}
     <div class="footer-strip">
         <div class="f-item">
             <span class="f-hotline">3503</span>
@@ -739,6 +791,6 @@
         </div>
     </div>
 
-</div>
+</div>{{-- end .page --}}
 </body>
 </html>
