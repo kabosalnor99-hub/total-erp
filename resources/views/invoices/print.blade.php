@@ -120,6 +120,7 @@ $total_in_words = tafqeet($invoice->total);
             padding: 7px 14px;
             gap: 8px;
             flex-shrink: 0;
+            direction: ltr; /* يثبّت ترتيب الأعمدة: يسار → وسط → يمين */
         }
 
         /* يسار: إنجليزي */
