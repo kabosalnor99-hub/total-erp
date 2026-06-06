@@ -551,10 +551,8 @@ document.addEventListener('alpine:init', () => {
                     this.showPaymentModal   = false;
                     this.toast(`✓ إيصال: ${data.receipt_number}`);
 
-                    // فتح الإيصال في نافذة جديدة
-                    if (data.receipt_url) {
-                        setTimeout(() => window.open(data.receipt_url, '_blank', 'width=400,height=600'), 400);
-                    }
+                    // إطلاق حدث لفتح مودال اختيار الطباعة بدلاً من الفتح المباشر
+                    document.dispatchEvent(new CustomEvent('pos:sale-complete', { detail: data }));
 
                     this.clearCart();
                 } else {
