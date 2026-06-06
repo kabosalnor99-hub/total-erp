@@ -8,6 +8,7 @@ use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\PosTransaction;
 use App\Models\Warehouse;
 use App\Services\CacheService;
 use App\Services\InvoiceService;
@@ -121,9 +122,13 @@ class InvoiceController extends Controller
     public function print(Invoice $invoice)
     {
         $invoice->load(['customer', 'user', 'items.product', 'payments']);
-        $settings = \App\Models\Setting::pluck('value', 'key');
+        $settings    = \App\Models\Setting::pluck('value', 'key');
+        $transaction = PosTransaction::where('invoice_id', $invoice->id)
+                           ->with('customer')
+                           ->latest()
+                           ->first();
 
-        return view('invoices.print', compact('invoice', 'settings'));
+        return view('invoices.print', compact('invoice', 'settings', 'transaction'));
     }
 
     /** تصدير PDF */
@@ -194,21 +199,11 @@ class InvoiceController extends Controller
     /** تقرير المستحقات المتأخرة */
     public function aging(Request $request)
     {
-        $debtors = Customer::withBalance()
-            ->with(['invoices' => fn($q) => $q
-                ->whereIn('status', ['confirmed', 'partial'])
-                ->where('remaining_amount', '>', 0)
-                ->latest()
-            ])
-            ->orderByDesc('balance')
+        $overdue = Invoice::overdue()
+            ->with('customer')
+            ->latest('due_date')
             ->get();
 
-        $summary = [
-            'total_debt'    => $debtors->sum('balance'),
-            'total_debtors' => $debtors->count(),
-            'over_credit'   => $debtors->filter(fn($c) => $c->over_credit)->count(),
-        ];
-
-        return view('invoices.aging', compact('debtors', 'summary'));
+        return view('invoices.aging', compact('overdue'));
     }
 }
