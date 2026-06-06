@@ -86,6 +86,7 @@ $total_in_words = tafqeet($invoice->total);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فاتورة — {{ $invoice->invoice_number }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -621,6 +622,8 @@ $total_in_words = tafqeet($invoice->total);
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .no-print a {
             color: #1B4F72;
@@ -628,17 +631,64 @@ $total_in_words = tafqeet($invoice->total);
             font-size: 14px;
             font-family: 'Tajawal', sans-serif;
         }
-        .no-print button {
-            background: #1B4F72;
-            color: #fff;
+        .no-print .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .no-print button,
+        .no-print .np-btn {
             border: none;
-            padding: 8px 24px;
+            padding: 8px 20px;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
             font-family: 'Tajawal', sans-serif;
             cursor: pointer;
             font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
+        .btn-print-a4   { background: #1B4F72; color: #fff; }
+        .btn-thermal    { background: #00838F; color: #fff; }
+        .btn-whatsapp   { background: #25D366; color: #fff; }
+
+        /* ── مودال الواتساب ── */
+        #wa-modal {
+            display: none;
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,.6);
+            align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        #wa-modal.open { display: flex; }
+        #wa-modal-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            font-family: 'Tajawal', sans-serif;
+        }
+        #wa-modal-box h3 { font-size: 15px; margin-bottom: 12px; color: #111; }
+        #wa-preview {
+            width: 100%; border-radius: 8px;
+            border: 1px solid #ddd; margin-bottom: 14px;
+            display: none;
+        }
+        #wa-spinner { font-size: 13px; color: #555; margin-bottom: 14px; }
+        .wa-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .wa-actions a, .wa-actions button {
+            padding: 10px 18px; border-radius: 8px; border: none;
+            font-size: 13px; font-family: 'Tajawal', sans-serif;
+            cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .wa-send  { background: #25D366; color: #fff; }
+        .wa-dl    { background: #1B4F72; color: #fff; }
+        .wa-close { background: #eee;    color: #333; }
 
         /* ═══════════════════════════════════
            PRINT — A4 بدون هوامش
@@ -656,10 +706,48 @@ $total_in_words = tafqeet($invoice->total);
 </head>
 <body>
 
-{{-- زر الطباعة (لا يظهر عند الطباعة) --}}
+{{-- أزرار التحكم (لا تُطبع) --}}
 <div class="no-print">
     <a href="{{ route('invoices.show', $invoice) }}">← رجوع للفاتورة</a>
-    <button onclick="window.print()">🖨️ طباعة</button>
+
+    <div class="btn-group">
+        {{-- طباعة A4 --}}
+        <button class="np-btn btn-print-a4" onclick="window.print()">🖨️ طباعة A4</button>
+
+        {{-- فاتورة حرارية --}}
+        @if(isset($transaction) && $transaction)
+        <a href="{{ route('pos.receipt', $transaction->id) }}"
+           target="_blank" class="np-btn btn-thermal">🧾 فاتورة حرارية</a>
+        @endif
+
+        {{-- واتساب --}}
+        <button class="np-btn btn-whatsapp" id="btn-wa" onclick="openWaModal()">📲 واتساب</button>
+    </div>
+</div>
+
+{{-- مودال الواتساب --}}
+<div id="wa-modal">
+    <div id="wa-modal-box">
+        <h3>📲 إرسال عبر واتساب</h3>
+        <div id="wa-spinner">⏳ جاري تحويل الفاتورة لصورة...</div>
+        <img id="wa-preview" alt="preview">
+        <div class="wa-actions" id="wa-actions" style="display:none">
+            @if($invoice->customer && $invoice->customer->phone)
+            <a id="wa-send-link" href="#" target="_blank" class="wa-send">
+                📤 إرسال للعميل
+            </a>
+            @endif
+            <button class="wa-dl" onclick="downloadInvoiceImage()">⬇️ تحميل الصورة</button>
+            <button class="wa-close" onclick="closeWaModal()">إغلاق</button>
+        </div>
+        <div id="wa-actions-no-phone" style="display:none">
+            <div style="font-size:12px;color:#888;margin-bottom:10px;">لا يوجد رقم عميل — يمكنك تحميل الصورة ومشاركتها يدوياً</div>
+            <div class="wa-actions">
+                <button class="wa-dl" onclick="downloadInvoiceImage()">⬇️ تحميل الصورة</button>
+                <button class="wa-close" onclick="closeWaModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="page">
@@ -917,5 +1005,140 @@ $total_in_words = tafqeet($invoice->total);
     </div>
 
 </div>{{-- end .page --}}
+<script>
+/* ════════════════════════════════════════════════════
+   واتساب — Share API (موبايل) + Fallback (ديسكتوب)
+════════════════════════════════════════════════════ */
+var _blob    = null;
+var _dataUrl = null;
+var _isCapturing = false;
+
+@if($invoice->customer && $invoice->customer->phone)
+var _phone = '{{ preg_replace('/[^0-9]/', '', $invoice->customer->phone) }}';
+if (_phone.startsWith('0')) _phone = '249' + _phone.slice(1);
+@else
+var _phone = null;
+@endif
+
+var _waMsg = 'فاتورة رقم: {{ $invoice->invoice_number }}\nالإجمالي: {{ number_format($invoice->total, 2) }} ج.س' +
+    (@if($invoice->remaining_amount > 0) '\nالمتبقي: {{ number_format($invoice->remaining_amount, 2) }} ج.س' + @endif '') +
+    '\nمن: توتال لمعدات الورش 🛠️';
+
+/* التقاط صفحة الفاتورة كصورة */
+function captureInvoice() {
+    return new Promise(function (resolve, reject) {
+        if (_blob) { resolve(_blob); return; }
+        var page = document.querySelector('.page');
+        html2canvas(page, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+        }).then(function (canvas) {
+            _dataUrl = canvas.toDataURL('image/png');
+            canvas.toBlob(function (blob) {
+                _blob = blob;
+                resolve(_blob);
+            }, 'image/png', 1.0);
+        }).catch(reject);
+    });
+}
+
+function openWaModal() {
+    if (_isCapturing) return;
+    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+        shareViaShareAPI();
+    } else {
+        showDesktopModal();
+    }
+}
+
+function shareViaShareAPI() {
+    var btn = document.getElementById('btn-wa');
+    var origText = btn ? btn.innerHTML : '';
+    if (btn) { btn.innerHTML = '⏳ جاري...'; btn.disabled = true; }
+    _isCapturing = true;
+
+    captureInvoice().then(function (blob) {
+        _isCapturing = false;
+        if (btn) { btn.innerHTML = origText; btn.disabled = false; }
+
+        var file = new File([blob], 'invoice-{{ $invoice->invoice_number }}.png', { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file],
+                text: _waMsg,
+            }).catch(function (err) {
+                if (err.name !== 'AbortError') showDesktopModal();
+            });
+        } else {
+            var waUrl = _phone
+                ? 'https://wa.me/' + _phone + '?text=' + encodeURIComponent(_waMsg)
+                : 'https://wa.me/?text=' + encodeURIComponent(_waMsg);
+            window.open(waUrl, '_blank');
+            showDesktopModal(true);
+        }
+    }).catch(function () {
+        _isCapturing = false;
+        if (btn) { btn.innerHTML = origText; btn.disabled = false; }
+        alert('تعذّر التقاط الصورة.');
+    });
+}
+
+function showDesktopModal(imageReady) {
+    var modal   = document.getElementById('wa-modal');
+    var spinner = document.getElementById('wa-spinner');
+    var preview = document.getElementById('wa-preview');
+    var actBtn  = document.getElementById('wa-actions');
+    var actNC   = document.getElementById('wa-actions-no-phone');
+
+    modal.classList.add('open');
+    spinner.style.display = 'block';
+    preview.style.display = 'none';
+    actBtn.style.display  = 'none';
+    if (actNC) actNC.style.display = 'none';
+
+    var doShow = function () {
+        preview.src = _dataUrl;
+        preview.style.display = 'block';
+        spinner.style.display = 'none';
+
+        if (_phone) {
+            var waLink = document.getElementById('wa-send-link');
+            if (waLink) waLink.href = 'https://wa.me/' + _phone + '?text=' + encodeURIComponent(_waMsg);
+            actBtn.style.display = 'flex';
+        } else {
+            if (actNC) actNC.style.display = 'block';
+        }
+    };
+
+    if (imageReady && _dataUrl) {
+        doShow();
+    } else {
+        captureInvoice().then(function () { doShow(); })
+        .catch(function () {
+            spinner.textContent = '❌ تعذّر التقاط الصورة';
+        });
+    }
+}
+
+function closeWaModal() {
+    document.getElementById('wa-modal').classList.remove('open');
+}
+
+function downloadInvoiceImage() {
+    if (!_dataUrl) return;
+    var a = document.createElement('a');
+    a.href = _dataUrl;
+    a.download = 'invoice-{{ $invoice->invoice_number }}.png';
+    a.click();
+}
+
+document.getElementById('wa-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeWaModal();
+});
+</script>
 </body>
 </html>
