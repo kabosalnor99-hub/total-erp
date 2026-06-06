@@ -495,6 +495,11 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
                 <span class="hdr-btn-icon">📋</span>
                 <span class="hdr-btn-label">الجلسات</span>
             </a>
+            {{-- مساعد AI --}}
+            <button class="btn-pos-secondary hdr-btn" onclick="toggleAiPanel()" title="مساعد ذكي">
+                <span class="hdr-btn-icon">🤖</span>
+                <span class="hdr-btn-label">مساعد AI</span>
+            </button>
             {{-- إغلاق الجلسة --}}
             <button class="btn-pos-secondary hdr-btn hdr-btn-danger" @click="openCloseSession()" title="إغلاق الجلسة">
                 <span class="hdr-btn-icon">🔴</span>
@@ -1350,6 +1355,117 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
             </div>
         </div>
     </div>
+
+
+    {{-- ═══════════════════ لوحة مساعد الذكاء الاصطناعي ═══════════════════ --}}
+    <div id="ai-panel" style="display:none;position:fixed;bottom:80px;left:16px;
+         width:320px;background:#1a2f3a;border:1px solid #0d9488;border-radius:16px;
+         padding:16px;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.5)">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span style="color:#4FB3C0;font-weight:800;font-size:14px">🤖 مساعد توتال الذكي</span>
+            <button onclick="toggleAiPanel()"
+                style="background:none;border:none;color:#7EADB8;font-size:18px;cursor:pointer">✕</button>
+        </div>
+
+        {{-- اقتراحات سريعة --}}
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+            @foreach([
+                'ما أكثر منتج مبيعاً اليوم؟',
+                'ما المنتجات التي تنفد قريباً؟',
+                'كم إجمالي مبيعات اليوم؟',
+                'اقترح عروضاً للعملاء'
+            ] as $suggestion)
+            <button onclick="askAi('{{ $suggestion }}')"
+                style="background:#0F2830;border:1px solid #2a4a5a;color:#a0c4cc;
+                       border-radius:20px;padding:4px 10px;font-size:11px;
+                       cursor:pointer;font-family:inherit">
+                {{ $suggestion }}
+            </button>
+            @endforeach
+        </div>
+
+        {{-- مربع السؤال --}}
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+            <input id="ai-input" type="text" placeholder="اسأل أي شيء..."
+                style="flex:1;background:#0F2830;border:1px solid #2a4a5a;color:#e0f0f4;
+                       border-radius:10px;padding:8px 12px;font-size:12px;font-family:inherit"
+                onkeydown="if(event.key==='Enter') askAi()">
+            <button onclick="askAi()"
+                style="background:#0d9488;color:#fff;border:none;border-radius:10px;
+                       padding:8px 14px;cursor:pointer;font-size:14px">➤</button>
+        </div>
+
+        {{-- تحميل --}}
+        <div id="ai-loading" style="display:none;text-align:center;color:#4FB3C0;font-size:12px;padding:10px">
+            ⏳ جاري التفكير...
+        </div>
+
+        {{-- الجواب --}}
+        <div id="ai-answer"
+            style="background:#0F2830;border-radius:10px;padding:10px;
+                   font-size:12px;color:#c8e6ea;line-height:1.7;min-height:60px;
+                   display:none;max-height:200px;overflow-y:auto;white-space:pre-wrap">
+        </div>
+    </div>
+
+    <script>
+    // ══ مساعد الذكاء الاصطناعي — POS ══════════════════════════════════
+    function toggleAiPanel() {
+        var p = document.getElementById('ai-panel');
+        var isOpen = p.style.display !== 'none';
+        p.style.display = isOpen ? 'none' : 'block';
+        if (!isOpen) loadAiAutoInsight();
+    }
+
+    function askAi(question) {
+        var input = document.getElementById('ai-input');
+        var q     = question || input.value.trim();
+        if (!q) return;
+        input.value = '';
+
+        document.getElementById('ai-answer').style.display  = 'none';
+        document.getElementById('ai-loading').style.display = 'block';
+
+        fetch('/ai/ask', {
+            method: 'POST',
+            headers: {
+                'Content-Type':  'application/json',
+                'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ prompt: q, context: { module: 'pos' }, fresh: true })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('ai-loading').style.display = 'none';
+            var ans = document.getElementById('ai-answer');
+            ans.style.display = 'block';
+            ans.textContent   = data.response || 'لا يوجد رد';
+        })
+        .catch(function() {
+            document.getElementById('ai-loading').style.display = 'none';
+            document.getElementById('ai-answer').style.display  = 'block';
+            document.getElementById('ai-answer').textContent    = '❌ تعذّر الاتصال بالمساعد';
+        });
+    }
+
+    function loadAiAutoInsight() {
+        document.getElementById('ai-answer').style.display  = 'none';
+        document.getElementById('ai-loading').style.display = 'block';
+
+        fetch('/ai/sales-insight')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('ai-loading').style.display = 'none';
+            var ans = document.getElementById('ai-answer');
+            ans.style.display = 'block';
+            ans.textContent   = '💡 ' + (data.response || '');
+        })
+        .catch(function() {
+            document.getElementById('ai-loading').style.display = 'none';
+        });
+    }
+    </script>
 
 </div>{{-- end pos-wrapper --}}
 
