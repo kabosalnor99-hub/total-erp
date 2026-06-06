@@ -205,6 +205,7 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
         Route::get('/pos',                               [PosController::class, 'index'])->name('pos.index');
         Route::get('/pos/report',                        [PosController::class, 'report'])->name('pos.report');
         Route::get('/pos/products/search',               [PosController::class, 'searchProducts'])->name('pos.products.search');
+        Route::get('/pos/products/smart-search',         [PosController::class, 'smartSearch'])->name('pos.products.smart-search');
         Route::get('/pos/products/barcode',              [PosController::class, 'findByBarcode'])->name('pos.products.barcode');
         Route::get('/pos/customers/search',              [PosController::class, 'searchCustomers'])->name('pos.customers.search');
         Route::post('/pos/sale',                         [PosController::class, 'processSale'])->name('pos.sale');
