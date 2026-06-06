@@ -64,7 +64,7 @@
             ['route' => 'reports.sales-summary',     'icon' => 'chart-bar',         'color' => 'green',  'title' => __('reports.sales_summary'),     'desc' => __('reports.sales_summary_desc')],
             ['route' => 'reports.sales-by-customer', 'icon' => 'user-group',         'color' => 'emerald','title' => __('reports.sales_by_customer'),  'desc' => __('reports.sales_by_customer_desc')],
             ['route' => 'reports.sales-by-product',  'icon' => 'cube',               'color' => 'lime',   'title' => __('reports.sales_by_product'),   'desc' => __('reports.sales_by_product_desc')],
-            ['route' => 'reports.overdue-invoices',  'icon' => 'exclamation-circle', 'color' => 'red',    'title' => __('reports.overdue_invoices'),   'desc' => __('reports.overdue_invoices_desc')],
+            ['route' => 'invoices.aging',  'icon' => 'exclamation-circle', 'color' => 'red',    'title' => __('reports.overdue_invoices'),   'desc' => __('reports.overdue_invoices_desc')],
         ];
         @endphp
 
