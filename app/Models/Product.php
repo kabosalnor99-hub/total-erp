@@ -58,6 +58,11 @@ class Product extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function invoiceItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
