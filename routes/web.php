@@ -28,6 +28,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\AiController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
@@ -519,5 +520,15 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
 
     // API عام لجلب السعر الحالي من JavaScript
     Route::get('/api/exchange-rate/current', [ExchangeRateController::class, 'current'])->name('exchange-rates.current');
+
+
+    // ─── الذكاء الاصطناعي ──────────────────────────────────────────────
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::post('/ask',              [AiController::class, 'ask'])->name('ask');
+        Route::post('/chat',             [AiController::class, 'chat'])->name('chat');
+        Route::get('/inventory-alert',   [AiController::class, 'inventoryAlert'])->name('inventory.alert');
+        Route::get('/sales-insight',     [AiController::class, 'salesInsight'])->name('sales.insight');
+        Route::get('/purchase-forecast', [AiController::class, 'purchaseForecast'])->name('purchase.forecast');
+    });
 
 }); // نهاية middleware(['auth', 'setlocale'])
