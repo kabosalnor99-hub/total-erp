@@ -194,11 +194,21 @@ class InvoiceController extends Controller
     /** تقرير المستحقات المتأخرة */
     public function aging(Request $request)
     {
-        $overdue = Invoice::overdue()
-            ->with('customer')
-            ->latest('due_date')
+        $debtors = Customer::withBalance()
+            ->with(['invoices' => fn($q) => $q
+                ->whereIn('status', ['confirmed', 'partial'])
+                ->where('remaining_amount', '>', 0)
+                ->latest()
+            ])
+            ->orderByDesc('balance')
             ->get();
 
-        return view('invoices.aging', compact('overdue'));
+        $summary = [
+            'total_debt'    => $debtors->sum('balance'),
+            'total_debtors' => $debtors->count(),
+            'over_credit'   => $debtors->filter(fn($c) => $c->over_credit)->count(),
+        ];
+
+        return view('invoices.aging', compact('debtors', 'summary'));
     }
 }
