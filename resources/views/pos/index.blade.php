@@ -1367,6 +1367,43 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 
     function open(data) {
         _receiptUrl = data.receipt_url || null;
+        _invoiceUrl = data.invoice_print_url
+            || (data.invoice_id ? '/invoices/' + data.invoice_id + '/print' : null);
+
+        if (elNum)    elNum.textContent    = data.receipt_number ? 'رقم الإيصال: ' + data.receipt_number : '';
+        if (elAmount) elAmount.textContent = data.total
+            ? Number(data.total).toLocaleString('ar-SD', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ج.س'
+            : '';
+        overlay.style.display = 'flex';
+    }
+    function close() { overlay.style.display = 'none'; }
+
+    /* ── الاستماع للحدث القادم من pos.js ── */
+    document.addEventListener('pos:sale-complete', function (e) {
+        setTimeout(function () { open(e.detail); }, 350);
+    });
+
+    /* ── أزرار الطباعة ── */
+    btnThermal && btnThermal.addEventListener('click', function () {
+        if (_receiptUrl) window.open(_receiptUrl, '_blank', 'width=420,height=680,menubar=yes,toolbar=yes');
+        close();
+    });
+
+    btnA4 && btnA4.addEventListener('click', function () {
+        if (_invoiceUrl) window.open(_invoiceUrl, '_blank', 'width=950,height=780,menubar=yes,toolbar=yes');
+        else alert('رابط فاتورة A4 غير متاح لهذه العملية');
+        close();
+    });
+
+    btnSkip && btnSkip.addEventListener('click', close);
+})();
+    var elAmount   = document.getElementById('pc-total-amount');
+    var btnThermal = document.getElementById('pc-btn-thermal');
+    var btnA4      = document.getElementById('pc-btn-a4');
+    var btnSkip    = document.getElementById('pc-btn-skip');
+
+    function open(data) {
+        _receiptUrl = data.receipt_url || null;
         _invoiceUrl = data.invoice_print_url || (data.invoice_id ? '/invoices/' + data.invoice_id + '/print' : null);
         if (elNum)    elNum.textContent    = data.receipt_number ? 'رقم الإيصال: ' + data.receipt_number : '';
         if (elAmount) elAmount.textContent = data.total
@@ -1386,27 +1423,6 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
         close();
     });
     btnSkip && btnSkip.addEventListener('click', close);
-
-    /* اعتراض completeSale بعد تهيئة Alpine */
-    document.addEventListener('alpine:initialized', function () {
-        var wrapper = document.querySelector('[x-data]');
-        if (!wrapper) return;
-        var timer = setInterval(function () {
-            if (!wrapper._x_dataStack) return;
-            clearInterval(timer);
-            var posData = null;
-            wrapper._x_dataStack.forEach(function (layer) {
-                if (layer && typeof layer.completeSale === 'function') posData = layer;
-            });
-            if (!posData) return;
-            var orig = posData.completeSale.bind(posData);
-            posData.completeSale = async function () {
-                await orig();
-                var last = posData.lastTransaction;
-                if (last && last.success) open(last);
-            };
-        }, 80);
-    });
 })();
 </script>
 <script>
