@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Services\AiService;
+use App\Services\AiContextService;
+use App\Models\AiInsight;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -134,4 +137,38 @@ class AiController extends Controller
             'response' => $this->ai->purchaseForecast($stock, $salesTrend),
         ]);
     }
+
+    /**
+     * GET /ai/analysis/{module}
+     * تحليل تلقائي حسب الموديول مع حفظ النتيجة
+     */
+    public function autoAnalysis(string $module, AiContextService $context): JsonResponse
+    {
+        $allowed = ['pos', 'sales', 'inventory', 'customers', 'general'];
+
+        if (!in_array($module, $allowed)) {
+            return response()->json(['error' => 'موديول غير معروف'], 422);
+        }
+
+        $ctx    = $context->getContext($module);
+        $prompt = $context->getAutoPrompt($module);
+        $result = $this->ai->askFresh($prompt, $ctx);
+
+        // حفظ في قاعدة البيانات للرجوع إليها لاحقاً
+        try {
+            DB::table('ai_insights')->insert([
+                'module'     => $module,
+                'type'       => 'analysis',
+                'content'    => $result,
+                'date'       => now()->toDateString(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable) {
+            // لا نوقف الرد إذا فشل الحفظ
+        }
+
+        return response()->json(['response' => $result, 'module' => $module]);
+    }
+
 }
