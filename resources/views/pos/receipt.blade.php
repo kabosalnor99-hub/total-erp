@@ -194,17 +194,90 @@
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* ── أزرار إضافية ── */
+        .btn-a4      { background: #1B4F72; color: #fff; }
+        .btn-whatsapp-img { background: #25D366; color: #fff; }
+        .btn-whatsapp-txt { background: #128C7E; color: #fff; }
+
+        /* ── مودال الواتساب ── */
+        #wa-modal {
+            display: none;
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,.6);
+            align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        #wa-modal.open { display: flex; }
+        #wa-modal-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            font-family: 'Cairo', sans-serif;
+        }
+        #wa-modal-box h3 { font-size: 15px; margin-bottom: 12px; color: #111; }
+        #wa-preview {
+            width: 100%; border-radius: 8px;
+            border: 1px solid #ddd; margin-bottom: 14px;
+            display: none;
+        }
+        #wa-spinner { font-size: 13px; color: #555; margin-bottom: 14px; }
+        .wa-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .wa-actions a, .wa-actions button {
+            padding: 10px 18px; border-radius: 8px; border: none;
+            font-size: 13px; font-family: 'Cairo', sans-serif;
+            cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .wa-send  { background: #25D366; color: #fff; }
+        .wa-dl    { background: #1B4F72; color: #fff; }
+        .wa-close { background: #eee;    color: #333; }
+    </style>
 </head>
 <body>
 
 {{-- ── أزرار التحكم ── --}}
 <div class="no-print">
     <button class="btn btn-print" onclick="window.print()">🖨️ طباعة</button>
-    <a href="{{ route('pos.index') }}" class="btn btn-close">← العودة للكاشير</a>
-    @if($transaction->customer && $transaction->customer->phone)
-    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $transaction->customer->phone) }}?text={{ urlencode('إيصال شراء رقم: ' . $transaction->receipt_number . ' — المبلغ: ' . number_format($transaction->total, 2) . ' ج.س') }}"
-       target="_blank" class="btn btn-whatsapp">📲 واتساب</a>
+
+    {{-- فاتورة A4 --}}
+    @if($transaction->invoice_id)
+    <a href="{{ route('invoices.print', $transaction->invoice_id) }}"
+       target="_blank" class="btn btn-a4">📄 فاتورة A4</a>
     @endif
+
+    {{-- واتساب بصورة --}}
+    <button class="btn btn-whatsapp-img" onclick="openWaModal()">📲 واتساب</button>
+
+    <a href="{{ route('pos.index') }}" class="btn btn-close">← العودة للكاشير</a>
+</div>
+
+{{-- ── مودال الواتساب ── --}}
+<div id="wa-modal">
+    <div id="wa-modal-box">
+        <h3>📲 إرسال عبر واتساب</h3>
+        <div id="wa-spinner">⏳ جاري تحويل الإيصال لصورة...</div>
+        <img id="wa-preview" alt="preview">
+        <div class="wa-actions" id="wa-actions" style="display:none">
+            @if($transaction->customer && $transaction->customer->phone)
+            <a id="wa-send-link" href="#" target="_blank" class="wa-send">
+                📤 إرسال للعميل
+            </a>
+            @endif
+            <button class="wa-dl" onclick="downloadReceiptImage()">⬇️ تحميل الصورة</button>
+            <button class="wa-close" onclick="closeWaModal()">إغلاق</button>
+        </div>
+        <div id="wa-actions-no-customer" style="display:none">
+            <div style="font-size:12px;color:#888;margin-bottom:10px;">لا يوجد رقم عميل — يمكنك تحميل الصورة ومشاركتها يدوياً</div>
+            <div class="wa-actions">
+                <button class="wa-dl" onclick="downloadReceiptImage()">⬇️ تحميل الصورة</button>
+                <button class="wa-close" onclick="closeWaModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 {{-- ── الإيصال ── --}}
@@ -362,8 +435,8 @@
 </div>{{-- .receipt --}}
 
 <script>
-    // توليد الباركود
-    document.addEventListener('DOMContentLoaded', function() {
+    /* ── الباركود ── */
+    document.addEventListener('DOMContentLoaded', function () {
         try {
             JsBarcode("#barcode", "{{ $transaction->receipt_number }}", {
                 format: "CODE128",
@@ -373,15 +446,97 @@
                 displayValue: false,
                 margin: 0
             });
-        } catch (e) {
-            console.error('Error generating barcode:', e);
-        }
+        } catch (e) { console.error('Barcode error:', e); }
     });
 
-    // طباعة تلقائية عند فتح الصفحة إذا جاء من POS مباشرة
+    /* ── طباعة تلقائية ── */
     @if(request()->has('auto_print'))
-    window.onload = function() { window.print(); }
+    window.onload = function () { window.print(); }
     @endif
+
+    /* ════════════════════════════════
+       واتساب — التقاط صورة وإرسالها
+    ════════════════════════════════ */
+    var _capturedBlob   = null;
+    var _capturedDataUrl = null;
+    @if($transaction->customer && $transaction->customer->phone)
+    var _customerPhone  = '{{ preg_replace('/[^0-9]/', '', $transaction->customer->phone) }}';
+    @else
+    var _customerPhone  = null;
+    @endif
+
+    function openWaModal() {
+        var modal = document.getElementById('wa-modal');
+        modal.classList.add('open');
+        _capturedBlob    = null;
+        _capturedDataUrl = null;
+
+        var spinner  = document.getElementById('wa-spinner');
+        var preview  = document.getElementById('wa-preview');
+        var actions  = document.getElementById('wa-actions');
+        var actionsNC = document.getElementById('wa-actions-no-customer');
+        spinner.style.display  = 'block';
+        preview.style.display  = 'none';
+        actions.style.display  = 'none';
+        if (actionsNC) actionsNC.style.display = 'none';
+
+        /* نضيف padding مؤقت للإيصال لتلافي القطع */
+        var receipt = document.querySelector('.receipt');
+        var origPad = receipt.style.padding;
+        receipt.style.padding = '6mm';
+
+        html2canvas(receipt, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+        }).then(function (canvas) {
+            receipt.style.padding = origPad;
+
+            _capturedDataUrl = canvas.toDataURL('image/png');
+
+            /* عرض المعاينة */
+            preview.src = _capturedDataUrl;
+            preview.style.display = 'block';
+            spinner.style.display = 'none';
+
+            /* تحويل dataURL → Blob للمشاركة الأصلية */
+            canvas.toBlob(function (blob) {
+                _capturedBlob = blob;
+            }, 'image/png');
+
+            /* بناء رابط الواتساب */
+            if (_customerPhone) {
+                var msg = 'إيصال شراء رقم: {{ $transaction->receipt_number }}\nالمبلغ: {{ number_format($transaction->total, 2) }} ج.س\nشكراً لتسوقكم من توتال السودان 🛍️';
+                var waLink = document.getElementById('wa-send-link');
+                if (waLink) waLink.href = 'https://wa.me/' + _customerPhone + '?text=' + encodeURIComponent(msg);
+                actions.style.display = 'flex';
+            } else {
+                if (actionsNC) actionsNC.style.display = 'block';
+            }
+        }).catch(function (err) {
+            receipt.style.padding = origPad;
+            spinner.textContent = '❌ تعذّر التقاط الصورة';
+            console.error('html2canvas error:', err);
+        });
+    }
+
+    function closeWaModal() {
+        document.getElementById('wa-modal').classList.remove('open');
+    }
+
+    function downloadReceiptImage() {
+        if (!_capturedDataUrl) return;
+        var a = document.createElement('a');
+        a.href = _capturedDataUrl;
+        a.download = 'receipt-{{ $transaction->receipt_number }}.png';
+        a.click();
+    }
+
+    /* إغلاق عند النقر خارج المودال */
+    document.getElementById('wa-modal').addEventListener('click', function (e) {
+        if (e.target === this) closeWaModal();
+    });
 </script>
 </body>
 </html>
