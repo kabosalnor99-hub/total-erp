@@ -262,33 +262,104 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
 /* شريط الدفع للموبايل — مخفي بالافتراضي على الديسكتوب */
 .mobile-checkout-bar{display:none}
 
-/* Responsive Tablet & Mobile */
+/* ══════════════════════════════════════════════════
+   مودال السلة للموبايل
+══════════════════════════════════════════════════ */
+.cart-modal-overlay{
+    display:none;
+    position:fixed;inset:0;z-index:9000;
+    background:rgba(0,0,0,.55);
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+    align-items:flex-end;
+    justify-content:center;
+}
+.cart-modal-overlay.open{ display:flex; }
+.cart-modal-sheet{
+    background:var(--bg-2);
+    width:100%;
+    max-height:92dvh;
+    border-radius:22px 22px 0 0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 -8px 40px rgba(0,0,0,.5);
+    animation:slideUp .28s cubic-bezier(.22,.6,.36,1) both;
+}
+@keyframes slideUp{
+    from{transform:translateY(100%);opacity:.4}
+    to{transform:translateY(0);opacity:1}
+}
+/* مقبض السحب */
+.cart-modal-handle{
+    width:40px;height:5px;
+    border-radius:3px;
+    background:var(--border);
+    margin:10px auto 4px;
+    flex-shrink:0;
+}
+/* رأس المودال */
+.cart-modal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 16px 8px;
+    border-bottom:1px solid var(--border);
+    flex-shrink:0;
+}
+.cart-modal-head h3{
+    font-size:16px;font-weight:800;color:var(--text);
+    display:flex;align-items:center;gap:8px;
+}
+.cart-modal-close{
+    background:rgba(255,255,255,.08);
+    border:none;color:var(--text-muted);
+    width:32px;height:32px;border-radius:50%;
+    font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s;
+}
+.cart-modal-close:hover{background:rgba(255,255,255,.15)}
+/* محتوى المودال قابل للتمرير */
+.cart-modal-body{
+    flex:1;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:0;
+}
+/* الملخص داخل المودال */
+.cart-modal-summary{
+    padding:10px 16px;
+    padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    border-top:1px solid var(--border);
+    background:var(--bg-3);
+    flex-shrink:0;
+}
+
+/* ══════════════════════════════════════════════════
+   Responsive Tablet & Mobile
+══════════════════════════════════════════════════ */
 @media(max-width:768px){
-    :root{--cart-w:100%}
+    :root{--cart-w:0px}
     html,body{overflow:hidden;height:100%;height:100dvh}
     .pos-wrapper{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-    /* المنتجات: تأخذ ما تبقى بعد السلة */
+    /* المنتجات: تأخذ كامل الشاشة */
     .pos-products{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
     .pos-grid{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-    /* السلة */
-    .pos-cart{flex:0 0 auto;max-height:52vh;min-height:0;border-right:none;border-top:2px solid var(--teal);display:flex;flex-direction:column;overflow:hidden;box-shadow:none}
-    .pos-cart-header{flex-shrink:0}
-    .pos-customer-row{flex-shrink:0}
-    .pos-cart-items{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;max-height:110px}
-    .pos-cart-summary{flex-shrink:0;padding:8px 14px;box-shadow:0 -4px 20px rgba(0,0,0,.3)}
-    .pos-cart-summary .pos-action-btns{display:none}
-    .pos-cart-summary .btn-checkout{display:none}
-    .pos-cart-summary .btn-draft-inline{display:none}
+    /* السلة الأصلية: مخفية كلياً على الموبايل */
+    .pos-cart{display:none !important}
     /* شريط الدفع الثابت */
     .mobile-checkout-bar{display:flex !important;align-items:center;gap:8px;padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px));background:var(--bg-3);border-top:2px solid var(--teal);box-shadow:0 -4px 24px rgba(13,148,136,.3);flex-shrink:0;z-index:20}
     .mobile-checkout-bar .btn-checkout{flex:1;margin-top:0;padding:14px;font-size:15px;border-radius:12px}
     .mobile-total{text-align:center;min-width:90px;flex-shrink:0}
     .mobile-total-label{font-size:10px;color:var(--text-muted);display:block}
     .mobile-total-amount{font-size:15px;font-weight:800;color:var(--teal-light);display:block}
-    /* الهيدر في تابلت: أخفِ session-user واضغط الأزرار */
+    /* زر فتح السلة */
+    .mobile-cart-btn{display:flex !important}
+    /* الهيدر في تابلت */
     .hdr-session-user{display:none}
     .hdr-btn{padding:5px 10px;font-size:10px;gap:4px}
 }
+
+/* زر السلة — مخفي على الديسكتوب */
+.mobile-cart-btn{ display:none; }
 
 /* Responsive Mobile */
 @media(max-width:480px){
@@ -680,8 +751,152 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
         </div>
     </aside>
 
+    {{-- ═══════════════════ مودال السلة للموبايل ═══════════════════════ --}}
+    <div class="cart-modal-overlay" id="cartModalOverlay" @click.self="closeCartModal()">
+        <div class="cart-modal-sheet" id="cartModalSheet">
+            <div class="cart-modal-handle"></div>
+
+            {{-- رأس المودال --}}
+            <div class="cart-modal-head">
+                <h3>
+                    🛒 السلة
+                    <span class="cart-count num-ltr" x-text="cartCount"></span>
+                </h3>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <button
+                        class="btn-pos-secondary"
+                        style="padding:4px 10px;font-size:11px"
+                        @click="clearCart()"
+                        x-show="cart.length > 0"
+                        title="مسح السلة"
+                    >🗑️ مسح</button>
+                    <button class="cart-modal-close" onclick="closeCartModal()">✕</button>
+                </div>
+            </div>
+
+            {{-- العميل --}}
+            <div class="pos-customer-row" style="border-bottom:1px solid var(--border)">
+                <span>👤</span>
+                <template x-if="!customer">
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <button class="customer-name" @click="openCustomerModal()" style="font-size:12px;background:none;border:none;text-align:right">
+                            + تحديد عميل (اختياري)
+                        </button>
+                        <button class="btn-pos-secondary" @click="openAddCustomerModal()" style="font-size:11px;padding:4px 8px">
+                            + إضافة عميل
+                        </button>
+                    </div>
+                </template>
+                <template x-if="customer">
+                    <span class="customer-name" x-text="customer.name"></span>
+                </template>
+                <button class="btn-remove-customer" @click="removeCustomer()" x-show="customer" title="إزالة العميل">✕</button>
+            </div>
+
+            {{-- بنود السلة --}}
+            <div class="cart-modal-body">
+                <template x-if="cart.length === 0">
+                    <div class="cart-empty" style="padding:40px 20px">
+                        <div class="cart-empty-icon">🛍️</div>
+                        <p>السلة فارغة</p>
+                        <p style="font-size:11px">اضغط على منتج أو امسح الباركود</p>
+                    </div>
+                </template>
+
+                <template x-for="(item, idx) in cart" :key="item.product_id">
+                    <div class="cart-item">
+                        <div style="flex:1;min-width:0">
+                            <div class="cart-item-name" x-text="item.name"></div>
+                            <div class="cart-item-sub num-ltr">
+                                <span x-text="fmt(item.price) + ' × ' + item.quantity"></span>
+                                <template x-if="item.discount_percent > 0">
+                                    <span style="color:#FB8C00;margin-right:4px" x-text="' خصم ' + item.discount_percent + '%'"></span>
+                                </template>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+                                <label style="font-size:10px;color:#7EADB8">خصم%</label>
+                                <input
+                                    type="number" min="0" max="100" step="1"
+                                    class="qty-input num-ltr"
+                                    style="width:44px"
+                                    :value="item.discount_percent"
+                                    @change="updateItemDiscount(idx, $event.target.value)"
+                                >
+                            </div>
+                        </div>
+                        <div class="qty-control">
+                            <button class="qty-btn" @click="changeQty(idx, -1)">−</button>
+                            <input
+                                type="number" min="0.001" step="1"
+                                class="qty-input num-ltr"
+                                :value="item.quantity"
+                                @change="updateQty(idx, $event.target.value)"
+                            >
+                            <button class="qty-btn" @click="changeQty(idx, 1)">+</button>
+                        </div>
+                        <div class="cart-item-total num-ltr" x-text="fmt(item.total)"></div>
+                        <button class="btn-remove-item" @click="removeFromCart(idx)" title="حذف">✕</button>
+                    </div>
+                </template>
+            </div>
+
+            {{-- ملخص الأسعار --}}
+            <div class="cart-modal-summary">
+                <div class="summary-row" style="margin-bottom:6px">
+                    <span>الإجمالي الفرعي</span>
+                    <span class="num-ltr" x-text="fmt(subtotal) + ' ج.س'"></span>
+                </div>
+                <div class="discount-row" style="margin-bottom:6px">
+                    <label>خصم الفاتورة %</label>
+                    <input type="number" min="0" max="100" step="0.5" class="discount-input num-ltr" x-model="discountPercent" placeholder="0">
+                    <span class="num-ltr" style="font-size:11px;color:#E53935" x-text="totalDiscount > 0 ? '−' + fmt(totalDiscount) + ' ج.س' : ''"></span>
+                </div>
+                <template x-if="taxPercent > 0">
+                    <div class="summary-row tax" style="margin-bottom:6px">
+                        <span>ضريبة (<span class="num-ltr" x-text="taxPercent"></span>%)</span>
+                        <span class="num-ltr" x-text="fmt(taxAmount) + ' ج.س'"></span>
+                    </div>
+                </template>
+                <div class="summary-row total" style="margin-bottom:12px">
+                    <span>الإجمالي</span>
+                    <span class="num-ltr" x-text="fmt(grandTotal) + ' ج.س'"></span>
+                </div>
+                <div style="display:flex;gap:8px">
+                    <button
+                        class="btn-pos-secondary"
+                        style="flex:0 0 auto;padding:12px 16px;font-size:13px"
+                        :disabled="cart.length === 0"
+                        @click="saveDraft(); closeCartModal()"
+                    >📋 مبدئية</button>
+                    <button
+                        class="btn-checkout"
+                        style="flex:1;margin-top:0"
+                        :disabled="cart.length === 0"
+                        @click="openPaymentModal(); closeCartModal()"
+                    >💳 الدفع</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- ═══════════════════ شريط الدفع للموبايل (ثابت في الأسفل) ═══════════════════════ --}}
     <div class="mobile-checkout-bar">
+        {{-- زر فتح السلة --}}
+        <button
+            class="mobile-cart-btn"
+            onclick="openCartModal()"
+            style="position:relative;background:rgba(255,255,255,.1);border:1.5px solid var(--teal);color:var(--text);border-radius:12px;padding:10px 14px;font-size:20px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"
+            title="السلة"
+        >
+            🛒
+            <span
+                class="num-ltr"
+                x-text="cartCount"
+                x-show="cartCount > 0"
+                style="position:absolute;top:-6px;right:-6px;background:var(--teal);color:#fff;border-radius:50%;width:20px;height:20px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1"
+            ></span>
+        </button>
+
         <div class="mobile-total">
             <span class="mobile-total-label">الإجمالي</span>
             <span class="mobile-total-amount num-ltr" x-text="fmt(grandTotal) + ' ج.س'"></span>
@@ -1401,6 +1616,51 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;b
         if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
     });
 
+})();
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════
+   مودال السلة للموبايل
+══════════════════════════════════════════════════ */
+(function () {
+    var overlay = document.getElementById('cartModalOverlay');
+    if (!overlay) return;
+
+    /* فتح المودال */
+    window.openCartModal = function () {
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    };
+
+    /* إغلاق المودال */
+    window.closeCartModal = function () {
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+    };
+
+    /* إغلاق بـ Escape */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') window.closeCartModal();
+    });
+
+    /* فتح السلة تلقائياً عند إضافة أول منتج على الموبايل */
+    document.addEventListener('alpine:initialized', function () {
+        var posEl = document.querySelector('[x-data="posApp()"]') || document.querySelector('[x-data]');
+        if (!posEl || !window.Alpine) return;
+        try {
+            var data = Alpine.$data(posEl);
+            if (!data) return;
+            var prevCount = 0;
+            Alpine.effect(function () {
+                var count = data.cart ? data.cart.length : 0;
+                if (count > prevCount && count === 1 && window.innerWidth <= 768) {
+                    window.openCartModal();
+                }
+                prevCount = count;
+            });
+        } catch (e) {}
+    });
 })();
 </script>
 
