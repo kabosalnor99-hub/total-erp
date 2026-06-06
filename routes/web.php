@@ -525,11 +525,12 @@ Route::middleware(['auth', 'setlocale'])->group(function () {
 
     // ─── الذكاء الاصطناعي ──────────────────────────────────────────────
     Route::prefix('ai')->name('ai.')->group(function () {
-        Route::post('/ask',              [AiController::class, 'ask'])->name('ask');
-        Route::post('/chat',             [AiController::class, 'chat'])->name('chat');
-        Route::get('/inventory-alert',   [AiController::class, 'inventoryAlert'])->name('inventory.alert');
-        Route::get('/sales-insight',     [AiController::class, 'salesInsight'])->name('sales.insight');
-        Route::get('/purchase-forecast', [AiController::class, 'purchaseForecast'])->name('purchase.forecast');
+        Route::post('/ask',                [AiController::class, 'ask'])->name('ask');
+        Route::post('/chat',               [AiController::class, 'chat'])->name('chat');
+        Route::get('/inventory-alert',     [AiController::class, 'inventoryAlert'])->name('inventory.alert');
+        Route::get('/sales-insight',       [AiController::class, 'salesInsight'])->name('sales.insight');
+        Route::get('/purchase-forecast',   [AiController::class, 'purchaseForecast'])->name('purchase.forecast');
+        Route::get('/analysis/{module}',   [AiController::class, 'autoAnalysis'])->name('analysis');
     });
 
 }); // نهاية middleware(['auth', 'setlocale'])
