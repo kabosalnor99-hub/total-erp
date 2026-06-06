@@ -439,12 +439,8 @@
     document.addEventListener('DOMContentLoaded', function () {
         try {
             JsBarcode("#barcode", "{{ $transaction->receipt_number }}", {
-                format: "CODE128",
-                lineColor: "#000",
-                width: 2,
-                height: 40,
-                displayValue: false,
-                margin: 0
+                format: "CODE128", lineColor: "#000",
+                width: 2, height: 40, displayValue: false, margin: 0
             });
         } catch (e) { console.error('Barcode error:', e); }
     });
@@ -454,71 +450,139 @@
     window.onload = function () { window.print(); }
     @endif
 
-    /* ════════════════════════════════
-       واتساب — التقاط صورة وإرسالها
-    ════════════════════════════════ */
-    var _capturedBlob   = null;
-    var _capturedDataUrl = null;
+    /* ════════════════════════════════════════════════════
+       واتساب — Share API (موبايل) + Fallback (ديسكتوب)
+    ════════════════════════════════════════════════════ */
+    var _blob    = null;
+    var _dataUrl = null;
+    var _isCapturing = false;
+
     @if($transaction->customer && $transaction->customer->phone)
-    var _customerPhone  = '{{ preg_replace('/[^0-9]/', '', $transaction->customer->phone) }}';
+    var _phone = '{{ preg_replace('/[^0-9]/', '', $transaction->customer->phone) }}';
+    // تأكد من وجود كود الدولة — لو بدأ بـ 0 استبدله بـ 249 (السودان)
+    if (_phone.startsWith('0')) _phone = '249' + _phone.slice(1);
     @else
-    var _customerPhone  = null;
+    var _phone = null;
     @endif
 
+    var _waMsg = 'إيصال شراء رقم: {{ $transaction->receipt_number }}\nالإجمالي: {{ number_format($transaction->total, 2) }} ج.س\nشكراً لتسوقكم من توتال السودان 🛍️';
+
+    /* ── التقاط الإيصال كصورة ── */
+    function captureReceipt() {
+        return new Promise(function (resolve, reject) {
+            if (_blob) { resolve(_blob); return; }
+            var receipt = document.querySelector('.receipt');
+            var origPad = receipt.style.padding;
+            receipt.style.padding = '6mm';
+            html2canvas(receipt, {
+                scale: 3,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+                windowWidth: receipt.scrollWidth + 20,
+            }).then(function (canvas) {
+                receipt.style.padding = origPad;
+                _dataUrl = canvas.toDataURL('image/png');
+                canvas.toBlob(function (blob) {
+                    _blob = blob;
+                    resolve(_blob);
+                }, 'image/png', 1.0);
+            }).catch(function (err) {
+                receipt.style.padding = origPad;
+                reject(err);
+            });
+        });
+    }
+
+    /* ── الزر الرئيسي ── */
     function openWaModal() {
-        var modal = document.getElementById('wa-modal');
+        if (_isCapturing) return;
+
+        /* ── موبايل: Share API ── */
+        var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        var canShare  = isMobile && navigator.canShare;
+
+        if (isMobile) {
+            shareViaShareAPI();
+        } else {
+            showDesktopModal();
+        }
+    }
+
+    /* ══ موبايل: Share API ══ */
+    function shareViaShareAPI() {
+        var btn = document.querySelector('.btn-whatsapp-img');
+        var origText = btn ? btn.textContent : '';
+        if (btn) { btn.textContent = '⏳ جاري التحضير...'; btn.disabled = true; }
+        _isCapturing = true;
+
+        captureReceipt().then(function (blob) {
+            _isCapturing = false;
+            if (btn) { btn.textContent = origText; btn.disabled = false; }
+
+            var file = new File([blob], 'receipt-{{ $transaction->receipt_number }}.png', { type: 'image/png' });
+
+            /* هل المتصفح يدعم مشاركة الملفات؟ */
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    files: [file],
+                    text: _waMsg,
+                }).catch(function (err) {
+                    /* المستخدم ألغى — لا نعرض خطأ */
+                    if (err.name !== 'AbortError') showDesktopModal();
+                });
+            } else {
+                /* Share API موجود لكن لا يدعم الملفات — افتح واتساب بنص */
+                var waUrl = _phone
+                    ? 'https://wa.me/' + _phone + '?text=' + encodeURIComponent(_waMsg)
+                    : 'https://wa.me/?text='  + encodeURIComponent(_waMsg);
+                window.open(waUrl, '_blank');
+                /* واعرض زر التحميل أيضاً */
+                showDesktopModal(true);
+            }
+        }).catch(function () {
+            _isCapturing = false;
+            if (btn) { btn.textContent = origText; btn.disabled = false; }
+            alert('تعذّر التقاط الصورة، تأكد من السماح بالصلاحيات.');
+        });
+    }
+
+    /* ══ ديسكتوب / fallback: المودال ══ */
+    function showDesktopModal(imageReady) {
+        var modal   = document.getElementById('wa-modal');
+        var spinner = document.getElementById('wa-spinner');
+        var preview = document.getElementById('wa-preview');
+        var actBtn  = document.getElementById('wa-actions');
+        var actNC   = document.getElementById('wa-actions-no-customer');
+
         modal.classList.add('open');
-        _capturedBlob    = null;
-        _capturedDataUrl = null;
+        spinner.style.display = 'block';
+        preview.style.display = 'none';
+        actBtn.style.display  = 'none';
+        if (actNC) actNC.style.display = 'none';
 
-        var spinner  = document.getElementById('wa-spinner');
-        var preview  = document.getElementById('wa-preview');
-        var actions  = document.getElementById('wa-actions');
-        var actionsNC = document.getElementById('wa-actions-no-customer');
-        spinner.style.display  = 'block';
-        preview.style.display  = 'none';
-        actions.style.display  = 'none';
-        if (actionsNC) actionsNC.style.display = 'none';
-
-        /* نضيف padding مؤقت للإيصال لتلافي القطع */
-        var receipt = document.querySelector('.receipt');
-        var origPad = receipt.style.padding;
-        receipt.style.padding = '6mm';
-
-        html2canvas(receipt, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff'
-        }).then(function (canvas) {
-            receipt.style.padding = origPad;
-
-            _capturedDataUrl = canvas.toDataURL('image/png');
-
-            /* عرض المعاينة */
-            preview.src = _capturedDataUrl;
+        var doShow = function () {
+            preview.src = _dataUrl;
             preview.style.display = 'block';
             spinner.style.display = 'none';
 
-            /* تحويل dataURL → Blob للمشاركة الأصلية */
-            canvas.toBlob(function (blob) {
-                _capturedBlob = blob;
-            }, 'image/png');
-
-            /* بناء رابط الواتساب */
-            if (_customerPhone) {
-                var msg = 'إيصال شراء رقم: {{ $transaction->receipt_number }}\nالمبلغ: {{ number_format($transaction->total, 2) }} ج.س\nشكراً لتسوقكم من توتال السودان 🛍️';
+            if (_phone) {
                 var waLink = document.getElementById('wa-send-link');
-                if (waLink) waLink.href = 'https://wa.me/' + _customerPhone + '?text=' + encodeURIComponent(msg);
-                actions.style.display = 'flex';
+                if (waLink) waLink.href = 'https://wa.me/' + _phone + '?text=' + encodeURIComponent(_waMsg);
+                actBtn.style.display = 'flex';
             } else {
-                if (actionsNC) actionsNC.style.display = 'block';
+                if (actNC) actNC.style.display = 'block';
             }
-        }).catch(function (err) {
-            receipt.style.padding = origPad;
-            spinner.textContent = '❌ تعذّر التقاط الصورة';
-            console.error('html2canvas error:', err);
-        });
+        };
+
+        if (imageReady && _dataUrl) {
+            doShow();
+        } else {
+            captureReceipt().then(function () { doShow(); })
+            .catch(function () {
+                spinner.textContent = '❌ تعذّر التقاط الصورة';
+            });
+        }
     }
 
     function closeWaModal() {
@@ -526,14 +590,13 @@
     }
 
     function downloadReceiptImage() {
-        if (!_capturedDataUrl) return;
+        if (!_dataUrl) return;
         var a = document.createElement('a');
-        a.href = _capturedDataUrl;
+        a.href = _dataUrl;
         a.download = 'receipt-{{ $transaction->receipt_number }}.png';
         a.click();
     }
 
-    /* إغلاق عند النقر خارج المودال */
     document.getElementById('wa-modal').addEventListener('click', function (e) {
         if (e.target === this) closeWaModal();
     });
