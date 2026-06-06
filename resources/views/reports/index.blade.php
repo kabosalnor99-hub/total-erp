@@ -13,6 +13,44 @@
         <p class="text-sm text-gray-500 mt-1">{{ __('reports.subtitle') }}</p>
     </div>
 
+
+    {{-- ═══════════════════ بطاقة التحليل الذكي ═══════════════════ --}}
+    <div style="background:linear-gradient(135deg,#0d2137,#1a3a4a);
+                border:1px solid #0d9488;border-radius:16px;padding:20px;margin-bottom:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="color:#4FB3C0;font-size:16px;font-weight:800;margin:0">🤖 تحليل ذكي للتقارير</h3>
+            <button onclick="loadAiAnalysis()" id="refresh-analysis"
+                style="background:#0d9488;color:#fff;border:none;border-radius:8px;
+                       padding:6px 14px;cursor:pointer;font-size:12px;font-family:inherit">
+                🔄 تحديث
+            </button>
+        </div>
+        <div id="ai-report-text" style="color:#c8e6ea;font-size:13px;line-height:1.8">
+            اضغط تحديث لعرض التحليل الذكي...
+        </div>
+    </div>
+
+    <script>
+    function loadAiAnalysis() {
+        var el  = document.getElementById('ai-report-text');
+        var btn = document.getElementById('refresh-analysis');
+        el.textContent = '⏳ جاري التحليل...';
+        btn.disabled   = true;
+
+        fetch('/ai/sales-insight')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            el.textContent = data.response || 'لا يوجد تحليل متاح';
+            btn.disabled   = false;
+        })
+        .catch(function() {
+            el.textContent = '❌ تعذّر الاتصال بالمساعد الذكي';
+            btn.disabled   = false;
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() { loadAiAnalysis(); });
+    </script>
+
     {{-- Reports Grid --}}
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
 
