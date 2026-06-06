@@ -11,6 +11,7 @@ use App\Models\PosSession;
 use App\Models\PosTransaction;
 use App\Models\Product;
 use App\Services\PosService;
+use App\Services\AiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -277,4 +278,45 @@ class PosController extends Controller
             ->limit(10)
             ->get();
     }
+
+    /**
+     * GET /pos/smart-search
+     * بحث ذكي عن المنتجات باستخدام الذكاء الاصطناعي
+     */
+    public function smartSearch(Request $request, AiService $ai): JsonResponse
+    {
+        $query = $request->input('q', '');
+
+        if (empty(trim($query))) {
+            return response()->json(['products' => [], 'ai_query' => $query]);
+        }
+
+        $products = Product::select('name_ar', 'name_en', 'sku', 'sale_price', 'quantity')
+            ->where('quantity', '>', 0)
+            ->take(50)
+            ->get()
+            ->toArray();
+
+        $prompt = "العميل يبحث عن: '{$query}'\n"
+            . "المنتجات المتاحة: " . json_encode($products, JSON_UNESCAPED_UNICODE) . "\n"
+            . "أعطِ أسماء أفضل 3 منتجات مناسبة فقط كـ JSON array هكذا: [\"اسم1\",\"اسم2\",\"اسم3\"]\n"
+            . "لا تكتب أي شيء غير الـ JSON array.";
+
+        $result = $ai->ask($prompt, [], 200);
+
+        // استخراج JSON من الرد حتى لو جاء مع نص إضافي
+        preg_match('/\[.*?\]/s', $result, $matches);
+        $names = isset($matches[0]) ? json_decode($matches[0], true) : [];
+        $names = is_array($names) ? $names : [];
+
+        $found = Product::whereIn('name_ar', $names)
+            ->where('quantity', '>', 0)
+            ->get();
+
+        return response()->json([
+            'products'  => $found,
+            'ai_query'  => $query,
+        ]);
+    }
+
 }
